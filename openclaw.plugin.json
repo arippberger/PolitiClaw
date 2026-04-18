@@ -1,0 +1,12 @@
+{
+  "id": "politiclaw",
+  "name": "PolitiClaw",
+  "description": "Local-first personal political co-pilot: monitors legislation, tracks representatives, prepares you for elections, and drafts outreach.",
+  "version": "0.0.1",
+  "skills": ["skills"],
+  "configSchema": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {}
+  }
+}
