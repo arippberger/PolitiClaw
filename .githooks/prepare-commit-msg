@@ -1,5 +1,0 @@
-#!/bin/sh
-# Strip tool-injected attribution lines from commit messages (does not run until hooksPath is set).
-msg_file="$1"
-[ -n "$msg_file" ] && [ -f "$msg_file" ] || exit 0
-perl -i -ne 'print unless /^Made-with:/i' "$msg_file"
