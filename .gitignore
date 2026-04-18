@@ -10,3 +10,4 @@ dist/
 coverage/
 .vitest/
 *.tsbuildinfo
+.githooks/prepare-commit-msg
