@@ -6,6 +6,8 @@ import { repsTools } from "./tools/reps.js";
 import { shapefileTools } from "./tools/downloadShapefiles.js";
 import { billsTools } from "./tools/bills.js";
 import { scoringTools } from "./tools/scoring.js";
+import { repReportTools } from "./tools/repReport.js";
+import { repScoringTools } from "./tools/repScoring.js";
 import { monitoringTools } from "./tools/monitoring.js";
 import { monitoringSetupTools } from "./tools/monitoringSetup.js";
 import { voteIngestTools } from "./tools/voteIngest.js";
@@ -16,6 +18,8 @@ const allTools = [
   ...shapefileTools,
   ...billsTools,
   ...scoringTools,
+  ...repScoringTools,
+  ...repReportTools,
   ...monitoringTools,
   ...monitoringSetupTools,
   ...voteIngestTools,

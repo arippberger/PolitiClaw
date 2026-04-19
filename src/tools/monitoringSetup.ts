@@ -77,9 +77,9 @@ export const setupMonitoringTool: AnyAgentTool = {
   name: "politiclaw_setup_monitoring",
   label: "Install PolitiClaw default monitoring cron jobs",
   description:
-    "Install (or upsert in place) the three default PolitiClaw monitoring cron " +
-    "jobs: weekly_summary (every 7d), rep_vote_watch (every 6h), tracked_hearings " +
-    "(every 12h). Idempotent — re-running patches existing jobs rather than " +
+    "Install (or upsert in place) the default PolitiClaw monitoring cron jobs: " +
+    "weekly_summary (every 7d), rep_vote_watch (every 6h), tracked_hearings (every 12h), " +
+    "rep_report (~every 30d). Idempotent — re-running patches existing jobs rather than " +
     "duplicating them. Submits via the gateway's cron.add / cron.update RPC; " +
     "does not edit jobs.json directly. Behavior of each job is controlled by " +
     `the skills/politiclaw-monitoring and skills/politiclaw-summary markdown — ` +

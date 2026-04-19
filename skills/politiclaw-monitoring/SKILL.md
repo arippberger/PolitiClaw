@@ -6,9 +6,10 @@ description: >-
   (dissenting view discipline) from docs/risks.md §4.
 read_when:
   - A PolitiClaw cron template fires (weekly_summary, rep_vote_watch,
-    tracked_hearings).
+    tracked_hearings, rep_report).
   - The user invokes politiclaw_check_upcoming_votes directly and asks for a
     summary.
+  - The user runs `politiclaw_rep_report` or the `rep_report` cron job fires.
 ---
 
 # politiclaw-monitoring
@@ -118,6 +119,22 @@ deterministic sources" instead.
 - Include the `ALIGNMENT_DISCLAIMER` verbatim at the bottom of any message
   that includes scoring output. `politiclaw_check_upcoming_votes` already
   emits it when scoring is present — don't strip it.
+
+## Rep report (periodic digest)
+
+When `politiclaw_rep_report` runs (manually or via `politiclaw.rep_report` cron):
+
+1. Call the tool exactly once unless the user asks for a refresh. It re-scores
+   every stored representative deterministically from the SQLite DB (House
+   roll-call votes plus bill alignment and stance signals).
+2. Preserve the tool's markdown bill links (`congress.gov`) — tier-1 primary
+   source for federal bill identity.
+3. Repeat the dissenting-view discipline where the evidence set allows it: if
+   every cited vote lines up with the user's stance, explicitly say there is
+   no contrary signal in this month's counted votes (do not invent opposition).
+4. Honesty about blind spots (docs/risks.md section 8): call out bills that
+   matched issues but lack stance signals; note Senate coverage limits until
+   Senate ingest lands. Never use LLM search for vote positions.
 
 ## 7. When to stay silent
 

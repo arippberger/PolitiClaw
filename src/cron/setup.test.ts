@@ -16,6 +16,7 @@ import {
 import {
   POLITICLAW_CRON_NAMES,
   POLITICLAW_CRON_TEMPLATES,
+  REP_REPORT_TEMPLATE,
   REP_VOTE_WATCH_TEMPLATE,
   TRACKED_HEARINGS_TEMPLATE,
   WEEKLY_SUMMARY_TEMPLATE,
@@ -116,8 +117,8 @@ afterEach(() => {
 });
 
 describe("cron/templates", () => {
-  it("declares exactly three templates with namespaced names", () => {
-    expect(POLITICLAW_CRON_TEMPLATES).toHaveLength(3);
+  it("declares every template with namespaced names", () => {
+    expect(POLITICLAW_CRON_TEMPLATES).toHaveLength(4);
     for (const template of POLITICLAW_CRON_TEMPLATES) {
       expect(template.name.startsWith("politiclaw.")).toBe(true);
       expect(template.payload.kind).toBe("agentTurn");
@@ -128,6 +129,7 @@ describe("cron/templates", () => {
       "politiclaw.weekly_summary",
       "politiclaw.rep_vote_watch",
       "politiclaw.tracked_hearings",
+      "politiclaw.rep_report",
     ]);
   });
 
@@ -144,10 +146,13 @@ describe("cron/templates", () => {
       TRACKED_HEARINGS_TEMPLATE.schedule.kind === "every"
         ? TRACKED_HEARINGS_TEMPLATE.schedule.everyMs
         : 0;
+    const reportMs =
+      REP_REPORT_TEMPLATE.schedule.kind === "every" ? REP_REPORT_TEMPLATE.schedule.everyMs : 0;
     expect(weeklyMs).toBe(7 * 24 * 60 * 60 * 1000);
     expect(repMs).toBe(6 * 60 * 60 * 1000);
     expect(hearingMs).toBe(12 * 60 * 60 * 1000);
-    expect(new Set([weeklyMs, repMs, hearingMs]).size).toBe(3);
+    expect(reportMs).toBe(30 * 24 * 60 * 60 * 1000);
+    expect(new Set([weeklyMs, repMs, hearingMs, reportMs]).size).toBe(4);
   });
 });
 
@@ -156,20 +161,21 @@ describe("setupMonitoring", () => {
     resetGatewayCronAdapterForTests();
   });
 
-  it("creates all three jobs on a first run", async () => {
+  it("creates every default job on a first run", async () => {
     const { adapter, jobs, calls } = createInMemoryAdapter();
     setGatewayCronAdapterForTests(adapter);
 
     const result = await setupMonitoring();
 
-    expect(result.outcomes).toHaveLength(3);
+    expect(result.outcomes).toHaveLength(4);
     expect(result.outcomes.map((o) => o.action)).toEqual([
+      "created",
       "created",
       "created",
       "created",
     ]);
     expect(jobs.map((j) => j.name)).toEqual(POLITICLAW_CRON_NAMES);
-    expect(calls.filter((c) => c.method === "add")).toHaveLength(3);
+    expect(calls.filter((c) => c.method === "add")).toHaveLength(4);
     expect(calls.filter((c) => c.method === "update")).toHaveLength(0);
   });
 
@@ -181,6 +187,7 @@ describe("setupMonitoring", () => {
     const again = await setupMonitoring();
 
     expect(again.outcomes.map((o) => o.action)).toEqual([
+      "unchanged",
       "unchanged",
       "unchanged",
       "unchanged",
@@ -270,6 +277,7 @@ describe("pauseMonitoring / resumeMonitoring", () => {
       "paused",
       "paused",
       "paused",
+      "paused",
     ]);
     for (const job of jobs) {
       if (job.name === "user.daily_brief") {
@@ -312,6 +320,7 @@ describe("pauseMonitoring / resumeMonitoring", () => {
     const resumed = await resumeMonitoring();
 
     expect(resumed.outcomes.map((o) => o.action)).toEqual([
+      "resumed",
       "resumed",
       "resumed",
       "resumed",

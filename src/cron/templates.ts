@@ -1,7 +1,7 @@
 /**
  * Declarative PolitiClaw cron templates.
  *
- * These describe the three default monitoring jobs installed by
+ * These describe the default monitoring jobs installed by
  * `politiclaw_setup_monitoring`. Each template carries a stable, namespaced
  * `name` so re-runs are idempotent (we match existing cron jobs by name and
  * upsert in-place).
@@ -22,6 +22,8 @@
 
 const MS_IN_HOUR = 60 * 60 * 1000;
 const MS_IN_DAY = 24 * MS_IN_HOUR;
+/** Approximate lunar month cadence — month boundaries vary; 30d is intentional. */
+const MS_IN_MONTH = 30 * MS_IN_DAY;
 
 export type CronTemplateSchedule =
   | { kind: "every"; everyMs: number }
@@ -75,9 +77,8 @@ export const REP_VOTE_WATCH_TEMPLATE: PolitiClawCronTemplate = {
   description:
     "Every 6h: checks for new or materially changed federal bills and " +
     "committee events affecting tracked issues (change-detection-gated, so " +
-    "quiet windows produce no output). Roll-call vote ingest per rep is deferred " +
-    "to Phase 5; today this job surfaces bill status transitions and upcoming " +
-    "committee activity on the user's declared stances.",
+    "quiet windows produce no output). Pair with politiclaw_ingest_house_votes " +
+    "for tier-1 House roll calls; senators remain limited until Senate ingest lands.",
   schedule: { kind: "every", everyMs: 6 * MS_IN_HOUR },
   sessionTarget: "isolated",
   wakeMode: "next-heartbeat",
@@ -88,9 +89,9 @@ export const REP_VOTE_WATCH_TEMPLATE: PolitiClawCronTemplate = {
       "Call politiclaw_check_upcoming_votes with the default (recent) window. " +
       "Only surface bills flagged as [new] or [changed] whose alignment crosses " +
       "the confidence floor. If the delta is empty, post the one-line silent-ok " +
-      "message per the skill — do not pad. Rep-level roll-call vote ingest is " +
-      "deferred to Phase 5; this run only covers bill-status changes and upcoming " +
-      "committee activity.",
+      "message per the skill — do not pad. Senate roll-call ingest is still " +
+      "limited (Phase 5a deviations); prioritize bill-status deltas and committee " +
+      "activity unless politiclaw_ingest_house_votes has populated House votes.",
   },
   delivery: { mode: "announce", channel: "last" },
 };
@@ -117,10 +118,28 @@ export const TRACKED_HEARINGS_TEMPLATE: PolitiClawCronTemplate = {
   delivery: { mode: "announce", channel: "last" },
 };
 
+export const REP_REPORT_TEMPLATE: PolitiClawCronTemplate = {
+  name: "politiclaw.rep_report",
+  description:
+    "Every ~30 days: deterministic representative alignment digest vs. declared " +
+    "issue stances and recorded bill signals (House roll calls only until Senate " +
+    "ingest lands). Calls politiclaw_rep_report; honors docs/risks.md sections 1, 4, and 8.",
+  schedule: { kind: "every", everyMs: MS_IN_MONTH },
+  sessionTarget: "isolated",
+  wakeMode: "next-heartbeat",
+  payload: {
+    kind: "agentTurn",
+    message:
+      "Run the PolitiClaw periodic representative alignment report. Read skills/politiclaw-monitoring/SKILL.md → Rep report (periodic digest). Call politiclaw_rep_report once. Include the dissenting-view obligation where applicable (docs/risks.md section 4); never strip the alignment disclaimer footer from tool output when scores are shown. If the tool returns no_stances or no_reps, post only the actionable fix.",
+  },
+  delivery: { mode: "announce", channel: "last" },
+};
+
 export const POLITICLAW_CRON_TEMPLATES: readonly PolitiClawCronTemplate[] = [
   WEEKLY_SUMMARY_TEMPLATE,
   REP_VOTE_WATCH_TEMPLATE,
   TRACKED_HEARINGS_TEMPLATE,
+  REP_REPORT_TEMPLATE,
 ];
 
 export const POLITICLAW_CRON_NAMES: readonly string[] =

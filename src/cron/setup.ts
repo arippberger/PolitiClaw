@@ -118,7 +118,7 @@ function deepEqual(left: unknown, right: unknown): boolean {
 }
 
 /**
- * Install (or update in place) the three PolitiClaw monitoring cron jobs.
+ * Install (or update in place) the PolitiClaw default monitoring cron jobs.
  * Idempotent: re-running produces "unchanged" outcomes when templates are
  * already live and matching.
  */

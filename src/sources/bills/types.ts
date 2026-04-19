@@ -53,3 +53,38 @@ export type BillListFilters = {
 export function billIdOf(ref: BillRef): string {
   return `${ref.congress}-${ref.billType.toLowerCase()}-${ref.number}`;
 }
+
+/** Maps canonical lowercase bill-type segment to congress.gov URL path segment. */
+const CONGRESS_GOV_BILL_SLUGS: Record<string, string> = {
+  hr: "house-bill",
+  s: "senate-bill",
+  hres: "house-resolution",
+  sres: "senate-resolution",
+  hjres: "house-joint-resolution",
+  sjres: "senate-joint-resolution",
+  hconres: "house-concurrent-resolution",
+  sconres: "senate-concurrent-resolution",
+};
+
+/**
+ * Public congress.gov bill page URL for a canonical PolitiClaw bill id
+ * (`119-hr-1234`). Returns null when the id cannot be mapped.
+ */
+export function congressGovPublicBillUrl(canonicalBillId: string): string | null {
+  const trimmed = canonicalBillId.trim().toLowerCase();
+  const parts = trimmed.split("-");
+  if (parts.length < 3) {
+    return null;
+  }
+  const congress = parts[0];
+  const billType = parts[1];
+  const number = parts.slice(2).join("-");
+  if (!congress || !/^\d+$/.test(congress) || !billType) {
+    return null;
+  }
+  const slug = CONGRESS_GOV_BILL_SLUGS[billType];
+  if (!slug) {
+    return null;
+  }
+  return `https://www.congress.gov/bill/${congress}/${slug}/${number}`;
+}
