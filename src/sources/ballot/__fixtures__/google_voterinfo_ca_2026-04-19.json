@@ -1,0 +1,81 @@
+{
+  "kind": "civicinfo#voterInfoResponse",
+  "election": {
+    "id": "4999",
+    "name": "California General Election",
+    "electionDay": "2026-11-03",
+    "ocdDivisionId": "ocd-division/country:us/state:ca"
+  },
+  "normalizedInput": {
+    "line1": "1600 Amphitheatre Parkway",
+    "city": "Mountain View",
+    "state": "CA",
+    "zip": "94043"
+  },
+  "pollingLocations": [
+    {
+      "address": {
+        "locationName": "Example Vote Center",
+        "line1": "100 Elm St",
+        "city": "Mountain View",
+        "state": "CA",
+        "zip": "94043"
+      },
+      "pollingHours": "07:00-20:00",
+      "notes": "",
+      "sources": []
+    }
+  ],
+  "state": [
+    {
+      "name": "California",
+      "electionAdministrationBody": {
+        "electionRegistrationUrl": "https://registertovote.ca.gov/",
+        "electionRegistrationConfirmationUrl": "https://voterstatus.sos.ca.gov/",
+        "electionInformationUrl": "https://www.sos.ca.gov/elections"
+      }
+    }
+  ],
+  "contests": [
+    {
+      "type": "General",
+      "office": "Governor",
+      "level": "administrativeArea1",
+      "roles": ["headOfGovernment"],
+      "district": {
+        "name": "California Governor",
+        "scope": "statewide",
+        "type": "statewide"
+      },
+      "sources": [{ "name": "Official sample ballot note", "official": true }],
+      "candidates": [
+        {
+          "name": "Alex Candidate",
+          "party": "Democratic",
+          "candidateUrl": "https://example.invalid/governor-a",
+          "channels": []
+        },
+        {
+          "name": "Jordan Candidate",
+          "party": "Republican",
+          "candidateUrl": "https://example.invalid/governor-b",
+          "channels": []
+        }
+      ]
+    },
+    {
+      "type": "Referendum",
+      "office": null,
+      "referendumTitle": "Proposition 99 — Housing Bonds",
+      "referendumSubtitle": "Authorizes general obligation bonds.",
+      "referendumUrl": "https://example.invalid/prop99",
+      "district": {
+        "name": "California",
+        "scope": "statewide",
+        "type": "statewide"
+      },
+      "sources": [],
+      "candidates": []
+    }
+  ]
+}

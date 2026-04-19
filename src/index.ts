@@ -4,6 +4,7 @@ import { configureStorage, type PluginConfigSnapshot } from "./storage/context.j
 import { politiclawTools as preferencesTools } from "./tools/preferences.js";
 import { repsTools } from "./tools/reps.js";
 import { shapefileTools } from "./tools/downloadShapefiles.js";
+import { ballotTools } from "./tools/ballot.js";
 import { billsTools } from "./tools/bills.js";
 import { scoringTools } from "./tools/scoring.js";
 import { repReportTools } from "./tools/repReport.js";
@@ -17,6 +18,7 @@ const allTools = [
   ...repsTools,
   ...shapefileTools,
   ...billsTools,
+  ...ballotTools,
   ...scoringTools,
   ...repScoringTools,
   ...repReportTools,

@@ -19,6 +19,7 @@ export type PluginConfigSnapshot = {
     democracyWorks?: string;
     cicero?: string;
     ballotReady?: string;
+    googleCivic?: string;
   };
 };
 

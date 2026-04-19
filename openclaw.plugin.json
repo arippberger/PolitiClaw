@@ -52,6 +52,10 @@
           "ballotReady": {
             "type": "string",
             "description": "OPTIONAL UPGRADE (commercial). Structured down-ballot data for Phase 6 (ADR-004). Default v1 scope covers federal + statewide + 6 state SoS feeds; BallotReady lights up full down-ballot."
+          },
+          "googleCivic": {
+            "type": "string",
+            "description": "OPTIONAL but required for politiclaw_get_my_ballot in Phase 6. Google Cloud API key with Civic Information API enabled (ADR-004 voterInfoQuery). Distinct from api.data.gov — create at Google Cloud console."
           }
         }
       }
