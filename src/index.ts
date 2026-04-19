@@ -7,6 +7,7 @@ import { shapefileTools } from "./tools/downloadShapefiles.js";
 import { billsTools } from "./tools/bills.js";
 import { scoringTools } from "./tools/scoring.js";
 import { monitoringTools } from "./tools/monitoring.js";
+import { monitoringSetupTools } from "./tools/monitoringSetup.js";
 
 const allTools = [
   ...preferencesTools,
@@ -15,6 +16,7 @@ const allTools = [
   ...billsTools,
   ...scoringTools,
   ...monitoringTools,
+  ...monitoringSetupTools,
 ];
 
 export default definePluginEntry({
