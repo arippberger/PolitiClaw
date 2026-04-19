@@ -12,6 +12,7 @@ import { repScoringTools } from "./tools/repScoring.js";
 import { monitoringTools } from "./tools/monitoring.js";
 import { monitoringSetupTools } from "./tools/monitoringSetup.js";
 import { voteIngestTools } from "./tools/voteIngest.js";
+import { researchCandidateTools } from "./tools/researchCandidate.js";
 
 const allTools = [
   ...preferencesTools,
@@ -25,6 +26,7 @@ const allTools = [
   ...monitoringTools,
   ...monitoringSetupTools,
   ...voteIngestTools,
+  ...researchCandidateTools,
 ];
 
 export default definePluginEntry({

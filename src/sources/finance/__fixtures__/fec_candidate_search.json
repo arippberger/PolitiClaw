@@ -1,0 +1,26 @@
+{
+  "api_version": "1.0",
+  "pagination": {
+    "count": 1,
+    "page": 1,
+    "pages": 1,
+    "per_page": 20
+  },
+  "results": [
+    {
+      "candidate_id": "H0EX01234",
+      "name": "EXAMPLE, ALEX",
+      "party": "DEM",
+      "party_full": "DEMOCRATIC PARTY",
+      "office": "H",
+      "office_full": "House",
+      "state": "CA",
+      "district": "12",
+      "incumbent_challenge": "I",
+      "incumbent_challenge_full": "Incumbent",
+      "cycles": [2020, 2022, 2024],
+      "election_years": [2020, 2022, 2024],
+      "active_through": 2024
+    }
+  ]
+}

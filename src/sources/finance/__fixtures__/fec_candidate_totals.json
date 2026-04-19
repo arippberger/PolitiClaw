@@ -1,0 +1,33 @@
+{
+  "api_version": "1.0",
+  "pagination": {
+    "count": 2,
+    "page": 1,
+    "pages": 1,
+    "per_page": 20
+  },
+  "results": [
+    {
+      "candidate_id": "H0EX01234",
+      "cycle": 2024,
+      "receipts": 1234567.89,
+      "disbursements": 987654.32,
+      "cash_on_hand_end_period": 246913.57,
+      "individual_contributions": 900000.0,
+      "other_political_committee_contributions": 200000.0,
+      "candidate_contribution": 50000.0,
+      "coverage_end_date": "2024-12-31T00:00:00"
+    },
+    {
+      "candidate_id": "H0EX01234",
+      "cycle": 2022,
+      "receipts": 850000.0,
+      "disbursements": 820000.0,
+      "cash_on_hand_end_period": 30000.0,
+      "individual_contributions": 600000.0,
+      "other_political_committee_contributions": 150000.0,
+      "candidate_contribution": null,
+      "coverage_end_date": "2022-12-31T00:00:00"
+    }
+  ]
+}
