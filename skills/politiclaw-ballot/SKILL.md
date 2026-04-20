@@ -24,7 +24,8 @@ read_when:
 - `politiclaw_get_my_ballot` lists logistics and contests from Google Civic when `googleCivic` is configured. Treat candidate rows as identifiers from an aggregator (tier 2), not verified bios.
 - `politiclaw_research_candidate` returns federal finance totals from FEC OpenFEC (tier 1) when `apiDataGov` is configured. Use the `name` mode first to resolve a candidate id; then call with `candidateId` for per-cycle totals. Numbers are FEC-only — no industry rollups, no top donors, no independent expenditures until an OpenSecrets slice lands.
 - `politiclaw_research_challengers` starts from the user's stored reps (not the ballot snapshot — it works without `googleCivic`) and compares every FEC filing in each race side-by-side for a given cycle. Incumbent vs challenger labels come from FEC's `incumbent_challenge` field only — never infer from name matches. Default cycle is the current election cycle; let the user pass `cycle` for historical comparisons.
-- Future tools add state SoS feeds (six states), Vote Smart bios, and `explain_my_ballot` narratives — follow this skill when those ship.
+- `politiclaw_explain_my_ballot` wraps `get_my_ballot` with deterministic per-contest framing. For measures it renders "A YES vote would / A NO vote would" lines sourced from Google Civic's published subtitle (tier 2 — always tell the user to verify against the full text). For candidate races it enumerates what the race decides and attaches bios via the `webSearch/bios` adapter when wired; bios are tier 5 by default and only reach tier 1/2 when every citation is a primary-government or neutral civic infrastructure domain. The tool never says "vote YES/NO"; mirror that discipline in your own summaries.
+- Future tools add state SoS feeds (six states) and a live web-search transport for `webSearch/bios` — follow this skill when those ship.
 
 ## Citing `research_candidate` output
 
@@ -39,6 +40,14 @@ read_when:
 - Do not rank "who should win" or "who is a better bet." Present figures; let the user draw conclusions (§1).
 - When a row has `no FEC totals available for this cycle yet`, say so — early-cycle filings are often incomplete. Do not fill with narrative guesses about likely war-chest size.
 - When a race has "No FEC candidates filed yet," point at primary filing deadlines as a likely cause rather than concluding the race is uncontested.
+
+## Citing `explain_my_ballot` output
+
+- Preserve the "A YES vote would / A NO vote would" framing verbatim when summarizing — do not collapse it into a recommendation.
+- When a contest is flagged `insufficient data`, tell the user it means "we matched no declared stance and have no bio enrichment," not "this contest doesn't matter."
+- When bios are attached, always name the tier (1, 2, or 5) and keep the verify-against-official-source disclaimer in your summary; the bio narrative is a paraphrase of cited sources, not primary text.
+- Never add the word "recommend" or "endorse" to the output. The tool deliberately omits both; echoing them would defeat the §1 posture.
+- If the user pushes for a recommendation, point them at specific structured artifacts (candidate websites, official sample ballot, `politiclaw_score_representative` for a sitting member's record) rather than stating a preference.
 
 ## Tone
 
