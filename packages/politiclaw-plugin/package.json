@@ -1,0 +1,47 @@
+{
+  "name": "politiclaw",
+  "version": "0.0.1",
+  "description": "Local-first OpenClaw plugin: a personal political co-pilot for legislation, reps, elections, and action.",
+  "type": "module",
+  "main": "./src/index.ts",
+  "files": [
+    "src",
+    "skills",
+    "openclaw.plugin.json",
+    "README.md"
+  ],
+  "openclaw": {
+    "extensions": [
+      "./src/index.ts"
+    ]
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "dev": "tsx watch src/index.ts",
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "lint": "eslint --config ../../eslint.config.js .",
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "dependencies": {
+    "@turf/boolean-point-in-polygon": "^7.3.5",
+    "better-sqlite3": "^11.5.0",
+    "js-yaml": "^4.1.1",
+    "openclaw": "*",
+    "shapefile": "^0.6.6",
+    "zod": "^3.23.0"
+  },
+  "devDependencies": {
+    "@types/better-sqlite3": "^7.6.0",
+    "@types/js-yaml": "^4.0.9",
+    "@types/node": "^22.0.0",
+    "eslint": "^9.0.0",
+    "tsx": "^4.19.0",
+    "typescript": "^5.6.0",
+    "typescript-eslint": "^8.0.0",
+    "vitest": "^3.0.0"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

@@ -11,3 +11,4 @@ coverage/
 .vitest/
 *.tsbuildinfo
 .githooks/prepare-commit-msg
+apps/docs/.vitepress/cache/

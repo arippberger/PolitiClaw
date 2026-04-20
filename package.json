@@ -1,43 +1,21 @@
 {
-  "name": "politiclaw",
+  "name": "politiclaw-workspace",
   "version": "0.0.1",
-  "description": "Local-first OpenClaw plugin: a personal political co-pilot for legislation, reps, elections, and action.",
+  "private": true,
   "type": "module",
-  "main": "./src/index.ts",
-  "files": [
-    "src",
-    "skills",
-    "openclaw.plugin.json",
-    "README.md"
+  "workspaces": [
+    "packages/*",
+    "apps/*"
   ],
-  "openclaw": {
-    "extensions": "./src/index.ts"
-  },
   "scripts": {
-    "build": "tsc",
-    "dev": "tsx watch src/index.ts",
-    "typecheck": "tsc --noEmit",
-    "lint": "eslint .",
-    "test": "vitest run",
-    "test:watch": "vitest"
-  },
-  "dependencies": {
-    "@turf/boolean-point-in-polygon": "^7.3.5",
-    "better-sqlite3": "^11.5.0",
-    "js-yaml": "^4.1.1",
-    "openclaw": "*",
-    "shapefile": "^0.6.6",
-    "zod": "^3.23.0"
-  },
-  "devDependencies": {
-    "@types/better-sqlite3": "^7.6.0",
-    "@types/js-yaml": "^4.0.9",
-    "@types/node": "^22.0.0",
-    "eslint": "^9.0.0",
-    "tsx": "^4.19.0",
-    "typescript": "^5.6.0",
-    "typescript-eslint": "^8.0.0",
-    "vitest": "^3.0.0"
+    "build": "npm run build --workspace politiclaw && npm run build --workspace @politiclaw/docs",
+    "dev:plugin": "npm run dev --workspace politiclaw",
+    "docs:dev": "npm run dev --workspace @politiclaw/docs",
+    "docs:build": "npm run build --workspace @politiclaw/docs",
+    "docs:preview": "npm run preview --workspace @politiclaw/docs",
+    "typecheck": "npm run typecheck --workspace politiclaw",
+    "lint": "npm run lint --workspace politiclaw",
+    "test": "npm run test --workspace politiclaw"
   },
   "engines": {
     "node": ">=20"
