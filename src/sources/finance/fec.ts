@@ -68,6 +68,10 @@ export interface FecAdapter {
   getCandidateSummary(
     candidateId: string,
   ): Promise<AdapterResult<FederalCandidateFinancialSummary>>;
+  getCandidateTotals(
+    candidateId: string,
+    cycle?: number,
+  ): Promise<AdapterResult<FederalCandidateFinancialTotals[]>>;
 }
 
 function normalizeOffice(raw?: string): FederalCandidateRef["office"] {
@@ -179,16 +183,25 @@ export function createFecAdapter(options: FecAdapterOptions): FecAdapter {
     async searchCandidates(
       filters: CandidateSearchFilters,
     ): Promise<AdapterResult<FederalCandidateRef[]>> {
-      const query = filters.nameQuery.trim();
-      if (query.length === 0) {
-        return unavailable(ADAPTER_ID, "nameQuery is empty", "Pass a candidate name.");
+      const query = filters.nameQuery?.trim() ?? "";
+      const hasCoordinateFilters = Boolean(filters.office && filters.state);
+      if (query.length === 0 && !hasCoordinateFilters) {
+        return unavailable(
+          ADAPTER_ID,
+          "nameQuery is empty and no race coordinates were provided",
+          "Pass a candidate name, or pass office + state (+ district for House).",
+        );
       }
 
-      const result = await getJson<FecCandidateSearchRow>("/candidates/search/", {
-        q: query,
+      // FEC's coordinate-filtered endpoint is `/candidates/` (list by race);
+      // `/candidates/search/` is required only when a free-text `q` is set.
+      const path = query.length > 0 ? "/candidates/search/" : "/candidates/";
+      const result = await getJson<FecCandidateSearchRow>(path, {
+        q: query.length > 0 ? query : undefined,
         cycle: filters.cycle,
         office: filters.office,
         state: filters.state,
+        district: filters.district,
         per_page: filters.perPage ?? 20,
       });
 
@@ -205,6 +218,33 @@ export function createFecAdapter(options: FecAdapterOptions): FecAdapter {
         adapterId: ADAPTER_ID,
         tier: TIER,
         data: rows,
+        fetchedAt: now(),
+      };
+    },
+
+    async getCandidateTotals(
+      candidateId: string,
+      cycle?: number,
+    ): Promise<AdapterResult<FederalCandidateFinancialTotals[]>> {
+      const trimmed = candidateId.trim();
+      if (trimmed.length === 0) {
+        return unavailable(ADAPTER_ID, "candidateId is empty", "Pass the FEC candidate id.");
+      }
+      const result = await getJson<FecCandidateTotalsRow>(
+        `/candidate/${encodeURIComponent(trimmed)}/totals/`,
+        { per_page: 20, sort: "-cycle", cycle },
+      );
+      if (result.status === "error") {
+        return unavailable(ADAPTER_ID, result.reason);
+      }
+      const totals = (result.body.results ?? [])
+        .map(normalizeTotalsRow)
+        .filter((row): row is FederalCandidateFinancialTotals => row !== null);
+      return {
+        status: "ok",
+        adapterId: ADAPTER_ID,
+        tier: TIER,
+        data: totals,
         fetchedAt: now(),
       };
     },

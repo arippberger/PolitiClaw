@@ -68,14 +68,20 @@ export type FederalCandidateFinancialSummary = {
 
 /** Query filters for candidate search. */
 export type CandidateSearchFilters = {
-  /** Required: free-text name query, passed to FEC's `/candidates/search`. */
-  nameQuery: string;
+  /** Free-text name query, passed to FEC's `/candidates/search`. Optional when
+   *  coordinate filters (office + state + optional district + cycle) are
+   *  sufficient to pin a race — e.g. challenger lookup starts from a rep's
+   *  district, not a name. The adapter accepts an empty/absent query in that
+   *  case and relies on the coordinate filters. */
+  nameQuery?: string;
   /** Optional cycle filter — narrows to candidates active in this cycle. */
   cycle?: number;
   /** Optional office filter — H (House), S (Senate), P (President). */
   office?: "H" | "S" | "P";
   /** Optional state filter (two-letter uppercase). */
   state?: string;
+  /** Optional district filter (House only; two-digit string per FEC convention). */
+  district?: string;
   /** Optional page size; FEC default is 20, max 100. */
   perPage?: number;
 };

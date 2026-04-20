@@ -23,7 +23,8 @@ read_when:
 
 - `politiclaw_get_my_ballot` lists logistics and contests from Google Civic when `googleCivic` is configured. Treat candidate rows as identifiers from an aggregator (tier 2), not verified bios.
 - `politiclaw_research_candidate` returns federal finance totals from FEC OpenFEC (tier 1) when `apiDataGov` is configured. Use the `name` mode first to resolve a candidate id; then call with `candidateId` for per-cycle totals. Numbers are FEC-only — no industry rollups, no top donors, no independent expenditures until an OpenSecrets slice lands.
-- Future tools add state SoS feeds (six states), Vote Smart bios, challenger comparisons, and `explain_my_ballot` narratives — follow this skill when those ship.
+- `politiclaw_research_challengers` starts from the user's stored reps (not the ballot snapshot — it works without `googleCivic`) and compares every FEC filing in each race side-by-side for a given cycle. Incumbent vs challenger labels come from FEC's `incumbent_challenge` field only — never infer from name matches. Default cycle is the current election cycle; let the user pass `cycle` for historical comparisons.
+- Future tools add state SoS feeds (six states), Vote Smart bios, and `explain_my_ballot` narratives — follow this skill when those ship.
 
 ## Citing `research_candidate` output
 
@@ -31,6 +32,13 @@ read_when:
 - When a row shows "no data" for a numeric field, say so honestly. Do not backfill with LLM search.
 - Mention that industry rollups / top donors are intentionally absent in v1 — recommend the user add an OpenSecrets key if they want that context.
 - Always pair finance numbers with the bio gap: this tool does not return voting records or position statements. Point at `politiclaw_score_representative` for a sitting member's record.
+
+## Citing `research_challengers` output
+
+- Present all candidates in the race, not just the rep the user already knows. The value of the tool is the comparison.
+- Do not rank "who should win" or "who is a better bet." Present figures; let the user draw conclusions (§1).
+- When a row has `no FEC totals available for this cycle yet`, say so — early-cycle filings are often incomplete. Do not fill with narrative guesses about likely war-chest size.
+- When a race has "No FEC candidates filed yet," point at primary filing deadlines as a likely cause rather than concluding the race is uncontested.
 
 ## Tone
 

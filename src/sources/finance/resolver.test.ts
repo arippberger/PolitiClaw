@@ -4,9 +4,9 @@ import { createFinanceResolver } from "./index.js";
 
 describe("finance resolver", () => {
   it("returns unavailable when apiDataGov is not configured", async () => {
-    const fetcher: typeof fetch = async () => {
+    const fetcher = (async () => {
       throw new Error("should not be called");
-    };
+    }) as unknown as typeof fetch;
     const resolver = createFinanceResolver({ fetcher });
 
     const searchResult = await resolver.searchCandidates({ nameQuery: "Example" });
@@ -24,13 +24,13 @@ describe("finance resolver", () => {
 
   it("delegates to the FEC adapter when a key is configured", async () => {
     const calls: string[] = [];
-    const fetcher: typeof fetch = async (input) => {
+    const fetcher = (async (input: RequestInfo | URL) => {
       calls.push(String(input));
       return new Response(
         JSON.stringify({ results: [], pagination: { count: 0 } }),
         { status: 200, headers: { "Content-Type": "application/json" } },
       );
-    };
+    }) as unknown as typeof fetch;
     const resolver = createFinanceResolver({
       apiDataGovKey: "TESTKEY",
       fetcher,

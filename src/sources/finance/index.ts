@@ -4,6 +4,7 @@ import { createFecAdapter } from "./fec.js";
 import type {
   CandidateSearchFilters,
   FederalCandidateFinancialSummary,
+  FederalCandidateFinancialTotals,
   FederalCandidateRef,
 } from "./types.js";
 
@@ -34,6 +35,10 @@ export type FinanceResolver = {
   getCandidateSummary(
     candidateId: string,
   ): Promise<AdapterResult<FederalCandidateFinancialSummary>>;
+  getCandidateTotals(
+    candidateId: string,
+    cycle?: number,
+  ): Promise<AdapterResult<FederalCandidateFinancialTotals[]>>;
 };
 
 const MISSING_KEY_REASON = "api.data.gov key is not configured";
@@ -72,6 +77,22 @@ export function createFinanceResolver(options: FinanceResolverOptions): FinanceR
         now: options.now,
       });
       return adapter.getCandidateSummary(candidateId);
+    },
+
+    async getCandidateTotals(
+      candidateId: string,
+      cycle?: number,
+    ): Promise<AdapterResult<FederalCandidateFinancialTotals[]>> {
+      if (!key) {
+        return unavailable("finance", MISSING_KEY_REASON, MISSING_KEY_ACTIONABLE);
+      }
+      const adapter = createFecAdapter({
+        apiKey: key,
+        fetcher: options.fetcher,
+        baseUrl: options.baseUrl,
+        now: options.now,
+      });
+      return adapter.getCandidateTotals(candidateId, cycle);
     },
   };
 }
