@@ -1,5 +1,16 @@
 import { z } from "zod";
 
+export const MONITORING_CADENCE_VALUES = [
+  "off",
+  "election_proximity",
+  "weekly",
+  "both",
+] as const;
+
+export const MonitoringCadenceSchema = z.enum(MONITORING_CADENCE_VALUES);
+
+export type MonitoringCadence = z.infer<typeof MonitoringCadenceSchema>;
+
 export const PreferencesSchema = z.object({
   address: z.string().min(1, "address is required"),
   zip: z.string().trim().optional(),
@@ -10,6 +21,7 @@ export const PreferencesSchema = z.object({
     .refine((s) => s === "" || /^[A-Z]{2}$/.test(s), "state must be a 2-letter code")
     .optional(),
   district: z.string().trim().optional(),
+  monitoringCadence: MonitoringCadenceSchema.optional(),
 });
 
 export type Preferences = z.infer<typeof PreferencesSchema>;

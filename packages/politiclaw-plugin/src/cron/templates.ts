@@ -135,12 +135,72 @@ export const REP_REPORT_TEMPLATE: PolitiClawCronTemplate = {
   delivery: { mode: "announce", channel: "last" },
 };
 
+export const ELECTION_PROXIMITY_ALERT_TEMPLATE: PolitiClawCronTemplate = {
+  name: "politiclaw.election_proximity_alert",
+  description:
+    "Daily: when an election is within 30/14/7/1 days of the saved address, " +
+    "ramps a short alert ('election in N days') and points at " +
+    "politiclaw_prepare_me_for_my_next_election. Silent on days that do not " +
+    "cross a threshold.",
+  schedule: { kind: "every", everyMs: MS_IN_DAY },
+  sessionTarget: "isolated",
+  wakeMode: "next-heartbeat",
+  payload: {
+    kind: "agentTurn",
+    message:
+      "Run the PolitiClaw election-proximity check. Read skills/politiclaw-monitoring/SKILL.md → Election proximity alerts. Call politiclaw_get_my_ballot to read the next election date for the saved address. If the election is 30, 14, 7, or 1 day away, post one short line ('Election in N days at <polling place or address>') and recommend politiclaw_prepare_me_for_my_next_election. On other days post nothing.",
+  },
+  delivery: { mode: "announce", channel: "last" },
+};
+
 export const POLITICLAW_CRON_TEMPLATES: readonly PolitiClawCronTemplate[] = [
   WEEKLY_SUMMARY_TEMPLATE,
   REP_VOTE_WATCH_TEMPLATE,
   TRACKED_HEARINGS_TEMPLATE,
   REP_REPORT_TEMPLATE,
+  ELECTION_PROXIMITY_ALERT_TEMPLATE,
 ];
 
 export const POLITICLAW_CRON_NAMES: readonly string[] =
   POLITICLAW_CRON_TEMPLATES.map((template) => template.name);
+
+export type MonitoringCadence = "off" | "election_proximity" | "weekly" | "both";
+
+/**
+ * Returns the subset of default templates that should be **installed and
+ * enabled** for a given user cadence. Templates absent from the returned list
+ * are paused by `setupMonitoring()` (not deleted — preserves gateway state if
+ * the user flips back).
+ *
+ * Cadence semantics:
+ * - `off`: no automated monitoring.
+ * - `election_proximity`: silent except within 30/14/7/1 days of an election,
+ *   plus the rep-vote + hearings watches (change-detection-gated, so quiet
+ *   windows still produce no output).
+ * - `weekly`: the digest cadence — weekly summary + monthly rep report +
+ *   rep-vote + hearings.
+ * - `both`: everything.
+ */
+export function templatesForCadence(
+  cadence: MonitoringCadence,
+): readonly PolitiClawCronTemplate[] {
+  switch (cadence) {
+    case "off":
+      return [];
+    case "election_proximity":
+      return [
+        REP_VOTE_WATCH_TEMPLATE,
+        TRACKED_HEARINGS_TEMPLATE,
+        ELECTION_PROXIMITY_ALERT_TEMPLATE,
+      ];
+    case "weekly":
+      return [
+        REP_VOTE_WATCH_TEMPLATE,
+        TRACKED_HEARINGS_TEMPLATE,
+        WEEKLY_SUMMARY_TEMPLATE,
+        REP_REPORT_TEMPLATE,
+      ];
+    case "both":
+      return POLITICLAW_CRON_TEMPLATES;
+  }
+}
