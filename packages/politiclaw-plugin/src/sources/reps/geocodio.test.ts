@@ -1,14 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { readFileSync } from "node:fs";
-import { dirname, join } from "node:path";
-import { fileURLToPath } from "node:url";
 import { createGeocodioAdapter } from "./geocodio.js";
-
-const FIXTURES_DIR = join(dirname(fileURLToPath(import.meta.url)), "__fixtures__");
-
-function fixture(name: string): unknown {
-  return JSON.parse(readFileSync(join(FIXTURES_DIR, name), "utf8"));
-}
+import geocodioCaliforniaFixture from "./__fixtures__/geocodio_ca12.json";
 
 function fixtureFetch(body: unknown, init: { ok?: boolean; status?: number } = {}): typeof fetch {
   const ok = init.ok ?? true;
@@ -28,7 +20,7 @@ describe("geocodio adapter", () => {
   it("returns senators + house rep from a valid response", async () => {
     const adapter = createGeocodioAdapter({
       apiKey: "k",
-      fetcher: fixtureFetch(fixture("geocodio_ca12.json")),
+      fetcher: fixtureFetch(geocodioCaliforniaFixture),
       now: () => 1_700_000_000_000,
     });
     const result = await adapter.fetch({ address: "123 Main St, San Francisco, CA" });

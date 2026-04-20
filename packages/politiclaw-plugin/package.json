@@ -6,6 +6,8 @@
   "main": "./src/index.ts",
   "files": [
     "src",
+    "!src/**/*.test.ts",
+    "!src/**/__fixtures__/**",
     "skills",
     "openclaw.plugin.json",
     "README.md"
