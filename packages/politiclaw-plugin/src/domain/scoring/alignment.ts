@@ -10,7 +10,7 @@ import type { IssueStance } from "../preferences/types.js";
 export const CONFIDENCE_FLOOR = 0.4;
 
 export const ALIGNMENT_DISCLAIMER =
-  "This is informational, not independent journalism. Verify against neutral sources before voting or contacting officials.";
+  "This is informational, not independent journalism. Directional framing compares bill text to your declared stances; verify against neutral sources before voting or contacting officials.";
 
 type MatchLocation = "policyArea" | "subject" | "title" | "summary";
 
