@@ -18,6 +18,7 @@ import { prepareForElectionTools } from "./tools/prepareForElection.js";
 import { voteIngestTools } from "./tools/voteIngest.js";
 import { researchCandidateTools } from "./tools/researchCandidate.js";
 import { researchChallengersTools } from "./tools/researchChallengers.js";
+import { doctorTools } from "./tools/doctor.js";
 
 const allTools = [
   ...preferencesTools,
@@ -37,6 +38,7 @@ const allTools = [
   ...researchCandidateTools,
   ...researchChallengersTools,
   ...letterTools,
+  ...doctorTools,
 ];
 
 export default definePluginEntry({

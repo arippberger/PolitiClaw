@@ -306,7 +306,7 @@ function renderBillParagraph(bill: StoredBill): string {
   if (publicUrl) {
     lines.push(`Full text and history: ${publicUrl}`);
   }
-  return lines.join(" ");
+  return lines.join("\n");
 }
 
 function repSalutation(rep: StoredRep): string {
