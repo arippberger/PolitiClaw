@@ -9,8 +9,8 @@
  *   `politiclaw.`) — they never touch user-authored jobs or other plugins'
  *   jobs.
  * - All mutations go through the gateway adapter (gatewayAdapter.ts). Nothing
- *   here touches `jobs.json` on disk — that is an explicit anti-goal from
- *   docs/plan.md Phase 4 ("never by editing jobs.json").
+ *   here touches `jobs.json` on disk; cron setup always goes through the
+ *   gateway API.
  */
 
 import {

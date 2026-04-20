@@ -1,9 +1,8 @@
--- Phase 3a: federal bills (api.congress.gov).
+-- Federal bills (api.congress.gov).
 --
--- Only the bills table lands in 3a; `bill_alignment` arrives with the scoring
--- primitive in 3b and `snapshots` arrives with change detection in 3c, so we
--- never ship dead tables. `source_adapter_id` + `source_tier` carry provenance
--- through to tool output per docs/risks.md §2.
+-- Only the bills table lands here; `bill_alignment` and `snapshots` arrive in
+-- later migrations, so we never ship dead tables. `source_adapter_id` +
+-- `source_tier` carry provenance through to tool output.
 
 CREATE TABLE IF NOT EXISTS bills (
   id                  TEXT PRIMARY KEY,            -- "<congress>-<billType lowercased>-<number>"

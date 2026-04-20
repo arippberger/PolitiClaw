@@ -1,4 +1,4 @@
--- Phase 6: ballot logistics cache + audited explanations (ADR-004).
+-- Ballot logistics cache + audited explanations.
 --
 -- `ballots` caches Google Civic voterInfoQuery (and future adapter) payloads;
 -- `ballot_explanations` stores deterministic tool output from explain_my_ballot.

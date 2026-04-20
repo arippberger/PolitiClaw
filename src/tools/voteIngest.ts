@@ -121,7 +121,7 @@ export const ingestHouseVotesTool: AnyAgentTool = {
     "votes (plus per-member positions keyed by bioguide id) into the plugin-private DB. " +
     "Idempotent: unchanged entries (by Clerk update_date) skip the detail fetch. " +
     "Requires plugins.politiclaw.apiKeys.apiDataGov. Senate roll-call votes are not yet " +
-    "served by api.congress.gov — see ADR-002 for the scraper fallback plan.",
+    "served by api.congress.gov, so this tool currently ingests House only.",
   parameters: IngestHouseVotesParams,
   async execute(_toolCallId, rawParams) {
     const parsed = IngestHouseVotesInputSchema.safeParse(rawParams);

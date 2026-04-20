@@ -1,10 +1,10 @@
 /**
- * Tier-5 candidate bio adapter (ADR-004, ADR-005; risks.md §9).
+ * Tier-5 candidate bio adapter.
  *
  * This is the single sanctioned place in the plugin where LLM-derived /
  * web-search output enters the domain layer. Every payload it returns is
- * tier-5 by default; only homogeneous tier-1 or tier-1+2 citation sets
- * are promoted to tier 1 or 2 respectively via `promoteLlmSearchTier`.
+ * tier-5 by default; only homogeneous tier-1 or tier-1+2 citation sets are
+ * promoted to tier 1 or 2 respectively via `promoteLlmSearchTier`.
  *
  * Non-negotiable invariants — enforced structurally:
  *   • Every `fetch()` call pre-registers the semantic category it will
@@ -59,7 +59,7 @@ export const BIO_TIER_2_DOMAINS: readonly string[] = [
 
 /**
  * Allowed semantic categories for bio lookups. Narrow by design —
- * anything not in this union would need its own risks.md §9 review.
+ * anything not in this union would need its own guardrail review.
  */
 export type BioClaimCategory =
   | "candidate.bio"
@@ -187,14 +187,14 @@ export function createBiosAdapter(options: BiosAdapterOptions = {}): BiosAdapter
 }
 
 /**
- * Map the bio-lookup category onto the §9 guardrail enum. This is the gate
- * that makes it structurally impossible to call the adapter with an intent
- * that would produce a hard-forbidden payload (vote positions, dollar
- * amounts, etc.).
+ * Map the bio-lookup category onto the guardrail enum. This is the gate that
+ * makes it structurally impossible to call the adapter with an intent that
+ * would produce a hard-forbidden payload (vote positions, dollar amounts,
+ * etc.).
  */
 function assertCategoryIsAllowed(category: BioClaimCategory): void {
   // Allowed categories are a closed set; anything else would be a type error
-  // at the TS boundary AND a §9 violation. We also re-assert explicitly so
+  // at the TS boundary AND a guardrail violation. We also re-assert explicitly so
   // a drift in the enum (e.g. someone broadens the type) still trips at
   // runtime.
   const allowed: readonly BioClaimCategory[] = [
@@ -205,7 +205,7 @@ function assertCategoryIsAllowed(category: BioClaimCategory): void {
   ];
   if (!allowed.includes(category)) {
     // Force a guardrail throw so the failure is logged consistently with
-    // every other §9 violation.
+    // every other guardrail violation.
     assertAllowedForLlmSearch(
       ForbiddenForLlmSearch.SNAPSHOT_INPUT,
       `unknown bio-lookup category: ${category}`,

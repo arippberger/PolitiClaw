@@ -38,7 +38,7 @@ export const getMyRepsTool: AnyAgentTool = {
   description:
     "Resolve federal representatives (US Senate + US House) for the saved address. " +
     "Reads cached reps by default; pass refresh=true to re-fetch. " +
-    "Requires plugins.politiclaw.apiKeys.geocodio in Phase 2a; zero-key shapefile path lands in Phase 2b.",
+    "Uses the zero-key local shapefile pipeline by default, or Geocodio when configured.",
   parameters: GetMyRepsParams,
   async execute(_toolCallId, rawParams) {
     const params = rawParams as { refresh?: boolean };

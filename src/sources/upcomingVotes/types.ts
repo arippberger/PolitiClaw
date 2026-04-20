@@ -4,8 +4,8 @@
  *
  * Deliberately narrow: we normalize only the fields that are stable
  * across api.congress.gov payloads and useful for change detection +
- * user-facing rendering. `relatedBillIds` is the pivot point for
- * Phase 3b alignment scoring on upcoming events.
+ * user-facing rendering. `relatedBillIds` is the pivot point for bill
+ * alignment scoring on upcoming events.
  */
 export type UpcomingEvent = {
   /** Canonical PolitiClaw id: `<congress>-<chamber>-<eventType>-<eventId>`. */

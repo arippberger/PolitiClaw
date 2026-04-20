@@ -1,6 +1,6 @@
--- Phase 2a: representatives for the user's address.
+-- Representatives for the user's address.
 --
--- `source_adapter_id` + `source_tier` carry the adapter id and tier (§2) so
+-- `source_adapter_id` + `source_tier` carry the adapter id and tier so
 -- downstream tools can label rep data by provenance.
 
 CREATE TABLE IF NOT EXISTS reps (

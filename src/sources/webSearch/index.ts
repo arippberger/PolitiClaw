@@ -3,8 +3,6 @@
  * (candidate bios, measure context). Mirrors `createBallotResolver` and
  * `createFinanceResolver`: adapter if a transport is wired, otherwise a
  * structured "unavailable" response with actionable guidance.
- *
- * See risks.md §9 for the guardrails that make this module safe.
  */
 
 import type { AdapterResult } from "../common/types.js";

@@ -323,7 +323,7 @@ describe("scoreRepresentative", () => {
     expect(whenExcluded.procedural_excluded).toBe(1);
   });
 
-  it("treats is_procedural=NULL as procedural (unknown → excluded by default, §8)", () => {
+  it("treats is_procedural=NULL as procedural (unknown → excluded by default)", () => {
     const db = openMemoryDb();
     seedMinimalScenario(db, {
       bioguide: "B000006",

@@ -21,7 +21,7 @@ const ScoreRepresentativeParams = Type.Object({
   includeProcedural: Type.Optional(
     Type.Boolean({
       description:
-        "When true, procedural roll calls (motions-to-adjourn, previous-question, etc.) are INCLUDED in the tally. Default is false per docs/risks.md §8.",
+        "When true, procedural roll calls (motions-to-adjourn, previous-question, etc.) are INCLUDED in the tally. Default is false.",
     }),
   ),
 });
@@ -36,7 +36,7 @@ function textResult<T>(text: string, details: T) {
 }
 
 /**
- * Render a rep-score result as text. Enforces docs/risks.md §1 (§8-aware):
+ * Render a rep-score result as text. Enforces the scoring output rules:
  *   - confidence below the 0.4 floor renders as "insufficient data"
  *   - the ALIGNMENT_DISCLAIMER appears verbatim whenever any numeric score
  *     is emitted
@@ -153,7 +153,7 @@ function buildSummaryLine(inputs: SummaryInputs): string {
     parts.push(
       `${inputs.skippedProceduralCount} procedural/unclassified vote${
         inputs.skippedProceduralCount === 1 ? "" : "s"
-      } excluded (docs/risks.md §8)`,
+      } excluded by default`,
     );
   } else if (!inputs.proceduralExcluded) {
     parts.push("procedural votes included (opt-in)");
@@ -178,7 +178,7 @@ function buildCoverageHints(inputs: {
     hints.push(
       `  • ${inputs.billsWithoutRepVotes} bill${
         inputs.billsWithoutRepVotes === 1 ? "" : "s"
-      } had a recorded stance signal but no matching House roll-call for this rep (Senate ingest not yet implemented; see Phase 5a deviations).`,
+      } had a recorded stance signal but no matching House roll-call for this rep (Senate ingest is not available yet).`,
     );
   }
   if (inputs.consideredVoteCount === 0) {
@@ -203,10 +203,10 @@ export const scoreRepresentativeTool: AnyAgentTool = {
     "your declared issue stances, and your recorded stance signals on specific bills. " +
     "Deterministic (no LLM) — direction comes exclusively from your explicit signals, never from " +
     "an LLM guessing whether a bill advances or obstructs a stance. Confidence below the " +
-    `${CONFIDENCE_FLOOR} floor renders as "insufficient data" per docs/risks.md §1. ` +
-    "Procedural motions are excluded by default (docs/risks.md §8); pass includeProcedural=true " +
-    "for the raw tally. Senate votes are not yet ingested (Phase 5a); senators will show " +
-    '"insufficient data" until a Senate fallback lands.',
+    `${CONFIDENCE_FLOOR} floor renders as "insufficient data". ` +
+    "Procedural motions are excluded by default; pass includeProcedural=true " +
+    "for the raw tally. Senate votes are not yet ingested, so senators will show " +
+    '"insufficient data" until Senate vote coverage exists.',
   parameters: ScoreRepresentativeParams,
   async execute(_toolCallId, rawParams) {
     const parsed = ScoreRepresentativeInputSchema.safeParse(rawParams);

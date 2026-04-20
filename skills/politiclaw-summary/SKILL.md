@@ -2,7 +2,7 @@
 name: politiclaw-summary
 description: >-
   Weekly PolitiClaw digest style. One message, readable in ~60 seconds, with a
-  mandatory "things you might be surprised by" section (docs/risks.md §4).
+  mandatory "things you might be surprised by" section.
 read_when:
   - The weekly_summary cron template fires.
   - The user explicitly asks for a weekly roll-up of PolitiClaw activity.
@@ -31,14 +31,14 @@ Cap at 5 bills. If there are more, add a "+N more, ask for the full list"
 line. Never truncate silently.
 
 If `alignment.belowConfidenceFloor` is true, drop the bill or render it as
-"insufficient data" — do not quote the raw percentages (docs/risks.md §1).
+"insufficient data" — do not quote the raw percentages.
 
 ### 3. Upcoming (next 10 days)
 
 Committee hearings, markups, or floor votes on tracked bills. One line each.
 If nothing's scheduled, say "Nothing scheduled in the tracked set."
 
-### 4. Things you might be surprised by (required — docs/risks.md §4)
+### 4. Things you might be surprised by (required)
 
 This section is **not optional on weeks with any bill movement**. It contains
 at least one item that complicates or cuts against the user's declared
@@ -54,13 +54,12 @@ stances. Examples:
 Rules:
 
 - Source must be tier 1–3 (primary government, neutral civic, reputable
-  journalism — docs/risks.md §2). Advocacy (tier 4) is allowed *only* with
-  explicit labeling.
+  journalism). Advocacy (tier 4) is allowed *only* with explicit labeling.
 - **Never fabricate.** If the week's delta is genuinely one-directional, say
   so: "Nothing in this week's delta cuts against your declared stances —
   worth flagging so you know this digest isn't curating for agreement."
 - **Never use tier-5 LLM-search output for numbers, vote counts, or status
-  claims** (docs/risks.md §9 hard guardrails).
+  claims.**
 
 ### 5. What PolitiClaw missed
 
@@ -76,7 +75,7 @@ If everything ran clean, skip this section.
 
 ### 6. Disclaimer
 
-Verbatim, at the bottom (docs/risks.md §1):
+Verbatim, at the bottom:
 
 > This summary is informational, not independent journalism. Verify against
 > neutral sources before voting or contacting officials.

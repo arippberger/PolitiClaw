@@ -28,16 +28,16 @@ const ExplainMyBallotInputSchema = z.object({
 });
 
 /**
- * Non-optional §9 addendum. Appended to the output whenever any rendered
- * line originated from the web-search bio adapter — even at tier 1/2,
- * because the narrative itself is an LLM paraphrase of primary sources.
+ * Appended to the output whenever any rendered line originated from the
+ * web-search bio adapter — even at tier 1/2, because the narrative itself is
+ * an LLM paraphrase of primary sources.
  */
 const VERIFY_DISCLAIMER =
-  "Candidate bio narratives above are LLM-search-derived summaries of cited sources. Verify any factual claim against the linked primary source before relying on it (risks.md §9).";
+  "Candidate bio narratives above are LLM-search-derived summaries of cited sources. Verify any factual claim against the linked primary source before relying on it.";
 
 /**
  * Refuses-to-recommend line. Shipped verbatim on every rendered explanation
- * so users never mistake the tool for an endorsement engine (risks.md §1).
+ * so users never mistake the tool for an endorsement engine.
  */
 const NO_RECOMMENDATION_NOTICE =
   "This explanation never says 'vote YES' or 'vote NO' — the tool surfaces facts and framing only; the decision is yours.";
@@ -73,7 +73,7 @@ function renderContest(contest: ContestExplanation): string[] {
   lines.push(...renderFraming(contest.framing));
 
   if (contest.candidateBios.length > 0) {
-    lines.push("     Candidate bios (LLM-search-derived, see §9 disclaimer):");
+    lines.push("     Candidate bios (LLM-search-derived; see verify disclaimer below):");
     for (const bio of contest.candidateBios) {
       lines.push(...renderBio(bio));
     }
@@ -153,8 +153,8 @@ export const explainMyBallotTool: AnyAgentTool = {
     "'A YES vote would…' / 'A NO vote would…' lines drawn from Google Civic's published summary " +
     "(tier 2 aggregator — verify against official text). For candidate races, explains what the race " +
     "decides and attaches candidate bios from the tier-5 web-search adapter when wired. Never says " +
-    "'vote YES/NO' (risks.md §1). Always includes the verify-against-official-source disclaimer when " +
-    "any rendered line is LLM-search-derived (risks.md §9). Requires declared issue stances, a saved " +
+    "'vote YES/NO'. Always includes the verify-against-official-source disclaimer when " +
+    "any rendered line is LLM-search-derived. Requires declared issue stances, a saved " +
     "address, and plugins.politiclaw.apiKeys.googleCivic.",
   parameters: ExplainMyBallotParams,
   async execute(_toolCallId, rawParams) {
@@ -171,7 +171,7 @@ export const explainMyBallotTool: AnyAgentTool = {
     const resolver = createBallotResolver({
       googleCivicApiKey: configuration.apiKeys?.googleCivic,
     });
-    // v1: no bio transport is wired in production (see src/sources/webSearch/
+    // No bio transport is wired in production yet (see src/sources/webSearch/
     // bios.ts). The resolver returns "unavailable" and the domain degrades
     // silently — the framing output is still useful from structured sources
     // alone. Tests inject a fetcher directly.

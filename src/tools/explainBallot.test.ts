@@ -60,14 +60,14 @@ describe("renderExplainMyBallotOutput", () => {
     expect(text).toContain("Set plugins.politiclaw");
   });
 
-  it("always includes the no-recommendation notice and §1 disclaimer", () => {
+  it("always includes the no-recommendation notice and alignment disclaimer", () => {
     const text = renderExplainMyBallotOutput(okResult());
     expect(text).toContain("vote YES");
     expect(text).toContain("the decision is yours");
     expect(text).toContain("informational, not independent journalism");
   });
 
-  it("appends the §9 verify disclaimer only when bios are rendered", () => {
+  it("appends the verify disclaimer only when bios are rendered", () => {
     const withoutBios = renderExplainMyBallotOutput(
       okResult({
         contests: [

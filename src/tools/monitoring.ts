@@ -66,11 +66,11 @@ function textResult<T>(text: string, details: T) {
 
 /**
  * Render a check-upcoming-votes result as user-facing text. Enforces two
- * docs/risks.md rules:
- *   §1: any scored output includes ALIGNMENT_DISCLAIMER verbatim (the
- *       scored-bills section is position-adjacent reasoning).
- *   §6: the empty-delta case is a feature, not a failure — we say so
- *       explicitly rather than emitting silence that looks like a bug.
+ * output rules:
+ *   - any scored output includes ALIGNMENT_DISCLAIMER verbatim (the
+ *     scored-bills section is position-adjacent reasoning)
+ *   - the empty-delta case is a feature, not a failure; we say so explicitly
+ *     rather than emitting silence that looks like a bug
  */
 export function renderCheckUpcomingVotesOutput(
   result: CheckUpcomingVotesResult,

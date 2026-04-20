@@ -1,13 +1,13 @@
 /**
  * Hard guardrails on what LLM search / web_fetch output may represent.
  *
- * docs/risks.md §9 lists the categories where LLM-search output is never
- * acceptable even when an API is unavailable. This module makes the
- * policy enforceable in code: every adapter under `src/sources/webSearch/`
- * must call {@link assertAllowedForLlmSearch} before returning a payload.
+ * Some categories are never acceptable even when an API is unavailable. This
+ * module makes that policy enforceable in code: every adapter under
+ * `src/sources/webSearch/` must call {@link assertAllowedForLlmSearch}
+ * before returning a payload.
  *
  * Callers outside `webSearch/` do not need this — the API-backed adapters
- * are already inside the §2 tier ladder and don't route through here.
+ * already have their own source-tier handling and don't route through here.
  */
 
 export enum ForbiddenForLlmSearch {
@@ -31,7 +31,7 @@ export class GuardrailViolation extends Error {
   constructor(category: ForbiddenForLlmSearch, context?: string) {
     const suffix = context ? ` (${context})` : "";
     super(
-      `LLM search is not an acceptable source for ${category}${suffix} — see docs/risks.md §9`,
+      `LLM search is not an acceptable source for ${category}${suffix}`,
     );
     this.name = "GuardrailViolation";
     this.category = category;
@@ -62,11 +62,11 @@ export function isForbiddenCategory(
 }
 
 /**
- * Tier promotion rule (docs/risks.md §9): LLM-search output defaults to tier
- * 5 at the fetch boundary. A claim can be promoted to tier 1/2 only if
- * *every* cited URL resolves to a primary-government or neutral civic
- * infrastructure domain. Any mixed-tier citation keeps the whole claim at
- * tier 5. This helper implements that promotion check.
+ * Tier promotion rule: LLM-search output defaults to tier 5 at the fetch
+ * boundary. A claim can be promoted to tier 1/2 only if *every* cited URL
+ * resolves to a primary-government or neutral civic infrastructure domain.
+ * Any mixed-tier citation keeps the whole claim at tier 5. This helper
+ * implements that promotion check.
  */
 export function promoteLlmSearchTier(
   citedUrls: readonly string[],

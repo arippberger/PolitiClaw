@@ -3,9 +3,9 @@ import type { Bill } from "../../sources/bills/types.js";
 import type { IssueStance } from "../preferences/types.js";
 
 /**
- * Confidence floor per docs/risks.md §1: any alignment score with
- * confidence < {@link CONFIDENCE_FLOOR} must render as "insufficient data"
- * in user-facing text. Raw numbers are still stored for audit.
+ * Any alignment score with confidence < {@link CONFIDENCE_FLOOR} must render
+ * as "insufficient data" in user-facing text. Raw numbers are still stored
+ * for audit.
  */
 export const CONFIDENCE_FLOOR = 0.4;
 
@@ -39,12 +39,12 @@ export type AlignmentResult = {
 };
 
 /**
- * Deterministic bill-to-stances alignment. No LLM involved — this is the
- * §1-safe primitive. The score measures whether a bill touches issues the
- * user declared, not whether the user should vote for or against it.
+ * Deterministic bill-to-stances alignment. No LLM involved. The score
+ * measures whether a bill touches issues the user declared, not whether the
+ * user should vote for or against it.
  * Direction ("does this advance or obstruct my stance?") requires either
  * user stance_signals on similar bills or the rep's actual vote; neither
- * is in scope for 3b.
+ * is in scope for this function.
  */
 export function computeBillAlignment(
   bill: Bill,
@@ -169,7 +169,7 @@ function computeConfidence(
 ): number {
   // With no keyword matches we cannot distinguish "this bill is truly
   // irrelevant to the user's stances" from "our keyword matcher missed
-  // something subtle." That ambiguity forces us below the §1 floor so the
+  // something subtle." That ambiguity forces us below the confidence floor so the
   // tool renders "insufficient data" rather than a falsely confident 0%.
   if (matches.length === 0) return 0.2;
 

@@ -97,22 +97,21 @@ type CongressHouseVoteMembersResponse = {
 /**
  * Primary-source (tier 1) adapter for api.congress.gov's `/house-vote` beta
  * endpoints. The list endpoint carries most fields we need, but `voteQuestion`
- * — required for procedural-vote classification per docs/risks.md §8 — only
- * appears at the detail/members level. `getWithMembers()` fetches both the
+ * — required for procedural-vote classification — only appears at the
+ * detail/members level. `getWithMembers()` fetches both the
  * `/{voteNumber}` detail (for `voteQuestion`) and the `/{voteNumber}/members`
  * sub-resource (for bioguide-keyed positions) in parallel so an empty response
  * from one does not mask a real response from the other.
  *
  * Amendment-only roll-call votes (`amendmentType: "HAMDT"`) are preserved but
  * carry no `billId` because api.congress.gov does not currently expose the
- * bill an amendment is offered against. Phase 5b scoring will join through
- * the `amendments` table once it exists; until then, amendment votes are
- * visible but do not flow into per-bill rep alignment.
+ * bill an amendment is offered against. If amendment coverage is added later,
+ * it can join through a dedicated amendments table; until then, amendment
+ * votes are visible but do not flow into per-bill rep alignment.
  *
  * Senate roll-call votes are deliberately not supported here — api.congress.gov
- * has no `/senate-vote` endpoint as of 2026-04-19. See ADR-002 for the
- * `unitedstates/congress` scraper promotion plan if/when Senate coverage is
- * needed.
+ * has no `/senate-vote` endpoint as of 2026-04-19. A future scraper-backed
+ * adapter could fill that gap if Senate coverage is needed.
  */
 export function createCongressGovHouseVotesAdapter(
   opts: CongressGovHouseVotesAdapterOptions,

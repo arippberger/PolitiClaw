@@ -123,7 +123,7 @@ describe("computeRepAlignment", () => {
     expect(issue.conflictedCount).toBe(1);
   });
 
-  it("excludes procedural votes by default (§8)", () => {
+  it("excludes procedural votes by default", () => {
     const evidence = [
       makeEvidence({ billId: "119-hr-1", voteId: "v1", isProcedural: true }),
       makeEvidence({ billId: "119-hr-2", voteId: "v2", isProcedural: false }),

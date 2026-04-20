@@ -15,8 +15,8 @@ import type {
  * - `"unchanged"` — row already up-to-date; no detail fetch performed.
  * - `"skipped_unavailable"` — we know about the list entry but detail/members
  *                             was unavailable this run. The row is left in its
- *                             previous state so Phase 5b scoring still sees
- *                             whatever we last ingested for it.
+ *                             previous state so representative scoring still
+ *                             sees whatever we last ingested for it.
  */
 export type IngestVoteStatus =
   | "new"
@@ -62,13 +62,13 @@ export type IngestHouseVotesOptions = {
  *     has not touched the record since our last ingest.
  *  3. Otherwise, fetch `getWithMembers()` in sequence (api.data.gov 5000/hr
  *     limit is comfortable for batched single-user loads, but parallelizing
- *     this would need a rate-limit shield that 5a does not implement).
+ *     this would need a rate-limit shield that the current ingest path does
+ *     not implement).
  *  4. Upsert the vote row, replace the member rows atomically.
  *
- * Per docs/risks.md §9 (ROLL_CALL_VOTE guardrail) there is no LLM-search
- * fallback at any layer here; a missing primary surfaces as
- * `status: "unavailable"` and Phase 5b treats that as "insufficient data"
- * for any rep whose positions we cannot resolve.
+ * There is no LLM-search fallback at any layer here; a missing primary
+ * surfaces as `status: "unavailable"` and representative scoring treats that
+ * as "insufficient data" for any rep whose positions we cannot resolve.
  */
 export async function ingestHouseVotes(
   db: PolitiClawDb,
@@ -286,7 +286,7 @@ export type StoredRollCallVote = RollCallVote & {
   syncedAt: number;
 };
 
-/** List stored roll-call votes. Used by Phase 5b scoring and the tool surface. */
+/** List stored roll-call votes. Used by representative scoring and the tool surface. */
 export function listStoredVotes(
   db: PolitiClawDb,
   filters: { bioguideId?: string; billId?: string; excludeProcedural?: boolean } = {},
@@ -305,8 +305,8 @@ export function listStoredVotes(
     params.bill = filters.billId;
   }
   if (filters.excludeProcedural) {
-    // NULL means "unknown" — exclude those too, per docs/risks.md §8 caution
-    // against inferring substantive alignment from rows we cannot classify.
+    // NULL means "unknown" — exclude those too so we do not infer
+    // substantive alignment from rows we cannot classify.
     where.push(`rcv.is_procedural = 0`);
   }
 

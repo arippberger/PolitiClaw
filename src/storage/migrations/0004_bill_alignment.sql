@@ -1,9 +1,9 @@
--- Phase 3b: persisted bill-alignment scores.
+-- Persisted bill-alignment scores.
 --
--- Scoring is deterministic (docs/risks.md §1 hazard — we do NOT stack LLM
--- summarization with LLM judgment). The `relevance` column captures how much
--- a bill touches stances the user declared; `confidence` is a function of
--- data richness per docs/risks.md §1. Raw numbers are persisted even when
+-- Scoring is deterministic: we do NOT stack LLM summarization with LLM
+-- judgment. The `relevance` column captures how much a bill touches stances
+-- the user declared; `confidence` is a function of data richness. Raw numbers
+-- are persisted even when
 -- confidence is below the 0.4 floor so audit replay stays honest.
 --
 -- `stance_snapshot_hash` lets the same bill carry multiple scores across

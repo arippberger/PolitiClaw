@@ -1,9 +1,8 @@
--- Phase 3c: change-detection snapshots.
+-- Change-detection snapshots.
 --
 -- One row per (entity_kind, entity_id) captures the SHA-256 of the last
--- API-only payload we saw for that entity. docs/risks.md §9 hard guardrail:
--- this table must never be fed from LLM-search output. Only API adapters
--- (tier 1-3) produce snapshot inputs.
+-- API-only payload we saw for that entity. This table must never be fed from
+-- LLM-search output. Only API adapters (tier 1-3) produce snapshot inputs.
 --
 -- `hash_input_version` lets us change which fields we hash for a given kind
 -- without silently drifting: bumping the version invalidates every old row

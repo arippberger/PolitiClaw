@@ -21,14 +21,13 @@ export type HouseVotesResolverOptions = {
 /**
  * Resolver for House roll-call votes. Mirrors `createBillsResolver`:
  * api.congress.gov (tier 1) is the only primary-source adapter; without the
- * `apiDataGov` key we return a structured "unavailable". Per docs/risks.md §9
- * (ROLL_CALL_VOTE guardrail) there is no LLM-search fallback — a missing
- * primary surfaces as "insufficient data" to the scoring layer, never as
- * paraphrased vote positions.
+ * `apiDataGov` key we return a structured "unavailable". There is no
+ * LLM-search fallback — a missing primary surfaces as "insufficient data" to
+ * the scoring layer, never as paraphrased vote positions.
  *
  * A `unitedstates/congress` scraper adapter will be able to slot in here as
- * a zero-key fallback for both chambers (ADR-002 fallback table); Senate
- * support depends on that work landing.
+ * a zero-key fallback for both chambers; Senate support depends on that work
+ * landing.
  */
 export function createHouseVotesResolver(opts: HouseVotesResolverOptions = {}) {
   const adapters: HouseVotesAdapter[] = [];

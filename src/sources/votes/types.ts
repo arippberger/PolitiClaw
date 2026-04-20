@@ -3,9 +3,8 @@
  *
  * Normalized across api.congress.gov `/house-vote` (the only primary-source
  * roll-call endpoint shipped by the Library of Congress as of 2026-04-19) and
- * any future adapter. Senate roll-call votes are not yet exposed by api.congress.gov
- * — see docs/adr/0002-federal-bills-votes-members.md and docs/plan.md Phase 5a
- * deviations for the scraper-fallback follow-up.
+ * any future adapter. Senate roll-call votes are not yet exposed by
+ * api.congress.gov, but any future Senate adapter can fit this shape.
  */
 export type VoteChamber = "House" | "Senate";
 
@@ -20,9 +19,9 @@ export type MemberVotePosition = "Yea" | "Nay" | "Present" | "Not Voting";
 
 /**
  * True when the recorded question is one of the well-known procedural
- * motions (docs/risks.md §8). Procedural votes are excluded from rep
- * alignment unless the user explicitly opts in; keeping the flag on the
- * adapter-agnostic shape so scoring never has to re-parse `voteQuestion`.
+ * motions. Procedural votes are excluded from representative alignment unless
+ * the user explicitly opts in; keeping the flag on the adapter-agnostic shape
+ * means scoring never has to re-parse `voteQuestion`.
  */
 export const PROCEDURAL_VOTE_QUESTIONS: readonly string[] = [
   "On Motion to Recommit",
@@ -143,10 +142,10 @@ export function normalizeVotePosition(raw: string | undefined): MemberVotePositi
 }
 
 /**
- * Procedural-question classification per docs/risks.md §8. Returns `false` for
- * unknown questions — procedural exclusion is a narrow enumerated list, not a
- * catch-all; substantive vote questions (e.g., "On Passage", "On Agreeing to
- * the Amendment") do not match.
+ * Procedural-question classification. Returns `false` for unknown questions:
+ * procedural exclusion is a narrow enumerated list, not a catch-all;
+ * substantive vote questions (e.g., "On Passage", "On Agreeing to the
+ * Amendment") do not match.
  */
 export function isProceduralQuestion(voteQuestion: string | undefined): boolean {
   if (!voteQuestion) return false;

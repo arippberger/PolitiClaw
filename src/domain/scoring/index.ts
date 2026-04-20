@@ -127,9 +127,9 @@ export type StoredAlignment = {
 export type ScoreRepresentativeOptions = {
   /**
    * When true, procedural roll calls (and NULL-classified rows) are filtered
-   * out of tallies. Default is `true` per docs/risks.md §8 — the exclusion is
-   * the safer default. Flip to `false` to see the raw tally including
-   * procedural motions.
+   * out of tallies. Default is `true` because the exclusion is the safer
+   * default. Flip to `false` to see the raw tally including procedural
+   * motions.
    */
   excludeProcedural?: boolean;
 };
@@ -158,15 +158,15 @@ export type ScoreRepresentativeResult =
  *   - `stance_signals` — how the user would have voted on specific bills
  *     (`agree` → Yea; `disagree` → Nay; `skip` is ignored). This is the only
  *     source of direction; we deliberately refuse to have an LLM decide
- *     whether a bill advances or obstructs a stance (docs/risks.md §1).
+ *     whether a bill advances or obstructs a stance.
  *   - `bill_alignment` (current `stance_snapshot_hash`) — which bills touch
  *     which issues. Bills that have not been scored under the current stance
  *     set are invisible to this function; call `politiclaw_score_bill` or
  *     `politiclaw_check_upcoming_votes` first to broaden coverage.
  *   - `roll_call_votes` + `member_votes` (keyed on `bioguide_id`) — the
- *     actual vote record. 5a covers House only; Senate roll-calls surface as
- *     zero-evidence (and therefore "insufficient data") until a Senate
- *     ingest lands.
+ *     actual vote record. House votes are covered today; Senate roll calls
+ *     currently surface as zero-evidence (and therefore "insufficient data")
+ *     until Senate ingest exists.
  *
  * The function does not make live API calls; everything is read from the
  * plugin DB. Persistence writes one `rep_scores` row per active stance; the
@@ -427,8 +427,8 @@ function persistRepScores(
 /**
  * Stance snapshot hash for rep scoring. Must be deterministic and stable
  * across calls so a re-score under an unchanged stance set updates the same
- * `rep_scores` row rather than inserting a duplicate. Mirrors the 3b hash
- * convention (sorted by issue, sha256, truncated to 16 chars).
+ * `rep_scores` row rather than inserting a duplicate. Mirrors the bill-score
+ * hash convention (sorted by issue, sha256, truncated to 16 chars).
  */
 export function hashStancesForRepScoring(stances: readonly IssueStance[]): string {
   const normalized = [...stances]

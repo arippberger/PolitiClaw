@@ -175,7 +175,7 @@ export const researchCandidateTool: AnyAgentTool = {
   name: "politiclaw_research_candidate",
   label: "Look up FEC candidate finance totals",
   description:
-    "Research a federal candidate (President, Senate, House) via FEC OpenFEC (ADR-005). " +
+    "Research a federal candidate (President, Senate, House) via FEC OpenFEC. " +
     "Pass `candidateId` (e.g. H8CA12345) for a full per-cycle totals summary, or `name` to search " +
     "by fuzzy string. Dollar amounts come only from FEC (tier 1) — industry rollups, donor " +
     "identities, and independent expenditures are intentionally out of scope until an OpenSecrets " +

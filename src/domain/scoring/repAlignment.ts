@@ -31,10 +31,10 @@ export type BillEvidence = {
 export type RepAlignmentOptions = {
   /**
    * When true, procedural votes (motions-to-adjourn, previous-question, etc.)
-   * are filtered out before tallying. Per docs/risks.md §8 the exclusion is
-   * the safer default — inferring substantive alignment from a procedural
-   * motion is misleading. `is_procedural = NULL` (classification pending)
-   * is also filtered when `excludeProcedural` is true.
+   * are filtered out before tallying. The exclusion is the safer default:
+   * inferring substantive alignment from a procedural motion is misleading.
+   * `is_procedural = NULL` (classification pending) is also filtered when
+   * `excludeProcedural` is true.
    */
   excludeProcedural: boolean;
 };
@@ -77,13 +77,13 @@ export type RepAlignmentResult = {
 /**
  * Deterministic per-issue rep alignment. No LLM involved — we compose:
  *
- *   - 3b's `bill_alignment.relevance` (how strongly a bill touches an issue),
+ *   - `bill_alignment.relevance` (how strongly a bill touches an issue),
  *   - the user's own `stance_signals` (which way they would vote on the bill),
  *   - the rep's `member_votes.position` (how the rep actually voted),
  *
  * and count weighted matches vs. mismatches per issue. Direction ("would a
  * YES on HR-X advance the user's stance?") comes exclusively from the user's
- * explicit signal; we never infer it from LLM judgment (docs/risks.md §1).
+ * explicit signal; we never infer it from LLM judgment.
  *
  * Issues with no available evidence surface as `belowConfidenceFloor=true` so
  * the tool renders "insufficient data" rather than a misleading 0% or 100%.
@@ -101,7 +101,7 @@ export function computeRepAlignment(
   for (const row of evidence) {
     if (options.excludeProcedural && row.isProcedural !== false) {
       // Excludes rows with `is_procedural = true` AND `is_procedural = NULL`
-      // (classification pending) — §8 intent is "unknown = excluded."
+      // (classification pending): unknown stays excluded by default.
       skippedProceduralCount += 1;
       continue;
     }

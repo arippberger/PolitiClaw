@@ -103,7 +103,7 @@ describe("politiclaw_score_bill tool", () => {
     expect(text).toContain("politiclaw_set_issue_stance");
   });
 
-  it("renders §1 disclaimer and named matches when stances are rich enough", async () => {
+  it("renders the disclaimer and named matches when stances are rich enough", async () => {
     stubHousingFixtures();
     setPluginConfigForTests({ apiKeys: { apiDataGov: "k" } });
     upsertIssueStance(db, { issue: "housing", stance: "support", weight: 4 });

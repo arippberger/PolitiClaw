@@ -16,7 +16,7 @@ export type BallotResolver = {
 
 /**
  * Ballot logistics resolver. Google Civic `voterInfoQuery` is the zero-cost
- * default path (ADR-004); Democracy Works lands as an optional upgrade later.
+ * default path; Democracy Works can be added later as an optional upgrade.
  */
 export function createBallotResolver(options: BallotResolverOptions): BallotResolver {
   const fetcher = options.fetcher ?? globalThis.fetch.bind(globalThis);

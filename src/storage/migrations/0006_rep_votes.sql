@@ -1,18 +1,18 @@
--- Phase 5a: persisted House roll-call votes + per-member positions.
+-- Persisted House roll-call votes + per-member positions.
 --
 -- Source-of-truth is api.congress.gov's `/house-vote` beta endpoints (tier 1)
--- per docs/adr/0002-federal-bills-votes-members.md. Senate roll-call votes
--- are intentionally NOT persisted here yet — api.congress.gov has no
--- `/senate-vote` endpoint as of 2026-04-19 and docs/risks.md §9 forbids
--- filling that gap with LLM search.
+-- for House data. Senate roll-call votes are intentionally NOT persisted here
+-- yet — api.congress.gov has no `/senate-vote` endpoint as of 2026-04-19, and
+-- LLM search is not an acceptable replacement.
 --
--- `source_adapter_id` + `source_tier` carry adapter provenance so Phase 5b
--- scoring and any future audit surface can tag each rationale line.
+-- `source_adapter_id` + `source_tier` carry adapter provenance so
+-- representative scoring and any future audit surface can tag each rationale
+-- line.
 --
 -- `is_procedural` is an INTEGER (0/1). Left NULL when only the list payload
 -- has been ingested — `voteQuestion` (the classification input) lives on the
--- detail/members endpoint. Scoring (§8 procedural-exclusion) treats NULL as
--- "unknown" and excludes those rows from non-opt-in tallies.
+-- detail/members endpoint. Scoring treats NULL as "unknown" and excludes
+-- those rows from non-opt-in tallies.
 
 CREATE TABLE IF NOT EXISTS roll_call_votes (
   id                  TEXT PRIMARY KEY,                  -- `<chamber>-<congress>-<session>-<rollCall>`

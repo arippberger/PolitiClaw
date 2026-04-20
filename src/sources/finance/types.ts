@@ -1,5 +1,5 @@
 /**
- * Adapter-agnostic campaign-finance shapes (ADR-005).
+ * Adapter-agnostic campaign-finance shapes.
  *
  * Dollar amounts are **tier-1 authoritative only** (FEC OpenFEC for federal,
  * FollowTheMoney for state when configured). LLM search is never an

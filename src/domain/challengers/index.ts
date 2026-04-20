@@ -12,8 +12,8 @@ import { listReps } from "../reps/index.js";
  *
  * `unmappable` is not an error — Senate reps always map, House reps map when
  * their district column is populated, but other `RepOffice` values (e.g.
- * state legislators surfaced via a future phase) cannot be resolved to a
- * federal race and must surface as "not covered" rather than as a
+ * state legislators or governors) cannot be resolved to a federal race and
+ * must surface as "not covered" rather than as a
  * misattributed FEC lookup.
  */
 export type RaceCoordinates =

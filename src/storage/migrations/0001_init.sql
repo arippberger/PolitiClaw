@@ -1,6 +1,6 @@
--- Phase 1 baseline: preferences + stance signals + light KV.
--- The full data model (reps, bills, scores, etc.) lands in later phases; this
--- migration only covers what Phase 1 tools write.
+-- Baseline preferences + stance signals + light KV.
+-- The full data model (reps, bills, scores, etc.) arrives in later migrations;
+-- this migration only covers what the initial preference and signal tools write.
 
 CREATE TABLE IF NOT EXISTS preferences (
   id              INTEGER PRIMARY KEY CHECK (id = 1),

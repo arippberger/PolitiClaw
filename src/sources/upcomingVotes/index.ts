@@ -17,9 +17,9 @@ export type UpcomingVotesResolverOptions = {
  * Resolver for upcoming federal vote-adjacent events (committee meetings,
  * markups, hearings). Mirrors `createBillsResolver` — api.congress.gov is
  * the primary tier-1 adapter; without the `apiDataGov` key we return a
- * structured "unavailable" rather than falling back to LLM search.
- * docs/risks.md §9 forbids LLM-search fallback for anything feeding
- * `snapshots` (SNAPSHOT_INPUT guardrail).
+ * structured "unavailable" rather than falling back to LLM search. Snapshot
+ * inputs must come from deterministic sources only, so LLM search is not a
+ * valid fallback here.
  */
 export function createUpcomingVotesResolver(opts: UpcomingVotesResolverOptions = {}) {
   const adapters: UpcomingVotesAdapter[] = [];

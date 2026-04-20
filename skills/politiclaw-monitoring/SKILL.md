@@ -3,7 +3,8 @@ name: politiclaw-monitoring
 description: >-
   How to run the PolitiClaw monitoring loop. Decides when to alert, when to
   summarize, and when to stay silent. Enforces the anti-echo-chamber rule
-  (dissenting view discipline) from docs/risks.md §4.
+  that every substantial summary must include a dissenting or complicating
+  view when one exists.
 read_when:
   - A PolitiClaw cron template fires (weekly_summary, rep_vote_watch,
     tracked_hearings, rep_report).
@@ -59,14 +60,14 @@ Everything else goes under a terse "also changed" tail.
   the user asks "would I support this?", say: "I can tell you the bill
   touches `X, Y`. Your declared stance on `X` is `support`; whether *this*
   bill advances or obstructs `X` depends on the amendments, which I haven't
-  read." (docs/risks.md §1.)
+  read."
 - If `alignment.belowConfidenceFloor` is true, render "insufficient data".
-  Do not quote the raw percentages. (§1 confidence floor.)
+  Do not quote the raw percentages.
 - If the rationale names specific matched subjects, quote them. If it
   doesn't, say "no specific subject match in the available metadata." Never
   paraphrase a generic "seems relevant".
 
-## 4. Dissenting view discipline (required by default — docs/risks.md §4)
+## 4. Dissenting view discipline (required by default)
 
 Every multi-item summary you produce **must** include at least one item that
 opposes, complicates, or steel-mans an opposing view on the user's declared
@@ -80,8 +81,8 @@ stances, with source links. Framing:
 Rules for the dissenting item:
 
 - **Source must be tier 1–3** (primary government, neutral civic, or
-  reputable journalism — see docs/risks.md §2). Advocacy (tier 4) is
-  acceptable *only* if explicitly labeled as advocacy with the group named.
+  reputable journalism). Advocacy (tier 4) is acceptable *only* if explicitly
+  labeled as advocacy with the group named.
 - **If no dissenting item exists in the current delta**, say so explicitly:
   "No dissenting-view items in this week's delta — nothing in the tracked set
   cuts against your declared stances." That's an honest summary, not a
@@ -89,7 +90,7 @@ Rules for the dissenting item:
 - **Do not fabricate** a dissenting view. If the change set is genuinely
   one-directional, the disclosure in the previous bullet is the correct
   output; generating a plausible-sounding counterpoint from LLM search output
-  would be a tier-5 fabrication (docs/risks.md §9).
+  would be a tier-5 fabrication.
 
 The user can override this skill by editing it. That is a conscious choice on
 their part. Shipping the discipline on by default is ours.
@@ -104,18 +105,16 @@ Every factual claim in your output carries a source tag. Preferred format:
 - Advocacy context — name the group; mark tier 4, explicitly labeled.
 
 Tier-5 LLM-search output is allowed only for narrative framing, never for
-numerical claims, vote positions, dollar amounts, or status transitions
-(docs/risks.md §9 hard guardrails). If you catch yourself about to attribute
-a number to a tier-5 source, stop and say "number not verifiable from
-deterministic sources" instead.
+numerical claims, vote positions, dollar amounts, or status transitions. If
+you catch yourself about to attribute a number to a tier-5 source, stop and
+say "number not verifiable from deterministic sources" instead.
 
 ## 6. Tone and length
 
 - Short paragraphs, bullet lists. Monitoring output is read on a phone.
 - No "exciting news!" framing. The user asked for facts, not cheerleading.
-- No prescriptive "you should..." language. Framing is facts + tradeoffs
-  (docs/risks.md §1): "a YES vote would do X; this aligns with your stance on
-  Y because Z."
+- No prescriptive "you should..." language. Framing is facts + tradeoffs:
+  "a YES vote would do X; this aligns with your stance on Y because Z."
 - Include the `ALIGNMENT_DISCLAIMER` verbatim at the bottom of any message
   that includes scoring output. `politiclaw_check_upcoming_votes` already
   emits it when scoring is present — don't strip it.
@@ -132,7 +131,7 @@ When `politiclaw_rep_report` runs (manually or via `politiclaw.rep_report` cron)
 3. Repeat the dissenting-view discipline where the evidence set allows it: if
    every cited vote lines up with the user's stance, explicitly say there is
    no contrary signal in this month's counted votes (do not invent opposition).
-4. Honesty about blind spots (docs/risks.md section 8): call out bills that
+4. Honesty about blind spots: call out bills that
    matched issues but lack stance signals; note Senate coverage limits until
    Senate ingest lands. Never use LLM search for vote positions.
 

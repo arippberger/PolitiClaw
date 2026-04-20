@@ -1,5 +1,5 @@
 /**
- * Source-tier tag per docs/risks.md §2 + §9.
+ * Source-tier tag used throughout the plugin.
  *   1 — primary government / authoritative API
  *   2 — civic infrastructure / reputable aggregator
  *   3 — journalism
@@ -23,8 +23,8 @@ export type AdapterResult<T> =
   | { status: "unavailable"; adapterId: string; reason: string; actionable?: string };
 
 /**
- * Adapter interface sketch from docs/sources.md. Narrow on purpose — the
- * per-adapter schema of `TResult` is pinned by the adapter itself.
+ * Shared source-adapter interface. Narrow on purpose — the per-adapter schema
+ * of `TResult` is pinned by the adapter itself.
  */
 export interface SourceAdapter<TQuery, TResult> {
   id: string;

@@ -134,7 +134,7 @@ export const researchChallengersTool: AnyAgentTool = {
   description:
     "For each stored rep (or a specific one via repId), look up every federal candidate filed for " +
     "that race this cycle and render a side-by-side FEC finance comparison. Dollar amounts come " +
-    "only from FEC (tier 1) per ADR-005. Pass `cycle` for historical comparisons. Requires " +
+    "only from FEC (tier 1). Pass `cycle` for historical comparisons. Requires " +
     "plugins.politiclaw.apiKeys.apiDataGov. Call politiclaw_get_my_reps first if no reps are stored.",
   parameters: ResearchChallengersParams,
   async execute(_toolCallId, rawParams) {

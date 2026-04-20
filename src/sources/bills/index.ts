@@ -11,13 +11,12 @@ export type BillsResolverOptions = {
 };
 
 /**
- * Resolver for federal bill lookups. Per ADR-002 the api.congress.gov adapter
- * is the primary source; without the one required `apiDataGov` key we return
- * a structured "unavailable" until the zero-key `unitedstates/congress`
- * scraper fallback lands in Phase 3e.
+ * Resolver for federal bill lookups. The api.congress.gov adapter is the
+ * primary source; without the one required `apiDataGov` key we return a
+ * structured "unavailable" because no zero-key fallback is wired today.
  *
  * LLM search is never a valid fallback for bill-status transitions or
- * bill text (docs/risks.md §9, BILL_STATUS).
+ * bill text.
  */
 export function createBillsResolver(opts: BillsResolverOptions = {}) {
   const adapters: BillsAdapter[] = [];
@@ -74,6 +73,6 @@ function zeroKeyUnavailable<T>(): AdapterResult<T> {
   return unavailable(
     "bills",
     "no federal bills source configured",
-    "set plugins.politiclaw.apiKeys.apiDataGov (free, https://api.data.gov/signup/) — zero-key scraper fallback lands in Phase 3e",
+    "set plugins.politiclaw.apiKeys.apiDataGov (free, https://api.data.gov/signup/) — no zero-key fallback is wired today",
   );
 }

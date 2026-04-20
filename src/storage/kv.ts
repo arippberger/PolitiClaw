@@ -3,9 +3,9 @@ import type { PolitiClawDb } from "./sqlite.js";
 /**
  * Tiny typed KV on top of the plugin SQLite DB.
  *
- * Used for the scalars listed in docs/data-model.md §2: lastPoll:*, rateLimit:*,
- * onboarding:completed, etc. Values are JSON-encoded so we don't have to manage
- * separate numeric/bool/object columns.
+ * Used for scalar keys such as `lastPoll:*`, `rateLimit:*`,
+ * `onboarding:completed`, and similar small records. Values are JSON-encoded
+ * so we don't have to manage separate numeric/bool/object columns.
  */
 export class Kv {
   private getStmt;

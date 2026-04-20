@@ -16,8 +16,8 @@ const TIER: SourceTier = 1;
 export type FecAdapterOptions = {
   /**
    * `api.data.gov` key. OpenFEC shares the same key namespace as
-   * api.congress.gov (ADR-002 + ADR-005), so the plugin config key is
-   * `apiDataGov`, not a separate `openFec`.
+   * api.congress.gov, so the plugin config key is `apiDataGov`, not a
+   * separate `openFec`.
    */
   apiKey: string;
   fetcher?: Fetcher;

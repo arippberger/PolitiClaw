@@ -32,8 +32,8 @@ export type StanceSignal = z.infer<typeof StanceSignalSchema>;
 
 /**
  * User-declared position on a policy issue. Drives bill alignment scoring
- * (Phase 3b) and rep scoring (Phase 5). Distinct from {@link StanceSignal},
- * which is a single interaction event.
+ * and representative scoring. Distinct from {@link StanceSignal}, which is a
+ * single interaction event.
  */
 export const IssueStanceSchema = z.object({
   issue: z

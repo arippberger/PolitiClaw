@@ -1,26 +1,26 @@
--- Phase 5b: persisted per-(rep, issue) alignment scores.
+-- Persisted per-(rep, issue) alignment scores.
 --
 -- A rep's alignment on an issue is computed by joining:
 --   - the user's declared `issue_stances` (support/oppose, weight),
 --   - the user's `stance_signals` on specific bills (direction: agree/disagree
 --     — "skip" signals are ignored for scoring), which provide the per-bill
---     *direction* that 3b bill alignment intentionally does not infer
---     (docs/risks.md §1 — we refuse to stack LLM summarization and judgment),
+--     *direction* that `bill_alignment` intentionally does not infer
+--     (we refuse to stack LLM summarization and judgment),
 --   - `bill_alignment` rows (which bills touch which issues, and how strongly),
 --   - `member_votes` rows joined on `bioguide_id` (how the rep actually voted).
 --
 -- Procedural votes (`is_procedural = 1` or NULL) are excluded by default per
--- docs/risks.md §8 — inferring substantive alignment from motions-to-adjourn
--- and similar votes would be misleading. The domain layer exposes
+-- default — inferring substantive alignment from motions-to-adjourn and
+-- similar votes would be misleading. The domain layer exposes
 -- `includeProcedural: true` as an opt-in for callers that want the raw tally.
 --
--- `stance_snapshot_hash` is carried through from 3b so re-reading an older
--- rep score after the user edits stances returns that earlier computation
--- unchanged; a re-score writes a new row under the new hash. This keeps audit
--- replay honest without a separate history table.
+-- `stance_snapshot_hash` is carried through from bill alignment so re-reading
+-- an older rep score after the user edits stances returns that earlier
+-- computation unchanged; a re-score writes a new row under the new hash. This
+-- keeps audit replay honest without a separate history table.
 --
--- Confidence below docs/risks.md §1's 0.4 floor is persisted for audit but
--- must render as "insufficient data" at every user-facing surface.
+-- Confidence below the 0.4 floor is persisted for audit but must render as
+-- "insufficient data" at every user-facing surface.
 
 CREATE TABLE IF NOT EXISTS rep_scores (
   rep_id               TEXT NOT NULL,

@@ -113,7 +113,7 @@ describe("computeBillAlignment", () => {
     expect(a.stanceSnapshotHash).toBe(b.stanceSnapshotHash);
   });
 
-  it("exposes the risks.md §1 disclaimer as an exported constant", () => {
+  it("exposes the alignment disclaimer as an exported constant", () => {
     expect(ALIGNMENT_DISCLAIMER).toContain("informational");
     expect(ALIGNMENT_DISCLAIMER).toContain("Verify");
   });

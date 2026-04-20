@@ -16,8 +16,7 @@
  * - Messages are intentionally short. Behavior lives in the
  *   `politiclaw-monitoring` and `politiclaw-summary` skills, which the agent
  *   loads when each job fires. Keeping messages short and skills long means
- *   users can retune behavior without a plugin rebuild (docs/plan.md
- *   Phase 4 exit criteria).
+ *   users can retune behavior without a plugin rebuild.
  */
 
 const MS_IN_HOUR = 60 * 60 * 1000;
@@ -54,7 +53,7 @@ export const WEEKLY_SUMMARY_TEMPLATE: PolitiClawCronTemplate = {
   description:
     "PolitiClaw weekly digest. Reads the politiclaw-summary skill and posts a " +
     "single message with tracked-bill movement, upcoming events, a mandatory " +
-    "dissenting-view item (docs/risks.md §4), and any source outages from the " +
+    "dissenting-view item, and any source outages from the " +
     "past 7 days.",
   schedule: { kind: "every", everyMs: 7 * MS_IN_DAY },
   sessionTarget: "isolated",
@@ -66,7 +65,7 @@ export const WEEKLY_SUMMARY_TEMPLATE: PolitiClawCronTemplate = {
       "and follow its section order exactly. Call politiclaw_check_upcoming_votes " +
       "with a 7-day window, then compose the digest per skills/politiclaw-summary/SKILL.md. " +
       "Required: include the 'Things you might be surprised by' dissenting-view " +
-      "section (docs/risks.md §4). If the delta is empty, post the one-line quiet-week " +
+      "section. If the delta is empty, post the one-line quiet-week " +
       "message per the skill — do not pad.",
   },
   delivery: { mode: "announce", channel: "last" },
@@ -89,8 +88,8 @@ export const REP_VOTE_WATCH_TEMPLATE: PolitiClawCronTemplate = {
       "Call politiclaw_check_upcoming_votes with the default (recent) window. " +
       "Only surface bills flagged as [new] or [changed] whose alignment crosses " +
       "the confidence floor. If the delta is empty, post the one-line silent-ok " +
-      "message per the skill — do not pad. Senate roll-call ingest is still " +
-      "limited (Phase 5a deviations); prioritize bill-status deltas and committee " +
+      "message per the skill — do not pad. Senate roll-call ingest is not " +
+      "available yet; prioritize bill-status deltas and committee " +
       "activity unless politiclaw_ingest_house_votes has populated House votes.",
   },
   delivery: { mode: "announce", channel: "last" },
@@ -123,14 +122,15 @@ export const REP_REPORT_TEMPLATE: PolitiClawCronTemplate = {
   description:
     "Every ~30 days: deterministic representative alignment digest vs. declared " +
     "issue stances and recorded bill signals (House roll calls only until Senate " +
-    "ingest lands). Calls politiclaw_rep_report; honors docs/risks.md sections 1, 4, and 8.",
+    "ingest lands). Calls politiclaw_rep_report; keeps the alignment disclaimer, " +
+    "dissenting-view coverage, and blind-spot callouts intact.",
   schedule: { kind: "every", everyMs: MS_IN_MONTH },
   sessionTarget: "isolated",
   wakeMode: "next-heartbeat",
   payload: {
     kind: "agentTurn",
     message:
-      "Run the PolitiClaw periodic representative alignment report. Read skills/politiclaw-monitoring/SKILL.md → Rep report (periodic digest). Call politiclaw_rep_report once. Include the dissenting-view obligation where applicable (docs/risks.md section 4); never strip the alignment disclaimer footer from tool output when scores are shown. If the tool returns no_stances or no_reps, post only the actionable fix.",
+      "Run the PolitiClaw periodic representative alignment report. Read skills/politiclaw-monitoring/SKILL.md → Rep report (periodic digest). Call politiclaw_rep_report once. Include the dissenting-view requirement where applicable; never strip the alignment disclaimer footer from tool output when scores are shown. If the tool returns no_stances or no_reps, post only the actionable fix.",
   },
   delivery: { mode: "announce", channel: "last" },
 };

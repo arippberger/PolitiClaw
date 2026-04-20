@@ -16,7 +16,9 @@ import {
 import { getStorage } from "../storage/context.js";
 
 const SetPreferencesParams = Type.Object({
-  address: Type.String({ description: "Street address. Used for rep lookup in Phase 2." }),
+  address: Type.String({
+    description: "Street address. Used for representative and ballot lookup.",
+  }),
   zip: Type.Optional(Type.String()),
   state: Type.Optional(Type.String({ description: "2-letter state code (e.g., CA)." })),
   district: Type.Optional(Type.String({ description: "Congressional district if known." })),
@@ -102,7 +104,7 @@ export const recordStanceSignalTool: AnyAgentTool = {
   label: "Record PolitiClaw stance signal",
   description:
     "Record a single agree/disagree/skip signal from the user in response to a shown bill or issue. " +
-    "Phase 3+ aggregates these into learned issue stances; Phase 1 only writes.",
+    "Later scoring can aggregate these signals into learned issue stances; this tool only records the raw signal.",
   parameters: RecordStanceSignalParams,
   async execute(_toolCallId, rawParams) {
     const validated = StanceSignalSchema.parse(rawParams);

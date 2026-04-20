@@ -149,7 +149,7 @@ describe("politiclaw_score_representative tool", () => {
     expect(text).toContain("politiclaw_get_my_reps");
   });
 
-  it("renders per-issue alignment + §1 disclaimer when rich data exists", async () => {
+  it("renders per-issue alignment plus the exported disclaimer when rich data exists", async () => {
     seedScenario(db, {
       bioguide: "B000002",
       repName: "Rep Aligned",
@@ -203,7 +203,7 @@ describe("politiclaw_score_representative tool", () => {
     expect(text).toContain("politiclaw_ingest_house_votes");
   });
 
-  it("mentions procedural exclusion by default (§8) and coverage hints", async () => {
+  it("mentions procedural exclusion by default and coverage hints", async () => {
     seedScenario(db, {
       bioguide: "B000004",
       repName: "Rep Proc",
@@ -225,7 +225,6 @@ describe("politiclaw_score_representative tool", () => {
 
     expect(text).toContain("procedural/unclassified vote");
     expect(text).toContain("excluded");
-    expect(text).toContain("§8");
   });
 
   it("includes procedural votes when includeProcedural=true (opt-in)", async () => {

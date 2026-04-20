@@ -2,8 +2,8 @@
 name: politiclaw-ballot
 description: >-
   How to help users understand upcoming elections without prescribing votes.
-  Uses docs/risks.md section 1 (no prescriptive recommendations) and section 9
-  (LLM-search guardrails for ballot-adjacent narrative).
+  Enforces no prescriptive recommendations and strict guardrails on when
+  LLM-search-derived narrative is allowed.
 read_when:
   - The user asks about their ballot, candidates, measures, or election day logistics.
   - politiclaw_get_my_ballot, politiclaw_research_candidate, politiclaw_explain_my_ballot,
@@ -15,17 +15,17 @@ read_when:
 ## Non-negotiables
 
 1. **Never tell the user how to vote.** Offer facts, tradeoffs, and links. The user decides.
-2. **Never use LLM search for election dates, polling-place addresses, registration deadlines, or dollar amounts.** Those come from Google Civic, FEC OpenFEC, or official portals only (docs/risks.md section 9).
+2. **Never use LLM search for election dates, polling-place addresses, registration deadlines, or dollar amounts.** Those come from Google Civic, FEC OpenFEC, or official portals only.
 3. **Label coverage honestly** per race: full structured state coverage vs partial metadata vs sample-ballot-only.
-4. **When numerical claims come from LLM search** (rare; narrative only), include the verify-against-official-source disclaimer from docs/risks.md section 9.
+4. **When narrative claims come from LLM search** (rare), include the verify-against-official-source disclaimer. Do not present those claims as primary-source facts.
 
-## Tool posture (Phase 6 rollout)
+## Tool posture
 
 - `politiclaw_get_my_ballot` lists logistics and contests from Google Civic when `googleCivic` is configured. Treat candidate rows as identifiers from an aggregator (tier 2), not verified bios.
-- `politiclaw_research_candidate` returns federal finance totals from FEC OpenFEC (tier 1) when `apiDataGov` is configured. Use the `name` mode first to resolve a candidate id; then call with `candidateId` for per-cycle totals. Numbers are FEC-only — no industry rollups, no top donors, no independent expenditures until an OpenSecrets slice lands.
+- `politiclaw_research_candidate` returns federal finance totals from FEC OpenFEC (tier 1) when `apiDataGov` is configured. Use the `name` mode first to resolve a candidate id; then call with `candidateId` for per-cycle totals. Numbers are FEC-only — no industry rollups, no top donors, and no independent expenditures in this tool.
 - `politiclaw_research_challengers` starts from the user's stored reps (not the ballot snapshot — it works without `googleCivic`) and compares every FEC filing in each race side-by-side for a given cycle. Incumbent vs challenger labels come from FEC's `incumbent_challenge` field only — never infer from name matches. Default cycle is the current election cycle; let the user pass `cycle` for historical comparisons.
 - `politiclaw_explain_my_ballot` wraps `get_my_ballot` with deterministic per-contest framing. For measures it renders "A YES vote would / A NO vote would" lines sourced from Google Civic's published subtitle (tier 2 — always tell the user to verify against the full text). For candidate races it enumerates what the race decides and attaches bios via the `webSearch/bios` adapter when wired; bios are tier 5 by default and only reach tier 1/2 when every citation is a primary-government or neutral civic infrastructure domain. The tool never says "vote YES/NO"; mirror that discipline in your own summaries.
-- Future tools add state SoS feeds (six states) and a live web-search transport for `webSearch/bios` — follow this skill when those ship.
+- If additional secretary-of-state feeds or a live web-search transport for `webSearch/bios` are wired in later, keep following this skill.
 
 ## Citing `research_candidate` output
 
@@ -37,7 +37,7 @@ read_when:
 ## Citing `research_challengers` output
 
 - Present all candidates in the race, not just the rep the user already knows. The value of the tool is the comparison.
-- Do not rank "who should win" or "who is a better bet." Present figures; let the user draw conclusions (§1).
+- Do not rank "who should win" or "who is a better bet." Present figures; let the user draw conclusions.
 - When a row has `no FEC totals available for this cycle yet`, say so — early-cycle filings are often incomplete. Do not fill with narrative guesses about likely war-chest size.
 - When a race has "No FEC candidates filed yet," point at primary filing deadlines as a likely cause rather than concluding the race is uncontested.
 
@@ -46,7 +46,7 @@ read_when:
 - Preserve the "A YES vote would / A NO vote would" framing verbatim when summarizing — do not collapse it into a recommendation.
 - When a contest is flagged `insufficient data`, tell the user it means "we matched no declared stance and have no bio enrichment," not "this contest doesn't matter."
 - When bios are attached, always name the tier (1, 2, or 5) and keep the verify-against-official-source disclaimer in your summary; the bio narrative is a paraphrase of cited sources, not primary text.
-- Never add the word "recommend" or "endorse" to the output. The tool deliberately omits both; echoing them would defeat the §1 posture.
+- Never add the word "recommend" or "endorse" to the output. The tool deliberately omits both; echoing them would defeat the non-prescriptive posture.
 - If the user pushes for a recommendation, point them at specific structured artifacts (candidate websites, official sample ballot, `politiclaw_score_representative` for a sitting member's record) rather than stating a preference.
 
 ## Tone

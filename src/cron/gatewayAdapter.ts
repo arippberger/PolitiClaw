@@ -4,8 +4,8 @@
  * All of `setup_monitoring` / `pause_monitoring` / `resume_monitoring`
  * operate by calling these methods. The wrapper exists so tests can inject a
  * fake in-memory implementation without opening a real websocket to the
- * gateway (docs/plan.md Phase 4 — cron is submitted via gateway API, never
- * by editing `jobs.json`, but unit tests must remain hermetic).
+ * gateway. Cron is submitted via the gateway API, never by editing
+ * `jobs.json`, but unit tests must remain hermetic.
  *
  * Test override: call `setGatewayCronAdapterForTests(adapter)` from a test
  * setup block. Reset with `resetGatewayCronAdapterForTests()`. Production

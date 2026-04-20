@@ -88,7 +88,9 @@ export function renderGetMyBallotOutput(result: GetBallotSnapshotResult): string
   }
 
   headerLines.push("");
-  headerLines.push("Per-contest coverage (Phase 6 v1 — state SoS adapters fill gaps where available):");
+  headerLines.push(
+    "Per-contest coverage (Google Civic default data; verify against official state sources where available):",
+  );
 
   let index = 1;
   for (const contest of ballot.contests) {
@@ -121,10 +123,9 @@ export const getMyBallotTool: AnyAgentTool = {
   name: "politiclaw_get_my_ballot",
   label: "Preview ballot logistics and contests for your saved address",
   description:
-    "Fetch election logistics and contest rows from Google Civic voterInfoQuery (ADR-004). " +
+    "Fetch election logistics and contest rows from Google Civic voterInfoQuery. " +
     "Requires plugins.politiclaw.apiKeys.googleCivic with the Civic Information API enabled. " +
-    "Coverage labels are honest: structured state feeds for CA/WA/CO/OH/FL/MI land in later Phase 6 slices; " +
-    "this tool lists what Google returns and marks each race PARTIAL unless we have fuller coverage.",
+    "Coverage labels are honest: this tool lists what Google returns today and marks each race PARTIAL unless fuller structured coverage is available.",
   parameters: GetMyBallotParams,
   async execute(_toolCallId, rawParams) {
     const parsed = GetMyBallotInputSchema.safeParse(rawParams);

@@ -52,16 +52,16 @@ export type CheckUpcomingVotesResult = {
 export type CheckUpcomingVotesOptions = {
   billFilters?: BillListFilters;
   eventFilters?: UpcomingEventsFilters;
-  /** When true, bypass the 3a list cache and force a refetch. */
+  /** When true, bypass the bills-list cache and force a refetch. */
   refreshBills?: boolean;
 };
 
 /**
- * Compose 3a + 3b + 3c: fetch the recent-federal-bill slice + upcoming
- * committee meetings, run each through the change-detection primitive,
- * and return *only* the subset that is new or has materially changed
- * since the last run. Score each changed bill against the user's stances
- * (no-op if none declared).
+ * Compose bill fetch + bill alignment + change detection: fetch the recent
+ * federal-bill slice and upcoming committee meetings, run each through the
+ * change-detection primitive, and return *only* the subset that is new or
+ * has materially changed since the last run. Score each changed bill against
+ * the user's stances (no-op if none declared).
  *
  * This is the engine behind `politiclaw_check_upcoming_votes`. The tool
  * layer is a thin renderer.

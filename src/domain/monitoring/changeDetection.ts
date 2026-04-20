@@ -28,8 +28,8 @@ export type ChangeDetectionInput = {
   /**
    * Deterministic JSON payload of API-only fields to hash. Must NOT contain
    * LLM-derived strings, scrape timestamps, or user-specific data
-   * (docs/risks.md §9 hard guardrail). The function sorts object keys
-   * before hashing so the caller does not need to.
+   * because snapshot inputs must come from deterministic sources only. The
+   * function sorts object keys before hashing so the caller does not need to.
    */
   hashInput: unknown;
   source: { adapterId: string; tier: number };
@@ -47,8 +47,8 @@ export type ChangeDetectionResult = {
 };
 
 /**
- * The §6 + §9 primitive. Compares the hash of `hashInput` against the last
- * stored snapshot for this entity and updates the row atomically.
+ * Core change-detection primitive. Compares the hash of `hashInput` against
+ * the last stored snapshot for this entity and updates the row atomically.
  *
  * Contract:
  *  - First call for an (entity_kind, entity_id) pair → `reason: "new"`,

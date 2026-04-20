@@ -2,13 +2,12 @@
  * Ballot explanation — deterministic, non-prescriptive framing per race.
  *
  * Policy anchors:
- *   • risks.md §1 — never outputs "vote YES/NO." Renders facts + framing only.
- *   • risks.md §2 — every claim carries a source tier; contest-level coverage
- *     labels are honest about the Phase 6 v1 gap (Google Civic is tier 2,
- *     state SoS adapters are tier 1 and haven't landed yet).
- *   • risks.md §9 — the only LLM-search-derived content allowed here is the
- *     narrative from the `webSearch/bios` adapter, already guardrail-gated
- *     and tier-promotable only when citations are homogeneous tier-1/2.
+ *   • Never outputs "vote YES/NO." Renders facts and framing only.
+ *   • Every claim carries a source tier, and contest-level coverage labels
+ *     stay honest about what the current sources can and cannot prove.
+ *   • The only LLM-search-derived content allowed here is the narrative from
+ *     the `webSearch/bios` adapter, already guardrail-gated and
+ *     tier-promotable only when citations are homogeneous tier-1/2.
  *
  * The framing text per contest is **slot-filled from structured data**:
  *   - Google Civic contest metadata (candidate names, referendum titles)
@@ -37,7 +36,7 @@ import type { GetBallotSnapshotResult } from "./index.js";
 
 /**
  * Per-contest framing row. Every field is either from a structured source
- * (Google Civic + FEC + declared stances) or from the §9-gated bio adapter.
+ * (Google Civic + FEC + declared stances) or from the guarded bio adapter.
  */
 export type ContestExplanation = {
   index: number;
@@ -58,7 +57,7 @@ export type ContestExplanation = {
    *  gracefully. */
   candidateBios: readonly CandidateBio[];
   /** True when the contest has no stance matches and no bio data — the
-   *  renderer surfaces this as "insufficient data" per §1. */
+   *  renderer surfaces this as "insufficient data". */
   insufficientData: boolean;
 };
 
@@ -85,7 +84,8 @@ export type ExplainMyBallotOptions = {
   refresh?: boolean;
   /** Optional web-search resolver for bio enrichment. When absent the
    *  explanation is purely structured — still useful, but bios come back
-   *  empty. Tests inject this; production wiring is a later slice. */
+   *  empty. Tests inject this; production currently leaves bios empty unless
+   *  a fetcher is wired in. */
   webSearch?: WebSearchResolver;
 };
 

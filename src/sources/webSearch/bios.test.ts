@@ -156,7 +156,7 @@ describe("bios adapter — transport + tier promotion", () => {
   });
 });
 
-describe("bios adapter — §9 guardrails", () => {
+describe("bios adapter guardrails", () => {
   it("refuses a structured field that encodes a vote position", async () => {
     const adapter = createBiosAdapter({
       fetcher: okFetcher({

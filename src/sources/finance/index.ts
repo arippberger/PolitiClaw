@@ -19,14 +19,15 @@ export type FinanceResolverOptions = {
 };
 
 /**
- * Campaign-finance resolver. Per ADR-005 / risks.md §9, every numeric claim
- * this resolver returns is tier-1 authoritative — LLM search is never an
- * acceptable source for dollar amounts, donor identities, or contribution
- * totals, and there is no code path in this module that accepts such input.
+ * Campaign-finance resolver. Every numeric claim this resolver returns is
+ * tier-1 authoritative — LLM search is never an acceptable source for dollar
+ * amounts, donor identities, or contribution totals, and there is no code
+ * path in this module that accepts such input.
  *
- * v1 covers federal candidates via FEC OpenFEC (shares the `apiDataGov` key
- * with api.congress.gov). State finance (FollowTheMoney) and industry
- * rollups (OpenSecrets) are follow-up slices.
+ * This resolver currently covers federal candidates via FEC OpenFEC (shares
+ * the `apiDataGov` key with api.congress.gov). State finance
+ * (FollowTheMoney) and industry rollups (OpenSecrets) are optional follow-up
+ * integrations.
  */
 export type FinanceResolver = {
   searchCandidates(

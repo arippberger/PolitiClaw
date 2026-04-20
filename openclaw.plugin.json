@@ -11,51 +11,51 @@
       "apiKeys": {
         "type": "object",
         "additionalProperties": false,
-        "description": "One key required (apiDataGov); all others are optional upgrades. See docs/config.md and docs/adr/ for the tiered posture.",
+        "description": "One key required (apiDataGov); all others are optional upgrades. The required key powers federal bills, House votes, and FEC finance data.",
         "properties": {
           "apiDataGov": {
             "type": "string",
-            "description": "REQUIRED. Shared api.data.gov key — used by api.congress.gov (ADR-002) AND FEC OpenFEC (ADR-005). One key covers both. Free, instant signup at https://api.data.gov/signup/."
+            "description": "REQUIRED. Shared api.data.gov key used by both api.congress.gov and FEC OpenFEC. One key covers both. Free, instant signup at https://api.data.gov/signup/."
           },
           "geocodio": {
             "type": "string",
-            "description": "OPTIONAL UPGRADE. Reps-by-address via API (ADR-001). Default path uses zero-key local shapefile pipeline; Geocodio trades disk footprint for API simplicity. Free tier 2500 lookups/day."
+            "description": "OPTIONAL UPGRADE. Reps-by-address via API. Default path uses the zero-key local shapefile pipeline; Geocodio trades disk footprint for API simplicity. Free tier 2500 lookups/day."
           },
           "openStates": {
             "type": "string",
-            "description": "OPTIONAL UPGRADE. State bills/votes with individual member positions (ADR-003). Without a key, state bill lookup is narrative-only via LLM search; state vote positions and state change-detection require this."
+            "description": "OPTIONAL UPGRADE. State bills and votes with individual member positions. Without a key, state bill lookup is narrative-only via LLM search; state vote positions and state change-detection require this."
           },
           "legiscan": {
             "type": "string",
-            "description": "OPTIONAL UPGRADE. State bills fallback or primary (ADR-003). Free tier 30,000 queries/month. Covers federal + state in one key if user prefers unified access."
+            "description": "OPTIONAL UPGRADE. State bills fallback or primary source. Free tier 30,000 queries/month. Covers federal and state in one key if the user prefers unified access."
           },
           "openSecrets": {
             "type": "string",
-            "description": "OPTIONAL UPGRADE. Federal campaign-finance derived analytics — industry rollups, revolving door (ADR-005). Non-commercial use only. Without a key, narrative context falls back to LLM search (never dollar amounts)."
+            "description": "OPTIONAL UPGRADE. Federal campaign-finance derived analytics such as industry rollups and revolving-door context. Non-commercial use only. Without a key, narrative context falls back to LLM search, but never for dollar amounts."
           },
           "followTheMoney": {
             "type": "string",
-            "description": "OPTIONAL UPGRADE. State-level campaign finance (ADR-005). Without this, state finance data is explicitly not covered."
+            "description": "OPTIONAL UPGRADE. State-level campaign finance. Without this, state finance data is explicitly not covered."
           },
           "voteSmart": {
             "type": "string",
-            "description": "OPTIONAL UPGRADE. Candidate bios for Phase 6 (ADR-004). Default bios come from LLM search with tier-5 tagging; Vote Smart is a structured upgrade."
+            "description": "OPTIONAL UPGRADE. Candidate bios for ballot explanations. Default bios come from LLM search with tier-5 tagging; Vote Smart is a structured upgrade."
           },
           "democracyWorks": {
             "type": "string",
-            "description": "OPTIONAL UPGRADE. Ballot logistics — dates, deadlines, polling places (ADR-004). Partner-gated; requires an application. Default uses Google Civic voterInfoQuery (free, less reliable)."
+            "description": "OPTIONAL UPGRADE. Ballot logistics such as dates, deadlines, and polling places. Partner-gated; requires an application. Default uses Google Civic voterInfoQuery (free, less reliable)."
           },
           "cicero": {
             "type": "string",
-            "description": "OPTIONAL UPGRADE (paid). Local (municipal/county/school-board) reps coverage (ADR-001). The only source that covers local — without it, local reps are explicitly not covered."
+            "description": "OPTIONAL UPGRADE (paid). Local municipal, county, and school-board representative coverage. This is the only local source; without it, local reps are explicitly not covered."
           },
           "ballotReady": {
             "type": "string",
-            "description": "OPTIONAL UPGRADE (commercial). Structured down-ballot data for Phase 6 (ADR-004). Default v1 scope covers federal + statewide + 6 state SoS feeds; BallotReady lights up full down-ballot."
+            "description": "OPTIONAL UPGRADE (commercial). Structured down-ballot data. Default scope covers federal, statewide, and six secretary-of-state feeds; BallotReady lights up fuller down-ballot coverage."
           },
           "googleCivic": {
             "type": "string",
-            "description": "OPTIONAL but required for politiclaw_get_my_ballot in Phase 6. Google Cloud API key with Civic Information API enabled (ADR-004 voterInfoQuery). Distinct from api.data.gov — create at Google Cloud console."
+            "description": "OPTIONAL but required for politiclaw_get_my_ballot. Google Cloud API key with the Civic Information API enabled for voterInfoQuery. Distinct from api.data.gov; create it in the Google Cloud console."
           }
         }
       }

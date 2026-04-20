@@ -23,7 +23,6 @@ describe("assertAllowedForLlmSearch", () => {
       expect(violation.category).toBe(ForbiddenForLlmSearch.VOTE_POSITIONS);
       expect(violation.message).toContain("VOTE_POSITIONS");
       expect(violation.message).toContain("HR-1234");
-      expect(violation.message).toContain("§9");
     }
   });
 

@@ -14,13 +14,13 @@ export type RepsResolverOptions = {
 };
 
 /**
- * Resolver per docs/sources.md. Order:
+ * Representative resolver order:
  *   1. Geocodio (optional upgrade) if a key is configured.
- *   2. Local shapefile pipeline (zero-key default) — stubbed until Phase 2b.
+ *   2. Local shapefile pipeline (zero-key default).
  *   3. Structured "unavailable" with an actionable message.
  *
- * LLM search is explicitly NOT a fallback for rep identity
- * (docs/risks.md §9 — REP_TO_DISTRICT).
+ * LLM search is explicitly NOT a fallback for rep identity; address-to-
+ * district resolution must come from shapefiles or an address API.
  */
 export function createRepsResolver(opts: RepsResolverOptions = {}) {
   const adapters: SourceAdapter<RepQuery, Rep[]>[] = [];
