@@ -7,12 +7,16 @@ import {
   IssueStanceSchema,
   listIssueStances,
   listStanceSignals,
+  MonitoringCadenceSchema,
   recordStanceSignal,
+  setMonitoringCadence,
   upsertIssueStance,
   upsertPreferences,
   PreferencesSchema,
   StanceSignalSchema,
+  type MonitoringCadence,
 } from "../domain/preferences/index.js";
+import { setupMonitoring } from "../cron/setup.js";
 import { getStorage } from "../storage/context.js";
 
 const SetPreferencesParams = Type.Object({
@@ -62,6 +66,21 @@ const ListIssueStancesParams = Type.Object({});
 
 const DeleteIssueStanceParams = Type.Object({
   issue: Type.String({ description: "Issue slug or label to delete." }),
+});
+
+const SetMonitoringCadenceParams = Type.Object({
+  cadence: Type.Union([
+    Type.Literal("off"),
+    Type.Literal("election_proximity"),
+    Type.Literal("weekly"),
+    Type.Literal("both"),
+  ], {
+    description:
+      "How loud PolitiClaw monitoring should be. 'off' installs no jobs. " +
+      "'election_proximity' adds ramped alerts at 30/14/7/1 days plus " +
+      "rep-vote and hearings watches. 'weekly' adds the weekly digest and " +
+      "monthly rep report instead. 'both' installs all jobs.",
+  }),
 });
 
 function textResult<T>(text: string, details: T) {
@@ -174,6 +193,47 @@ export const deleteIssueStanceTool: AnyAgentTool = {
   },
 };
 
+export const setMonitoringCadenceTool: AnyAgentTool = {
+  name: "politiclaw_set_monitoring_cadence",
+  label: "Set PolitiClaw monitoring cadence",
+  description:
+    "Pick how loud PolitiClaw monitoring should be and reconcile the gateway " +
+    "cron jobs to match: 'off' (no monitoring), 'election_proximity' (default " +
+    "— quiet except near elections, plus change-gated rep-vote and hearings " +
+    "watches), 'weekly' (weekly digest + monthly rep report + watches), or " +
+    "'both' (all jobs). Persists the choice in preferences and calls " +
+    "setup_monitoring so installed jobs outside the chosen set are paused " +
+    "(not deleted — preserves gateway state if the user flips back).",
+  parameters: SetMonitoringCadenceParams,
+  async execute(_toolCallId, rawParams) {
+    const parsed = MonitoringCadenceSchema.parse(
+      (rawParams as { cadence: MonitoringCadence }).cadence,
+    );
+    const { db } = getStorage();
+    try {
+      setMonitoringCadence(db, parsed);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      return textResult(message, { status: "error", error: message });
+    }
+    try {
+      const result = await setupMonitoring({ cadence: parsed });
+      return textResult(
+        `Monitoring cadence set to '${parsed}'. ${result.outcomes.length} job${
+          result.outcomes.length === 1 ? "" : "s"
+        } reconciled.`,
+        { cadence: parsed, ...result },
+      );
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      return textResult(
+        `Cadence saved as '${parsed}', but reconciling cron jobs failed: ${message}. Run politiclaw_setup_monitoring once the gateway is reachable.`,
+        { cadence: parsed, status: "partial", error: message },
+      );
+    }
+  },
+};
+
 export const politiclawTools: AnyAgentTool[] = [
   setPreferencesTool,
   getPreferencesTool,
@@ -181,6 +241,7 @@ export const politiclawTools: AnyAgentTool[] = [
   setIssueStanceTool,
   listIssueStancesTool,
   deleteIssueStanceTool,
+  setMonitoringCadenceTool,
 ];
 
 export { listStanceSignals };

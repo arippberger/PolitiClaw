@@ -10,11 +10,27 @@ import {
   POLITICLAW_CRON_NAMES,
   POLITICLAW_CRON_TEMPLATES,
 } from "../cron/templates.js";
+import { setMonitoringCadence, upsertPreferences } from "../domain/preferences/index.js";
+import { Kv } from "../storage/kv.js";
+import {
+  resetStorageConfigForTests,
+  setStorageForTests,
+} from "../storage/context.js";
+import { openMemoryDb } from "../storage/sqlite.js";
 import {
   pauseMonitoringTool,
   resumeMonitoringTool,
   setupMonitoringTool,
 } from "./monitoringSetup.js";
+
+function seedStorageWithCadence(
+  cadence: "off" | "election_proximity" | "weekly" | "both",
+): void {
+  const db = openMemoryDb();
+  upsertPreferences(db, { address: "123 Main", state: "CA" });
+  setMonitoringCadence(db, cadence);
+  setStorageForTests({ db, kv: new Kv(db) });
+}
 
 function extractText(content: unknown): string {
   const arr = (content as Array<{ type: string; text: string }>) ?? [];
@@ -75,14 +91,17 @@ function buildAdapter(initial: GatewayCronJob[] = []): {
 
 afterEach(() => {
   resetGatewayCronAdapterForTests();
+  resetStorageConfigForTests();
 });
 
 describe("politiclaw_setup_monitoring tool", () => {
   beforeEach(() => {
     resetGatewayCronAdapterForTests();
+    resetStorageConfigForTests();
   });
 
-  it("reports 'installed' for every template on first run", async () => {
+  it("reports 'installed' for every template on first run with cadence 'both'", async () => {
+    seedStorageWithCadence("both");
     const { adapter } = buildAdapter();
     setGatewayCronAdapterForTests(adapter);
 
@@ -94,13 +113,35 @@ describe("politiclaw_setup_monitoring tool", () => {
     );
     const text = extractText(result.content);
 
-    expect(text).toContain("PolitiClaw monitoring jobs installed:");
+    expect(text).toContain("PolitiClaw monitoring jobs installed for cadence 'both':");
     for (const name of POLITICLAW_CRON_NAMES) {
       expect(text).toContain(`${name}: installed`);
     }
   });
 
+  it("installs only the election_proximity subset when cadence defaults", async () => {
+    seedStorageWithCadence("election_proximity");
+    const { adapter } = buildAdapter();
+    setGatewayCronAdapterForTests(adapter);
+
+    const result = await setupMonitoringTool.execute!(
+      "call-1",
+      {},
+      undefined,
+      undefined,
+    );
+    const text = extractText(result.content);
+
+    expect(text).toContain("'election_proximity'");
+    expect(text).toContain("politiclaw.rep_vote_watch: installed");
+    expect(text).toContain("politiclaw.tracked_hearings: installed");
+    expect(text).toContain("politiclaw.election_proximity_alert: installed");
+    expect(text).toContain("politiclaw.weekly_summary: not installed");
+    expect(text).toContain("politiclaw.rep_report: not installed");
+  });
+
   it("reports 'already live' on an idempotent second run", async () => {
+    seedStorageWithCadence("both");
     const { adapter } = buildAdapter();
     setGatewayCronAdapterForTests(adapter);
 
@@ -113,11 +154,12 @@ describe("politiclaw_setup_monitoring tool", () => {
     );
     const text = extractText(again.content);
 
-    expect(text).toContain("already installed. No change.");
-    expect(text).not.toContain("installed (");
+    expect(text).toContain("match cadence 'both'. No change.");
+    expect(text).not.toContain(": installed (");
   });
 
   it("surfaces gateway errors without crashing the tool", async () => {
+    seedStorageWithCadence("both");
     const adapter: GatewayCronAdapter = {
       async list() {
         throw new Error("gateway unreachable: ECONNREFUSED");
@@ -147,6 +189,7 @@ describe("politiclaw_setup_monitoring tool", () => {
 describe("politiclaw_pause_monitoring / politiclaw_resume_monitoring tools", () => {
   beforeEach(() => {
     resetGatewayCronAdapterForTests();
+    resetStorageConfigForTests();
   });
 
   it("renders 'not installed' hint when pausing before setup", async () => {
@@ -165,6 +208,7 @@ describe("politiclaw_pause_monitoring / politiclaw_resume_monitoring tools", () 
   });
 
   it("pauses then resumes an installed set with the expected markers", async () => {
+    seedStorageWithCadence("both");
     const { adapter } = buildAdapter();
     setGatewayCronAdapterForTests(adapter);
 
@@ -196,6 +240,7 @@ describe("politiclaw_pause_monitoring / politiclaw_resume_monitoring tools", () 
   });
 
   it("reports 'already paused' when pausing a fully-paused set", async () => {
+    seedStorageWithCadence("both");
     const { adapter } = buildAdapter();
     setGatewayCronAdapterForTests(adapter);
 

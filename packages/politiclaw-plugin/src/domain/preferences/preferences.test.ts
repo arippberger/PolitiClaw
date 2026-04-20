@@ -7,8 +7,10 @@ import {
   listIssueStances,
   listStanceSignals,
   recordStanceSignal,
+  setMonitoringCadence,
   upsertIssueStance,
   upsertPreferences,
+  MonitoringCadenceSchema,
   PreferencesSchema,
   StanceSignalSchema,
 } from "./index.js";
@@ -168,5 +170,64 @@ describe("deleteIssueStance", () => {
     expect(deleteIssueStance(db, "Climate")).toBe(true);
     expect(listIssueStances(db)).toHaveLength(0);
     expect(deleteIssueStance(db, "climate")).toBe(false);
+  });
+});
+
+describe("MonitoringCadenceSchema", () => {
+  it("accepts the four documented cadences", () => {
+    for (const cadence of ["off", "election_proximity", "weekly", "both"] as const) {
+      expect(MonitoringCadenceSchema.parse(cadence)).toBe(cadence);
+    }
+  });
+
+  it("rejects unknown values", () => {
+    expect(() => MonitoringCadenceSchema.parse("shouty")).toThrow();
+  });
+});
+
+describe("setMonitoringCadence", () => {
+  it("updates the cadence on the existing preferences row", () => {
+    const db = openMemoryDb();
+    upsertPreferences(db, { address: "123 Main", state: "CA" });
+    const before = getPreferences(db);
+    expect(before?.monitoringCadence).toBe("election_proximity");
+
+    const after = setMonitoringCadence(db, "both");
+    expect(after.monitoringCadence).toBe("both");
+    expect(after.address).toBe("123 Main");
+    expect(getPreferences(db)?.monitoringCadence).toBe("both");
+  });
+
+  it("throws when no preferences row exists yet", () => {
+    const db = openMemoryDb();
+    expect(() => setMonitoringCadence(db, "off")).toThrow(
+      /politiclaw_set_preferences/,
+    );
+  });
+});
+
+describe("upsertPreferences cadence handling", () => {
+  it("defaults to 'election_proximity' on first insert", () => {
+    const db = openMemoryDb();
+    const row = upsertPreferences(db, { address: "123 Main", state: "CA" });
+    expect(row.monitoringCadence).toBe("election_proximity");
+  });
+
+  it("preserves an already-saved cadence across address updates", () => {
+    const db = openMemoryDb();
+    upsertPreferences(db, { address: "123 Main", state: "CA" });
+    setMonitoringCadence(db, "off");
+    upsertPreferences(db, { address: "456 Oak", state: "WA" });
+    expect(getPreferences(db)?.monitoringCadence).toBe("off");
+  });
+
+  it("lets a caller override the cadence inline when provided", () => {
+    const db = openMemoryDb();
+    const row = upsertPreferences(db, {
+      address: "123 Main",
+      state: "CA",
+      monitoringCadence: "weekly",
+    });
+    expect(row.monitoringCadence).toBe("weekly");
   });
 });

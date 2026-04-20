@@ -1,6 +1,6 @@
 # PolitiClaw Workspace
 
-PolitiClaw is a local-first OpenClaw plugin for legislation, representatives, ballots, and action-oriented civic research. This repository now hosts both the plugin package and the public docs site source in one workspace.
+PolitiClaw is a local-first OpenClaw plugin for legislation, representatives, ballots, and action-oriented civic research.
 
 ## Workspace layout
 

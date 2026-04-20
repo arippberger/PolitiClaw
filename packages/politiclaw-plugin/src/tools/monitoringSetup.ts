@@ -8,7 +8,12 @@ import {
   type MonitoringSetupResult,
   type MonitoringToggleResult,
 } from "../cron/setup.js";
-import { POLITICLAW_CRON_NAMES } from "../cron/templates.js";
+import {
+  POLITICLAW_CRON_NAMES,
+  type MonitoringCadence,
+} from "../cron/templates.js";
+import { getPreferences } from "../domain/preferences/index.js";
+import { getStorage } from "../storage/context.js";
 
 const EmptyParams = Type.Object({});
 
@@ -21,7 +26,10 @@ function textResult<T>(text: string, details: T) {
  * live") and explicit about which jobs were created vs patched vs unchanged
  * so the user can reason about what this turn did.
  */
-export function renderSetupMonitoringOutput(result: MonitoringSetupResult): string {
+export function renderSetupMonitoringOutput(
+  result: MonitoringSetupResult,
+  cadence: MonitoringCadence,
+): string {
   const lines = result.outcomes.map((outcome) => {
     const id = outcome.jobId ? ` (${outcome.jobId})` : "";
     switch (outcome.action) {
@@ -31,12 +39,18 @@ export function renderSetupMonitoringOutput(result: MonitoringSetupResult): stri
         return `- ${outcome.name}: updated in place${id}`;
       case "unchanged":
         return `- ${outcome.name}: already live, no change${id}`;
+      case "paused":
+        return `- ${outcome.name}: paused (not part of '${cadence}' cadence)${id}`;
+      case "missing":
+        return `- ${outcome.name}: not installed (not part of '${cadence}' cadence)`;
     }
   });
-  const header =
-    result.outcomes.every((outcome) => outcome.action === "unchanged")
-      ? "PolitiClaw monitoring jobs already installed. No change."
-      : "PolitiClaw monitoring jobs installed:";
+  const anyActive = result.outcomes.some(
+    (outcome) => outcome.action === "created" || outcome.action === "updated",
+  );
+  const header = anyActive
+    ? `PolitiClaw monitoring jobs installed for cadence '${cadence}':`
+    : `PolitiClaw monitoring jobs match cadence '${cadence}'. No change.`;
   return [header, ...lines].join("\n");
 }
 
@@ -87,8 +101,15 @@ export const setupMonitoringTool: AnyAgentTool = {
   parameters: EmptyParams,
   async execute() {
     try {
-      const result = await setupMonitoring();
-      return textResult(renderSetupMonitoringOutput(result), result);
+      const { db } = getStorage();
+      const prefs = getPreferences(db);
+      const cadence: MonitoringCadence =
+        prefs?.monitoringCadence ?? "election_proximity";
+      const result = await setupMonitoring({ cadence });
+      return textResult(renderSetupMonitoringOutput(result, cadence), {
+        ...result,
+        cadence,
+      });
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
       return textResult(

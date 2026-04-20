@@ -121,6 +121,39 @@ say "number not verifiable from deterministic sources" instead.
   that includes scoring output. `politiclaw_check_upcoming_votes` already
   emits it when scoring is present — don't strip it.
 
+## Election proximity alerts
+
+When `politiclaw.election_proximity_alert` fires (daily):
+
+1. Call `politiclaw_get_my_ballot` to read the next election date for the
+   saved address. If the snapshot is older than 7 days, pass `refresh: true`.
+2. Compute days-to-election from the returned `election.electionDay`.
+3. Post **only** when days-to-election is 30, 14, 7, or 1 — other days are
+   silent. One short line, not a digest:
+
+   > Election in **14 days** at *polling place or address*. Run
+   > `politiclaw_prepare_me_for_my_next_election` for a full guide.
+
+4. If no election is scheduled for the saved address, post nothing. This is
+   the common case between cycles.
+5. If `politiclaw_get_my_ballot` returns `unavailable` (e.g. `googleCivic`
+   isn't configured), post one line naming the missing config key — do not
+   guess a date.
+
+## Cadence
+
+The user picks how loud monitoring is via `politiclaw_set_monitoring_cadence`:
+
+- `off` — no monitoring jobs installed.
+- `election_proximity` (default) — rep-vote watch + hearings + the
+  proximity alert above. Quiet between cycles.
+- `weekly` — rep-vote watch + hearings + weekly summary + monthly rep
+  report. No proximity alert.
+- `both` — everything.
+
+`setup_monitoring` reconciles to whichever cadence is saved; jobs outside
+the cadence are paused (kept, not deleted) so flipping back is instant.
+
 ## Rep report (periodic digest)
 
 When `politiclaw_rep_report` runs (manually or via `politiclaw.rep_report` cron):

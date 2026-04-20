@@ -35,7 +35,7 @@ describe("migrations", () => {
     const versions = db
       .prepare("SELECT version FROM schema_version ORDER BY version")
       .all() as Array<{ version: number }>;
-    expect(versions.map((v) => v.version)).toEqual([1, 2, 3, 4, 5, 6, 7, 8]);
+    expect(versions.map((v) => v.version)).toEqual([1, 2, 3, 4, 5, 6, 7, 8, 9]);
   });
 
   it("is idempotent when re-run on an existing db", () => {
@@ -51,6 +51,28 @@ describe("migrations", () => {
       db.prepare(
         `INSERT INTO preferences (id, address, zip, state, district, updated_at)
          VALUES (2, 'x', null, null, null, 0)`,
+      ).run(),
+    ).toThrow(/CHECK/);
+  });
+
+  it("backfills preferences.monitoring_cadence to 'election_proximity' on upgrade", () => {
+    const db = openMemoryDb();
+    db.prepare(
+      `INSERT INTO preferences (id, address, zip, state, district, updated_at)
+       VALUES (1, '123 Main', '94110', 'CA', 'CA-12', 0)`,
+    ).run();
+    const row = db
+      .prepare("SELECT monitoring_cadence FROM preferences WHERE id = 1")
+      .get() as { monitoring_cadence: string };
+    expect(row.monitoring_cadence).toBe("election_proximity");
+  });
+
+  it("rejects out-of-enum monitoring_cadence values", () => {
+    const db = openMemoryDb();
+    expect(() =>
+      db.prepare(
+        `INSERT INTO preferences (id, address, zip, state, district, monitoring_cadence, updated_at)
+         VALUES (1, '123 Main', null, null, null, 'shouty', 0)`,
       ).run(),
     ).toThrow(/CHECK/);
   });

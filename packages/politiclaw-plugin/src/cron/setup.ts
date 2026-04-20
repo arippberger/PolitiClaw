@@ -22,19 +22,30 @@ import {
 import {
   POLITICLAW_CRON_NAMES,
   POLITICLAW_CRON_TEMPLATES,
+  templatesForCadence,
+  type MonitoringCadence,
   type PolitiClawCronTemplate,
 } from "./templates.js";
 
-export type MonitoringSetupAction = "created" | "updated" | "unchanged";
+export type MonitoringSetupAction =
+  | "created"
+  | "updated"
+  | "unchanged"
+  | "paused"
+  | "missing";
 
 export type MonitoringSetupOutcome = {
   name: string;
-  jobId: string;
+  jobId: string | null;
   action: MonitoringSetupAction;
 };
 
 export type MonitoringSetupResult = {
   outcomes: MonitoringSetupOutcome[];
+};
+
+export type SetupMonitoringOptions = {
+  cadence?: MonitoringCadence;
 };
 
 export type MonitoringToggleAction = "paused" | "resumed" | "unchanged" | "missing";
@@ -118,11 +129,22 @@ function deepEqual(left: unknown, right: unknown): boolean {
 }
 
 /**
- * Install (or update in place) the PolitiClaw default monitoring cron jobs.
- * Idempotent: re-running produces "unchanged" outcomes when templates are
- * already live and matching.
+ * Install (or update in place) the PolitiClaw default monitoring cron jobs
+ * for a given cadence. Templates selected by `templatesForCadence(cadence)`
+ * are created/updated and enabled; templates outside that set that already
+ * exist are paused (kept, not deleted — preserves gateway state if the user
+ * flips back). Idempotent: re-running with the same cadence produces
+ * "unchanged" outcomes.
+ *
+ * Defaults to `election_proximity` to match the migration's default value.
  */
-export async function setupMonitoring(): Promise<MonitoringSetupResult> {
+export async function setupMonitoring(
+  options: SetupMonitoringOptions = {},
+): Promise<MonitoringSetupResult> {
+  const cadence: MonitoringCadence = options.cadence ?? "election_proximity";
+  const installSet = templatesForCadence(cadence);
+  const installNames = new Set(installSet.map((t) => t.name));
+
   const adapter = getGatewayCronAdapter();
   const existing = await adapter.list({ includeDisabled: true });
   const byName = new Map<string, GatewayCronJob>();
@@ -131,6 +153,19 @@ export async function setupMonitoring(): Promise<MonitoringSetupResult> {
   const outcomes: MonitoringSetupOutcome[] = [];
   for (const template of POLITICLAW_CRON_TEMPLATES) {
     const current = byName.get(template.name);
+    if (!installNames.has(template.name)) {
+      if (!current) {
+        outcomes.push({ name: template.name, jobId: null, action: "missing" });
+        continue;
+      }
+      if (!current.enabled) {
+        outcomes.push({ name: template.name, jobId: current.id, action: "unchanged" });
+        continue;
+      }
+      const updated = await adapter.update(current.id, { enabled: false });
+      outcomes.push({ name: template.name, jobId: updated.id, action: "paused" });
+      continue;
+    }
     if (!current) {
       const created = await adapter.add(toAddInput(template));
       outcomes.push({ name: template.name, jobId: created.id, action: "created" });
