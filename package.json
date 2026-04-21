@@ -8,16 +8,16 @@
     "apps/*"
   ],
   "scripts": {
-    "build": "npm run build --workspace @politiclaw/plugin && npm run build --workspace @politiclaw/docs",
-    "dev:plugin": "npm run dev --workspace @politiclaw/plugin",
+    "build": "npm run build --workspace @politiclaw/politiclaw && npm run build --workspace @politiclaw/docs",
+    "dev:plugin": "npm run dev --workspace @politiclaw/politiclaw",
     "docs:dev": "npm run dev --workspace @politiclaw/docs",
-    "docs:generate": "npm run docs:generate --workspace @politiclaw/plugin",
-    "docs:check": "npm run docs:check --workspace @politiclaw/plugin",
+    "docs:generate": "npm run docs:generate --workspace @politiclaw/politiclaw",
+    "docs:check": "npm run docs:check --workspace @politiclaw/politiclaw",
     "docs:build": "npm run build --workspace @politiclaw/docs",
     "docs:preview": "npm run preview --workspace @politiclaw/docs",
-    "typecheck": "npm run typecheck --workspace @politiclaw/plugin",
-    "lint": "npm run lint --workspace @politiclaw/plugin",
-    "test": "npm run test --workspace @politiclaw/plugin"
+    "typecheck": "npm run typecheck --workspace @politiclaw/politiclaw",
+    "lint": "npm run lint --workspace @politiclaw/politiclaw",
+    "test": "npm run test --workspace @politiclaw/politiclaw"
   },
   "engines": {
     "node": ">=20"

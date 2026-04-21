@@ -1,5 +1,5 @@
 {
-  "name": "@politiclaw/plugin",
+  "name": "@politiclaw/politiclaw",
   "version": "0.0.1",
   "description": "Local-first OpenClaw plugin: a personal political co-pilot for legislation, reps, elections, and action.",
   "type": "module",
