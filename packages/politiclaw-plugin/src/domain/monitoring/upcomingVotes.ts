@@ -7,6 +7,7 @@ import type {
 } from "../../sources/upcomingVotes/types.js";
 import type { BillListFilters } from "../../sources/bills/types.js";
 import { searchBills, type StoredBill } from "../bills/index.js";
+import { listMutedRefs } from "../mutes/index.js";
 import { computeBillAlignment, type AlignmentResult } from "../scoring/alignment.js";
 import { listIssueStances } from "../preferences/index.js";
 import type { IssueStance } from "../preferences/types.js";
@@ -37,8 +38,10 @@ export type CheckUpcomingVotesResult = {
   status: "ok" | "partial" | "unavailable";
   changedBills: ScoredBillChange[];
   unchangedBillCount: number;
+  mutedBillCount: number;
   changedEvents: ChangedEvent[];
   unchangedEventCount: number;
+  mutedEventCount: number;
   source: {
     bills?: { adapterId: string; tier: number };
     events?: { adapterId: string; tier: number };
@@ -78,12 +81,16 @@ export async function checkUpcomingVotes(
     weight: row.weight,
   }));
 
+  const mutedBillIds = listMutedRefs(db, "bill");
+
   const result: CheckUpcomingVotesResult = {
     status: "ok",
     changedBills: [],
     unchangedBillCount: 0,
+    mutedBillCount: 0,
     changedEvents: [],
     unchangedEventCount: 0,
+    mutedEventCount: 0,
     source: {},
     reasons: {},
   };
@@ -98,6 +105,10 @@ export async function checkUpcomingVotes(
   if (billsResult.status === "ok") {
     result.source.bills = billsResult.source;
     for (const bill of billsResult.bills) {
+      if (mutedBillIds.has(bill.id)) {
+        result.mutedBillCount += 1;
+        continue;
+      }
       const change = detectChange(db, {
         kind: "bill",
         id: bill.id,
@@ -132,6 +143,17 @@ export async function checkUpcomingVotes(
       tier: eventsResult.tier,
     };
     for (const event of eventsResult.data) {
+      // Drop an event when every related bill is muted — the event has no
+      // bill context the user is still following. Events with no related
+      // bills attached (schedule noise) are never filtered, since there's
+      // nothing to match against.
+      if (
+        event.relatedBillIds.length > 0 &&
+        event.relatedBillIds.every((billId) => mutedBillIds.has(billId))
+      ) {
+        result.mutedEventCount += 1;
+        continue;
+      }
       const change = detectChange(db, {
         kind: "committee_meeting",
         id: event.id,

@@ -8,6 +8,7 @@ import type {
   UpcomingEvent,
   UpcomingEventsFilters,
 } from "../../sources/upcomingVotes/types.js";
+import { addMute } from "../mutes/index.js";
 import { upsertIssueStance } from "../preferences/index.js";
 import { checkUpcomingVotes } from "./upcomingVotes.js";
 
@@ -226,6 +227,55 @@ describe("checkUpcomingVotes", () => {
     expect(result.changedBills).toHaveLength(1);
     expect(result.reasons.events?.reason).toContain("503");
     expect(result.reasons.bills).toBeUndefined();
+  });
+
+  it("suppresses muted bills and surfaces a mutedBillCount", async () => {
+    addMute(db, { kind: "bill", ref: "119-hr-1234" });
+    const bills = makeBillsResolver(async () => okBills([baseHousingBill, baseCleanEnergyBill]));
+    const events = makeEventsResolver(async () => okEvents([]));
+
+    const result = await checkUpcomingVotes(db, bills, events);
+    expect(result.changedBills.map((cb) => cb.bill.id)).toEqual(["119-s-901"]);
+    expect(result.mutedBillCount).toBe(1);
+    expect(result.unchangedBillCount).toBe(0);
+  });
+
+  it("suppresses events whose every related bill is muted", async () => {
+    addMute(db, { kind: "bill", ref: "119-hr-1234" });
+    const eventAllMuted = { ...baseEvent, id: "ev-1", relatedBillIds: ["119-hr-1234"] };
+    const eventPartiallyMuted = {
+      ...baseEvent,
+      id: "ev-2",
+      relatedBillIds: ["119-hr-1234", "119-s-901"],
+    };
+    const eventNoRelated = { ...baseEvent, id: "ev-3", relatedBillIds: [] };
+
+    const bills = makeBillsResolver(async () => okBills([]));
+    const events = makeEventsResolver(async () =>
+      okEvents([eventAllMuted, eventPartiallyMuted, eventNoRelated]),
+    );
+
+    const result = await checkUpcomingVotes(db, bills, events);
+    expect(result.changedEvents.map((ce) => ce.event.id)).toEqual(["ev-2", "ev-3"]);
+    expect(result.mutedEventCount).toBe(1);
+  });
+
+  it("does not record change-detection state for muted bills (unmute re-alerts as 'new')", async () => {
+    addMute(db, { kind: "bill", ref: "119-hr-1234" });
+    const bills = makeBillsResolver(async () => okBills([baseHousingBill]));
+    const events = makeEventsResolver(async () => okEvents([]));
+
+    // First pass with the mute active — bill is suppressed, no snapshot row written.
+    const first = await checkUpcomingVotes(db, bills, events);
+    expect(first.changedBills).toHaveLength(0);
+    expect(first.mutedBillCount).toBe(1);
+
+    // Remove the mute; the bill should surface as 'new' since nothing was
+    // recorded while it was muted.
+    db.prepare(`DELETE FROM mute_list WHERE kind = 'bill' AND ref = ?`).run("119-hr-1234");
+    const second = await checkUpcomingVotes(db, bills, events);
+    expect(second.changedBills).toHaveLength(1);
+    expect(second.changedBills[0]!.change.reason).toBe("new");
   });
 
   it("reports unavailable when neither source succeeds", async () => {

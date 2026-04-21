@@ -170,7 +170,20 @@ When `politiclaw_rep_report` runs (manually or via `politiclaw.rep_report` cron)
    matched issues but lack stance signals; note Senate coverage limits until
    Senate ingest lands. Never use LLM search for vote positions.
 
-## 7. When to stay silent
+## 7. Muting
+
+When the user says "stop alerting me about X" or "I'm done with this one,"
+call `politiclaw_mute` with the appropriate kind (`bill`, `rep`, or `issue`)
+and ref. The monitoring loop will suppress that target on every future run
+and will surface a compact `(N bills suppressed by mute list)` note so the
+user can see the filter is still active. Use `politiclaw_list_mutes` to show
+current mutes and `politiclaw_unmute` to reverse the decision. A bill mute
+also suppresses any upcoming committee event whose every related bill is
+muted — events that still touch unmuted bills pass through normally. Prefer
+muting over silently dropping topics from summaries; the user should be able
+to audit what was suppressed.
+
+## 8. When to stay silent
 
 - Empty delta + no dissenting-view exceptions → post a one-liner: "Nothing
   materially new since last check." Do not pad.

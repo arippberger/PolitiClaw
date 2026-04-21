@@ -8,6 +8,7 @@ import { letterTools } from "../tools/draftLetter.js";
 import { shapefileTools } from "../tools/downloadShapefiles.js";
 import { monitoringTools } from "../tools/monitoring.js";
 import { monitoringSetupTools } from "../tools/monitoringSetup.js";
+import { muteTools } from "../tools/mutes.js";
 import { onboardingTools } from "../tools/onboarding.js";
 import { politiclawTools as preferencesTools } from "../tools/preferences.js";
 import { prepareForElectionTools } from "../tools/prepareForElection.js";
@@ -178,6 +179,12 @@ export const POLITICLAW_TOOL_GROUPS: readonly DocsToolGroup[] = [
         "Monitoring and cadence",
         "packages/politiclaw-plugin/src/tools/monitoringSetup.ts",
         monitoringSetupTools,
+      ),
+      ...makeEntries(
+        "monitoring",
+        "Monitoring and cadence",
+        "packages/politiclaw-plugin/src/tools/mutes.ts",
+        muteTools,
       ),
     ],
   },

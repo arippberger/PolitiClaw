@@ -94,6 +94,9 @@ export function renderCheckUpcomingVotesOutput(
     sections.push(
       `No new or materially changed items since last check (checked ${result.unchangedBillCount} bills, ${result.unchangedEventCount} upcoming events).`,
     );
+    if (result.mutedBillCount > 0 || result.mutedEventCount > 0) {
+      sections.push(renderMutedNote(result));
+    }
     if (result.status === "partial") {
       if (result.reasons.bills) sections.push(formatReason("bills", result.reasons.bills));
       if (result.reasons.events) {
@@ -119,6 +122,10 @@ export function renderCheckUpcomingVotesOutput(
     `(${result.unchangedBillCount} bills unchanged, ${result.unchangedEventCount} events unchanged.)`,
   );
 
+  if (result.mutedBillCount > 0 || result.mutedEventCount > 0) {
+    sections.push(renderMutedNote(result));
+  }
+
   if (result.status === "partial") {
     if (result.reasons.bills) sections.push(formatReason("bills", result.reasons.bills));
     if (result.reasons.events) {
@@ -133,6 +140,19 @@ export function renderCheckUpcomingVotesOutput(
   }
 
   return sections.join("\n");
+}
+
+function renderMutedNote(result: CheckUpcomingVotesResult): string {
+  const parts: string[] = [];
+  if (result.mutedBillCount > 0) {
+    parts.push(`${result.mutedBillCount} bill${result.mutedBillCount === 1 ? "" : "s"}`);
+  }
+  if (result.mutedEventCount > 0) {
+    parts.push(
+      `${result.mutedEventCount} event${result.mutedEventCount === 1 ? "" : "s"} (all related bills muted)`,
+    );
+  }
+  return `(${parts.join(", ")} suppressed by mute list — use politiclaw_list_mutes to review.)`;
 }
 
 function renderProvenance(result: CheckUpcomingVotesResult): string {
