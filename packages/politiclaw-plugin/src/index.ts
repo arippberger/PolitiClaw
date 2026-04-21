@@ -1,45 +1,7 @@
 import { definePluginEntry } from "openclaw/plugin-sdk/plugin-entry";
 
+import { REGISTERED_POLITICLAW_TOOLS } from "./docs/toolRegistry.js";
 import { configureStorage, type PluginConfigSnapshot } from "./storage/context.js";
-import { politiclawTools as preferencesTools } from "./tools/preferences.js";
-import { repsTools } from "./tools/reps.js";
-import { shapefileTools } from "./tools/downloadShapefiles.js";
-import { ballotTools } from "./tools/ballot.js";
-import { explainBallotTools } from "./tools/explainBallot.js";
-import { billsTools } from "./tools/bills.js";
-import { letterTools } from "./tools/draftLetter.js";
-import { scoringTools } from "./tools/scoring.js";
-import { repReportTools } from "./tools/repReport.js";
-import { repScoringTools } from "./tools/repScoring.js";
-import { monitoringTools } from "./tools/monitoring.js";
-import { monitoringSetupTools } from "./tools/monitoringSetup.js";
-import { onboardingTools } from "./tools/onboarding.js";
-import { prepareForElectionTools } from "./tools/prepareForElection.js";
-import { voteIngestTools } from "./tools/voteIngest.js";
-import { researchCandidateTools } from "./tools/researchCandidate.js";
-import { researchChallengersTools } from "./tools/researchChallengers.js";
-import { doctorTools } from "./tools/doctor.js";
-
-const allTools = [
-  ...preferencesTools,
-  ...onboardingTools,
-  ...repsTools,
-  ...shapefileTools,
-  ...billsTools,
-  ...ballotTools,
-  ...explainBallotTools,
-  ...prepareForElectionTools,
-  ...scoringTools,
-  ...repScoringTools,
-  ...repReportTools,
-  ...monitoringTools,
-  ...monitoringSetupTools,
-  ...voteIngestTools,
-  ...researchCandidateTools,
-  ...researchChallengersTools,
-  ...letterTools,
-  ...doctorTools,
-];
 
 export default definePluginEntry({
   id: "politiclaw",
@@ -47,13 +9,27 @@ export default definePluginEntry({
   description:
     "Local-first personal political co-pilot: monitors legislation, tracks representatives, prepares you for elections, and drafts outreach.",
   register(api) {
+    // Memory posture: every byte of political data this plugin generates —
+    // stances, alignments, rep scores, ballot explanations, letter drafts —
+    // stays in the plugin-private SQLite database under the plugin's state
+    // directory. Nothing is written to shared OpenClaw memory, and no call in
+    // this file or its tools touches a shared-memory surface. If a future
+    // feature ever needs to share political content across the wider agent,
+    // that feature must be gated behind the `features.shareToMainMemory`
+    // config flag (opt-in, off by default) and must be the slice that
+    // introduces the flag — do not add an ungated flag speculatively. The
+    // rationale: political views are sensitive, and an agent-wide memory
+    // surface that silently absorbs them would break the privacy expectation
+    // users have of a local-first civic plugin.
     configureStorage(
       () => api.runtime.state.resolveStateDir(),
       () => (api.pluginConfig ?? {}) as PluginConfigSnapshot,
     );
-    for (const tool of allTools) api.registerTool(tool);
+    for (const tool of REGISTERED_POLITICLAW_TOOLS) api.registerTool(tool);
     api.logger.info(
-      `PolitiClaw: registered ${allTools.length} tools (${allTools.map((t) => t.name).join(", ")})`,
+      "PolitiClaw: registered " +
+        `${REGISTERED_POLITICLAW_TOOLS.length} tools ` +
+        `(${REGISTERED_POLITICLAW_TOOLS.map((tool) => tool.name).join(", ")})`,
     );
   },
 });

@@ -3,27 +3,29 @@ layout: home
 
 hero:
   name: "PolitiClaw"
-  text: "A local-first OpenClaw plugin for civic research and action."
-  tagline: "Track legislation, understand your ballot, and keep your political workflow on your machine."
+  text: "Living docs for a local-first political workflow."
+  tagline: "Generated reference where accuracy matters, short guides where judgment matters."
   actions:
     - theme: brand
       text: Get Started
       link: /guide/getting-started
     - theme: alt
-      text: Explore Capabilities
-      link: /guide/capabilities
+      text: Browse Reference
+      link: /reference/tools
 
 features:
-  - title: Local-first by default
-    details: Preferences, watch state, and scoring data stay in plugin-owned local storage unless you opt into something broader.
-  - title: Structured civic workflows
-    details: Search bills, resolve representatives, explain ballot items, and install recurring monitoring with focused tools instead of ad hoc prompts.
-  - title: Source-aware output
-    details: The plugin is designed to keep recommendations grounded in official and civic-infrastructure sources, with explicit caveats when confidence drops.
+  - title: Runtime-backed reference
+    details: Tool pages, config keys, source coverage, cron jobs, skills, and storage schema are generated from the current implementation.
+  - title: Honest coverage boundaries
+    details: The docs distinguish between features wired today, optional upgrades, transport-pending adapters, and schema-only placeholders.
+  - title: User-first, maintainer-aware
+    details: The guide stays short and practical, while maintainers get architecture notes and a docs workflow that can fail on drift.
 ---
 
-## What PolitiClaw covers
+## How To Read This Site
 
-PolitiClaw is built for personal use inside OpenClaw. It helps with legislation tracking, representative alignment, ballot prep, and recurring summaries without turning into a general campaign platform or a hosted web service.
+Start in the guide if you are installing or using the plugin. Move into reference when you need exact tool names, live config status, storage shape, or the current provider matrix. Maintainer pages explain how the runtime and the docs generator fit together.
 
-The public docs in this site focus on installation, configuration, privacy, capabilities, and troubleshooting. The plugin package itself lives in the same repository under `packages/politiclaw-plugin`.
+## What Is In Scope
+
+PolitiClaw currently focuses on federal bills and House votes, federal representative lookup, ballot and election prep, recurring monitoring, candidate finance research, and draft-only outreach. It does not currently ship a dashboard, a background web service, or a send-on-your-behalf outreach path.

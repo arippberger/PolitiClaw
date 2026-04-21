@@ -3,25 +3,45 @@ import { defineConfig } from "vitepress";
 export default defineConfig({
   title: "PolitiClaw",
   description:
-    "Local-first OpenClaw plugin docs for setup, capabilities, privacy, and troubleshooting.",
+    "Living documentation for the PolitiClaw OpenClaw plugin.",
   cleanUrls: true,
   themeConfig: {
     nav: [
       { text: "Get Started", link: "/guide/getting-started" },
-      { text: "Capabilities", link: "/guide/capabilities" },
-      { text: "Configuration", link: "/guide/configuration" },
-      { text: "Privacy", link: "/guide/privacy-and-data" },
-      { text: "Troubleshooting", link: "/guide/troubleshooting" }
+      { text: "Reference", link: "/reference/tools" },
+      { text: "Maintainers", link: "/maintainers/architecture" },
     ],
     sidebar: [
       {
         text: "Guide",
         items: [
           { text: "Getting Started", link: "/guide/getting-started" },
-          { text: "Capabilities", link: "/guide/capabilities" },
+          { text: "Installation and Verification", link: "/guide/installation-and-verification" },
           { text: "Configuration", link: "/guide/configuration" },
-          { text: "Privacy and Data", link: "/guide/privacy-and-data" },
+          { text: "Privacy and Storage", link: "/guide/privacy-and-storage" },
+          { text: "Monitoring", link: "/guide/monitoring" },
           { text: "Troubleshooting", link: "/guide/troubleshooting" }
+        ]
+      },
+      {
+        text: "Reference",
+        items: [
+          { text: "Tools", link: "/reference/tools" },
+          { text: "Config Schema", link: "/reference/config-schema" },
+          { text: "Source Coverage", link: "/reference/source-coverage" },
+          { text: "State Ballot Coverage", link: "/reference/state-ballot-coverage" },
+          { text: "Cron Jobs", link: "/reference/cron-jobs" },
+          { text: "Storage Schema", link: "/reference/storage-schema" },
+          { text: "Skills", link: "/reference/skills" }
+        ]
+      },
+      {
+        text: "Maintainers",
+        items: [
+          { text: "Architecture", link: "/maintainers/architecture" },
+          { text: "Docs System", link: "/maintainers/docs-system" },
+          { text: "Release Checklist", link: "/maintainers/release-checklist" },
+          { text: "Legacy Docs Audit", link: "/maintainers/legacy-docs-audit" }
         ]
       }
     ],

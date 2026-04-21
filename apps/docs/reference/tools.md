@@ -1,0 +1,18 @@
+# Tools
+
+The generated tool reference is the source of truth for every registered PolitiClaw tool, including descriptions, source files, and parameter schemas.
+
+- [Generated Tool Index](./generated/tools/index)
+- [Tool JSON Snapshot](./generated/tools.json)
+
+## Common Entry Points
+
+If you only need the most common user-facing tools, start here:
+
+- [politiclaw_doctor](./generated/tools/politiclaw_doctor)
+- [politiclaw_set_preferences](./generated/tools/politiclaw_set_preferences)
+- [politiclaw_get_my_reps](./generated/tools/politiclaw_get_my_reps)
+- [politiclaw_prepare_me_for_my_next_election](./generated/tools/politiclaw_prepare_me_for_my_next_election)
+- [politiclaw_check_upcoming_votes](./generated/tools/politiclaw_check_upcoming_votes)
+
+For everything else, use the generated index rather than relying on copied tool lists.

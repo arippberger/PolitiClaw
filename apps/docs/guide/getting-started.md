@@ -1,45 +1,37 @@
 # Getting Started
 
-PolitiClaw ships as an OpenClaw plugin package inside this workspace. The public docs site is a separate static app, so plugin runtime changes and docs hosting stay isolated from each other.
+PolitiClaw lives in this monorepo as an OpenClaw plugin plus a VitePress docs app. The docs site is meant to be read in two passes:
 
-## Install the plugin locally
+- Start with the guide for setup, verification, configuration, privacy, monitoring, and troubleshooting.
+- Use the reference section for exact runtime facts such as tool schemas, config status, cron templates, skills, and storage layout.
 
-From the repository root:
+## Recommended Reading Order
 
-```bash
-npm install
-openclaw plugins install ./packages/politiclaw-plugin --link
-```
+1. [Installation and Verification](./installation-and-verification)
+2. [Configuration](./configuration)
+3. [Privacy and Storage](./privacy-and-storage)
+4. [Tools Reference](../reference/tools)
+5. [Source Coverage](../reference/source-coverage)
 
-The `--link` flag is the best fit during development because it keeps OpenClaw pointed at your working copy.
+## First Successful Run
 
-## Verify the workspace
+If you are bringing up a fresh local install, the shortest path is:
 
-Run the workspace checks from the repo root:
+1. Install the plugin locally and confirm the workspace builds.
+2. Save an address with [`politiclaw_set_preferences`](../reference/generated/tools/politiclaw_set_preferences).
+3. Run [`politiclaw_doctor`](../reference/generated/tools/politiclaw_doctor) to catch missing configuration or storage problems early.
+4. Load reps with [`politiclaw_get_my_reps`](../reference/generated/tools/politiclaw_get_my_reps).
+5. Start issue setup with [`politiclaw_start_onboarding`](../reference/generated/tools/politiclaw_start_onboarding).
 
-```bash
-npm run build
-npm run typecheck
-npm run test
-```
+From there, most users branch into either bill tracking, ballot prep, or monitoring.
 
-## Preview the docs site
+## What To Trust
 
-```bash
-npm run docs:dev
-```
+When a question is about an exact runtime fact, prefer the generated reference pages over prose summaries:
 
-This starts the VitePress app from `apps/docs`.
+- [Generated Tool Reference](../reference/generated/tools/index)
+- [Generated Config Schema](../reference/generated/config-schema)
+- [Generated Source Coverage](../reference/generated/source-coverage)
+- [Generated Storage Schema](../reference/generated/storage-schema)
 
-## Minimum configuration
-
-PolitiClaw expects at least one API key:
-
-- `plugins.politiclaw.apiKeys.apiDataGov` is required for Congress.gov and FEC-backed features.
-
-Some features need additional keys:
-
-- `plugins.politiclaw.apiKeys.googleCivic` is required for ballot lookup.
-- `plugins.politiclaw.apiKeys.geocodio` is optional when you want API-based reps lookup instead of local shapefiles.
-
-OpenClaw reads plugin config through its normal plugin settings flow, using the schema shipped in `openclaw.plugin.json`.
+That is the key difference between this site and the older planning material: the published reference is derived from the current implementation, not from intent documents.

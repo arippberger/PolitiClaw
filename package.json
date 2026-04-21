@@ -11,6 +11,8 @@
     "build": "npm run build --workspace politiclaw && npm run build --workspace @politiclaw/docs",
     "dev:plugin": "npm run dev --workspace politiclaw",
     "docs:dev": "npm run dev --workspace @politiclaw/docs",
+    "docs:generate": "npm run docs:generate --workspace politiclaw",
+    "docs:check": "npm run docs:check --workspace politiclaw",
     "docs:build": "npm run build --workspace @politiclaw/docs",
     "docs:preview": "npm run preview --workspace @politiclaw/docs",
     "typecheck": "npm run typecheck --workspace politiclaw",

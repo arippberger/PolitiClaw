@@ -20,6 +20,8 @@
   "scripts": {
     "build": "tsc -p tsconfig.json",
     "dev": "tsx watch src/index.ts",
+    "docs:generate": "tsx ./scripts/docs.mts generate",
+    "docs:check": "tsx ./scripts/docs.mts check",
     "typecheck": "tsc --noEmit -p tsconfig.json",
     "lint": "eslint --config ../../eslint.config.js .",
     "test": "vitest run",

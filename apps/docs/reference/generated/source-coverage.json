@@ -1,0 +1,262 @@
+{
+  "providers": [
+    {
+      "id": "apiDataGov",
+      "label": "api.data.gov",
+      "status": "implemented",
+      "configKey": "apiDataGov",
+      "required": true,
+      "summary": "Required for the current federal bill, House vote, committee schedule, and FEC finance integrations.",
+      "notes": "One key powers api.congress.gov-backed sources and FEC OpenFEC. Senate vote ingest is not wired yet.",
+      "sourcePaths": [
+        "packages/politiclaw-plugin/src/sources/bills/index.ts",
+        "packages/politiclaw-plugin/src/sources/votes/index.ts",
+        "packages/politiclaw-plugin/src/sources/upcomingVotes/index.ts",
+        "packages/politiclaw-plugin/src/sources/finance/index.ts"
+      ],
+      "unlockedByTools": [
+        "politiclaw_search_bills",
+        "politiclaw_get_bill_details",
+        "politiclaw_score_bill",
+        "politiclaw_check_upcoming_votes",
+        "politiclaw_ingest_house_votes",
+        "politiclaw_research_candidate",
+        "politiclaw_research_challengers"
+      ]
+    },
+    {
+      "id": "localShapefiles",
+      "label": "Local shapefile pipeline",
+      "status": "implemented",
+      "required": false,
+      "summary": "Zero-key default for federal reps-by-address resolution after the cache is primed locally.",
+      "notes": "Uses Census geocoding, cached district polygons, and the bundled legislator resolver. The cache can be primed automatically or via the download tool.",
+      "sourcePaths": [
+        "packages/politiclaw-plugin/src/sources/reps/localShapefiles.ts",
+        "packages/politiclaw-plugin/src/sources/reps/shapefileCache.ts",
+        "packages/politiclaw-plugin/src/tools/downloadShapefiles.ts"
+      ],
+      "unlockedByTools": [
+        "politiclaw_get_my_reps",
+        "politiclaw_download_shapefiles"
+      ]
+    },
+    {
+      "id": "geocodio",
+      "label": "Geocodio",
+      "status": "optional_upgrade",
+      "configKey": "geocodio",
+      "required": false,
+      "summary": "Optional API-backed upgrade for faster reps-by-address lookup.",
+      "notes": "Used ahead of the local shapefile resolver when a key is configured.",
+      "sourcePaths": [
+        "packages/politiclaw-plugin/src/sources/reps/index.ts",
+        "packages/politiclaw-plugin/src/sources/reps/geocodio.ts"
+      ],
+      "unlockedByTools": [
+        "politiclaw_get_my_reps"
+      ]
+    },
+    {
+      "id": "googleCivic",
+      "label": "Google Civic voterInfoQuery",
+      "status": "optional_upgrade",
+      "configKey": "googleCivic",
+      "required": false,
+      "summary": "Key-gated ballot and election-logistics provider used when a state adapter does not return a result.",
+      "notes": "Required for the generic ballot tools today. State ballot adapters run first for six states.",
+      "sourcePaths": [
+        "packages/politiclaw-plugin/src/sources/ballot/index.ts",
+        "packages/politiclaw-plugin/src/sources/ballot/googleCivic.ts"
+      ],
+      "unlockedByTools": [
+        "politiclaw_get_my_ballot",
+        "politiclaw_explain_my_ballot",
+        "politiclaw_prepare_me_for_my_next_election"
+      ]
+    },
+    {
+      "id": "stateSoSBallotAdapters",
+      "label": "State secretary of state ballot adapters",
+      "status": "implemented",
+      "required": false,
+      "summary": "Structured ballot coverage currently exists for California, Colorado, Florida, Michigan, Ohio, and Washington.",
+      "notes": "These adapters are built in and do not require a user-supplied key.",
+      "sourcePaths": [
+        "packages/politiclaw-plugin/src/sources/ballot/stateSoS/california.ts",
+        "packages/politiclaw-plugin/src/sources/ballot/stateSoS/colorado.ts",
+        "packages/politiclaw-plugin/src/sources/ballot/stateSoS/florida.ts",
+        "packages/politiclaw-plugin/src/sources/ballot/stateSoS/michigan.ts",
+        "packages/politiclaw-plugin/src/sources/ballot/stateSoS/ohio.ts",
+        "packages/politiclaw-plugin/src/sources/ballot/stateSoS/washington.ts"
+      ],
+      "unlockedByTools": [
+        "politiclaw_get_my_ballot",
+        "politiclaw_explain_my_ballot",
+        "politiclaw_prepare_me_for_my_next_election"
+      ]
+    },
+    {
+      "id": "webSearchBios",
+      "label": "Candidate and measure bio web search",
+      "status": "transport_pending",
+      "required": false,
+      "summary": "The guarded adapter shape exists, but the production transport is not wired, so live calls return unavailable.",
+      "notes": "Tests can inject a fetcher today. Production use still depends on the host skill layer for narrative lookup.",
+      "sourcePaths": [
+        "packages/politiclaw-plugin/src/sources/webSearch/index.ts",
+        "packages/politiclaw-plugin/src/sources/webSearch/bios.ts"
+      ],
+      "unlockedByTools": [
+        "politiclaw_research_candidate",
+        "politiclaw_prepare_me_for_my_next_election",
+        "politiclaw_explain_my_ballot"
+      ]
+    },
+    {
+      "id": "openStates",
+      "label": "Open States",
+      "status": "schema_only",
+      "configKey": "openStates",
+      "required": false,
+      "summary": "Declared in the plugin config schema but not wired into the current runtime.",
+      "notes": "No Open States resolver or tool path currently imports this key.",
+      "sourcePaths": [
+        "packages/politiclaw-plugin/openclaw.plugin.json",
+        "packages/politiclaw-plugin/src/storage/context.ts"
+      ],
+      "unlockedByTools": []
+    },
+    {
+      "id": "legiscan",
+      "label": "LegiScan",
+      "status": "schema_only",
+      "configKey": "legiscan",
+      "required": false,
+      "summary": "Declared in the plugin config schema but not wired into the current runtime.",
+      "notes": "No LegiScan adapter or tool path currently imports this key.",
+      "sourcePaths": [
+        "packages/politiclaw-plugin/openclaw.plugin.json",
+        "packages/politiclaw-plugin/src/storage/context.ts"
+      ],
+      "unlockedByTools": []
+    },
+    {
+      "id": "openSecrets",
+      "label": "OpenSecrets",
+      "status": "schema_only",
+      "configKey": "openSecrets",
+      "required": false,
+      "summary": "Declared in the plugin config schema but not wired into the current runtime.",
+      "notes": "The candidate research tool intentionally stops at FEC totals today.",
+      "sourcePaths": [
+        "packages/politiclaw-plugin/openclaw.plugin.json",
+        "packages/politiclaw-plugin/src/storage/context.ts",
+        "packages/politiclaw-plugin/src/tools/researchCandidate.ts"
+      ],
+      "unlockedByTools": []
+    },
+    {
+      "id": "followTheMoney",
+      "label": "FollowTheMoney",
+      "status": "schema_only",
+      "configKey": "followTheMoney",
+      "required": false,
+      "summary": "Declared in the plugin config schema but not wired into the current runtime.",
+      "notes": "No state-finance adapter currently reads this key.",
+      "sourcePaths": [
+        "packages/politiclaw-plugin/openclaw.plugin.json",
+        "packages/politiclaw-plugin/src/storage/context.ts"
+      ],
+      "unlockedByTools": []
+    },
+    {
+      "id": "voteSmart",
+      "label": "Vote Smart",
+      "status": "schema_only",
+      "configKey": "voteSmart",
+      "required": false,
+      "summary": "Declared in the plugin config schema but not wired into the current runtime.",
+      "notes": "The runtime still routes candidate-bio enrichment through the guarded web-search layer.",
+      "sourcePaths": [
+        "packages/politiclaw-plugin/openclaw.plugin.json",
+        "packages/politiclaw-plugin/src/storage/context.ts"
+      ],
+      "unlockedByTools": []
+    },
+    {
+      "id": "democracyWorks",
+      "label": "Democracy Works",
+      "status": "schema_only",
+      "configKey": "democracyWorks",
+      "required": false,
+      "summary": "Declared in the plugin config schema but not wired into the current runtime.",
+      "notes": "Ballot logistics currently come from state adapters or Google Civic.",
+      "sourcePaths": [
+        "packages/politiclaw-plugin/openclaw.plugin.json",
+        "packages/politiclaw-plugin/src/storage/context.ts"
+      ],
+      "unlockedByTools": []
+    },
+    {
+      "id": "cicero",
+      "label": "Cicero",
+      "status": "schema_only",
+      "configKey": "cicero",
+      "required": false,
+      "summary": "Declared in the plugin config schema but not wired into the current runtime.",
+      "notes": "Local and municipal representative coverage is not implemented today.",
+      "sourcePaths": [
+        "packages/politiclaw-plugin/openclaw.plugin.json",
+        "packages/politiclaw-plugin/src/storage/context.ts"
+      ],
+      "unlockedByTools": []
+    },
+    {
+      "id": "ballotReady",
+      "label": "BallotReady",
+      "status": "schema_only",
+      "configKey": "ballotReady",
+      "required": false,
+      "summary": "Declared in the plugin config schema but not wired into the current runtime.",
+      "notes": "Down-ballot commercial coverage is not integrated today.",
+      "sourcePaths": [
+        "packages/politiclaw-plugin/openclaw.plugin.json",
+        "packages/politiclaw-plugin/src/storage/context.ts"
+      ],
+      "unlockedByTools": []
+    }
+  ],
+  "stateBallotAdapters": [
+    {
+      "stateName": "California",
+      "stateCode": "CA",
+      "sourcePath": "packages/politiclaw-plugin/src/sources/ballot/stateSoS/california.ts"
+    },
+    {
+      "stateName": "Colorado",
+      "stateCode": "CO",
+      "sourcePath": "packages/politiclaw-plugin/src/sources/ballot/stateSoS/colorado.ts"
+    },
+    {
+      "stateName": "Florida",
+      "stateCode": "FL",
+      "sourcePath": "packages/politiclaw-plugin/src/sources/ballot/stateSoS/florida.ts"
+    },
+    {
+      "stateName": "Michigan",
+      "stateCode": "MI",
+      "sourcePath": "packages/politiclaw-plugin/src/sources/ballot/stateSoS/michigan.ts"
+    },
+    {
+      "stateName": "Ohio",
+      "stateCode": "OH",
+      "sourcePath": "packages/politiclaw-plugin/src/sources/ballot/stateSoS/ohio.ts"
+    },
+    {
+      "stateName": "Washington",
+      "stateCode": "WA",
+      "sourcePath": "packages/politiclaw-plugin/src/sources/ballot/stateSoS/washington.ts"
+    }
+  ]
+}

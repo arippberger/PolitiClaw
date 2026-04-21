@@ -1,24 +1,35 @@
 # Troubleshooting
 
-## The plugin does not install from the repo root anymore
+## Start With Doctor
 
-Use the package workspace path instead:
+When the runtime looks wrong, begin with [`politiclaw_doctor`](../reference/generated/tools/politiclaw_doctor). It checks storage, schema version, preferences, key presence, cached reps, and monitoring status in one place.
+
+## The plugin does not install from the repo root
 
 ```bash
 openclaw plugins install ./packages/politiclaw-plugin --link
 ```
 
-## The ballot tools say Google Civic is missing
+## Bill, Vote, Or Finance Tools Are Unavailable
 
-Set `plugins.politiclaw.apiKeys.googleCivic` in your OpenClaw plugin configuration. The ballot-specific tools depend on that key.
+Make sure `plugins.politiclaw.apiKeys.apiDataGov` is set. That is the live key for the current federal bill, House vote, committee schedule, and FEC finance integrations.
 
-## Bill or vote tools say api.data.gov is missing
+Use the generated config and coverage pages when in doubt:
 
-Set `plugins.politiclaw.apiKeys.apiDataGov`. That key is the main dependency for Congress.gov and FEC-backed workflows.
+- [Generated Config Schema](../reference/generated/config-schema)
+- [Generated Source Coverage](../reference/generated/source-coverage)
 
-## Representative lookup falls back or fails
+## Ballot Tools Say Google Civic Is Missing
 
-If you are not using `geocodio`, make sure the local shapefile workflow has been prepared. If you prefer the API path, add `plugins.politiclaw.apiKeys.geocodio`.
+Set `plugins.politiclaw.apiKeys.googleCivic`, unless you are relying on one of the built-in state ballot adapters and that state adapter already covers your query.
+
+## Representative Lookup Falls Back Or Fails
+
+If you are using the zero-key path, run [`politiclaw_download_shapefiles`](../reference/generated/tools/politiclaw_download_shapefiles) once and retry. If you prefer the API path, add `plugins.politiclaw.apiKeys.geocodio`.
+
+## Candidate Bio Or Ballot Narrative Looks Thin
+
+That can be expected today. The guarded web-search adapter shape exists, but the production transport is not wired, so some narrative enrichment paths return unavailable. The generated source coverage page shows that status explicitly.
 
 ## The docs site will not start
 
@@ -29,3 +40,13 @@ npm run docs:dev
 ```
 
 If `vitepress` is missing, re-run `npm install` from the repository root so the docs workspace dependencies are installed.
+
+## docs:check Fails
+
+The docs checker currently fails for three main reasons:
+
+- Generated reference artifacts are stale and need `npm run docs:generate`.
+- A hand-written page mentions a hidden planning path.
+- A hand-written page presents a declared-only integration as if it were live.
+
+`npm run docs:check` reports the exact file path for each failure.

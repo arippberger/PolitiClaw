@@ -1,0 +1,221 @@
+{
+  "keys": [
+    {
+      "key": "apiDataGov",
+      "description": "REQUIRED. Shared api.data.gov key used by both api.congress.gov and FEC OpenFEC. One key covers both. Free, instant signup at https://api.data.gov/signup/.",
+      "status": "implemented",
+      "required": true,
+      "wiredToday": true,
+      "sourcePaths": [
+        "packages/politiclaw-plugin/src/sources/bills/index.ts",
+        "packages/politiclaw-plugin/src/sources/votes/index.ts",
+        "packages/politiclaw-plugin/src/sources/upcomingVotes/index.ts",
+        "packages/politiclaw-plugin/src/sources/finance/index.ts"
+      ],
+      "unlockedByTools": [
+        "politiclaw_search_bills",
+        "politiclaw_get_bill_details",
+        "politiclaw_score_bill",
+        "politiclaw_check_upcoming_votes",
+        "politiclaw_ingest_house_votes",
+        "politiclaw_research_candidate",
+        "politiclaw_research_challengers"
+      ],
+      "notes": "One key powers api.congress.gov-backed sources and FEC OpenFEC. Senate vote ingest is not wired yet."
+    },
+    {
+      "key": "geocodio",
+      "description": "OPTIONAL UPGRADE. Reps-by-address via API. Default path uses the zero-key local shapefile pipeline; Geocodio trades disk footprint for API simplicity. Free tier 2500 lookups/day.",
+      "status": "optional_upgrade",
+      "required": false,
+      "wiredToday": true,
+      "sourcePaths": [
+        "packages/politiclaw-plugin/src/sources/reps/index.ts",
+        "packages/politiclaw-plugin/src/sources/reps/geocodio.ts"
+      ],
+      "unlockedByTools": [
+        "politiclaw_get_my_reps"
+      ],
+      "notes": "Used ahead of the local shapefile resolver when a key is configured."
+    },
+    {
+      "key": "openStates",
+      "description": "OPTIONAL UPGRADE. State bills and votes with individual member positions. Without a key, state bill lookup is narrative-only via LLM search; state vote positions and state change-detection require this.",
+      "status": "schema_only",
+      "required": false,
+      "wiredToday": false,
+      "sourcePaths": [
+        "packages/politiclaw-plugin/openclaw.plugin.json",
+        "packages/politiclaw-plugin/src/storage/context.ts"
+      ],
+      "unlockedByTools": [],
+      "notes": "No Open States resolver or tool path currently imports this key."
+    },
+    {
+      "key": "legiscan",
+      "description": "OPTIONAL UPGRADE. State bills fallback or primary source. Free tier 30,000 queries/month. Covers federal and state in one key if the user prefers unified access.",
+      "status": "schema_only",
+      "required": false,
+      "wiredToday": false,
+      "sourcePaths": [
+        "packages/politiclaw-plugin/openclaw.plugin.json",
+        "packages/politiclaw-plugin/src/storage/context.ts"
+      ],
+      "unlockedByTools": [],
+      "notes": "No LegiScan adapter or tool path currently imports this key."
+    },
+    {
+      "key": "openSecrets",
+      "description": "OPTIONAL UPGRADE. Federal campaign-finance derived analytics such as industry rollups and revolving-door context. Non-commercial use only. Without a key, narrative context falls back to LLM search, but never for dollar amounts.",
+      "status": "schema_only",
+      "required": false,
+      "wiredToday": false,
+      "sourcePaths": [
+        "packages/politiclaw-plugin/openclaw.plugin.json",
+        "packages/politiclaw-plugin/src/storage/context.ts",
+        "packages/politiclaw-plugin/src/tools/researchCandidate.ts"
+      ],
+      "unlockedByTools": [],
+      "notes": "The candidate research tool intentionally stops at FEC totals today."
+    },
+    {
+      "key": "followTheMoney",
+      "description": "OPTIONAL UPGRADE. State-level campaign finance. Without this, state finance data is explicitly not covered.",
+      "status": "schema_only",
+      "required": false,
+      "wiredToday": false,
+      "sourcePaths": [
+        "packages/politiclaw-plugin/openclaw.plugin.json",
+        "packages/politiclaw-plugin/src/storage/context.ts"
+      ],
+      "unlockedByTools": [],
+      "notes": "No state-finance adapter currently reads this key."
+    },
+    {
+      "key": "voteSmart",
+      "description": "OPTIONAL UPGRADE. Candidate bios for ballot explanations. Default bios come from LLM search with tier-5 tagging; Vote Smart is a structured upgrade.",
+      "status": "schema_only",
+      "required": false,
+      "wiredToday": false,
+      "sourcePaths": [
+        "packages/politiclaw-plugin/openclaw.plugin.json",
+        "packages/politiclaw-plugin/src/storage/context.ts"
+      ],
+      "unlockedByTools": [],
+      "notes": "The runtime still routes candidate-bio enrichment through the guarded web-search layer."
+    },
+    {
+      "key": "democracyWorks",
+      "description": "OPTIONAL UPGRADE. Ballot logistics such as dates, deadlines, and polling places. Partner-gated; requires an application. Default uses Google Civic voterInfoQuery (free, less reliable).",
+      "status": "schema_only",
+      "required": false,
+      "wiredToday": false,
+      "sourcePaths": [
+        "packages/politiclaw-plugin/openclaw.plugin.json",
+        "packages/politiclaw-plugin/src/storage/context.ts"
+      ],
+      "unlockedByTools": [],
+      "notes": "Ballot logistics currently come from state adapters or Google Civic."
+    },
+    {
+      "key": "cicero",
+      "description": "OPTIONAL UPGRADE (paid). Local municipal, county, and school-board representative coverage. This is the only local source; without it, local reps are explicitly not covered.",
+      "status": "schema_only",
+      "required": false,
+      "wiredToday": false,
+      "sourcePaths": [
+        "packages/politiclaw-plugin/openclaw.plugin.json",
+        "packages/politiclaw-plugin/src/storage/context.ts"
+      ],
+      "unlockedByTools": [],
+      "notes": "Local and municipal representative coverage is not implemented today."
+    },
+    {
+      "key": "ballotReady",
+      "description": "OPTIONAL UPGRADE (commercial). Structured down-ballot data. Default scope covers federal, statewide, and six secretary-of-state feeds; BallotReady lights up fuller down-ballot coverage.",
+      "status": "schema_only",
+      "required": false,
+      "wiredToday": false,
+      "sourcePaths": [
+        "packages/politiclaw-plugin/openclaw.plugin.json",
+        "packages/politiclaw-plugin/src/storage/context.ts"
+      ],
+      "unlockedByTools": [],
+      "notes": "Down-ballot commercial coverage is not integrated today."
+    },
+    {
+      "key": "googleCivic",
+      "description": "OPTIONAL but required for politiclaw_get_my_ballot. Google Cloud API key with the Civic Information API enabled for voterInfoQuery. Distinct from api.data.gov; create it in the Google Cloud console.",
+      "status": "optional_upgrade",
+      "required": false,
+      "wiredToday": true,
+      "sourcePaths": [
+        "packages/politiclaw-plugin/src/sources/ballot/index.ts",
+        "packages/politiclaw-plugin/src/sources/ballot/googleCivic.ts"
+      ],
+      "unlockedByTools": [
+        "politiclaw_get_my_ballot",
+        "politiclaw_explain_my_ballot",
+        "politiclaw_prepare_me_for_my_next_election"
+      ],
+      "notes": "Required for the generic ballot tools today. State ballot adapters run first for six states."
+    }
+  ],
+  "rawConfigSchema": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {
+      "apiKeys": {
+        "type": "object",
+        "additionalProperties": false,
+        "description": "One key required (apiDataGov); all others are optional upgrades. The required key powers federal bills, House votes, and FEC finance data.",
+        "properties": {
+          "apiDataGov": {
+            "type": "string",
+            "description": "REQUIRED. Shared api.data.gov key used by both api.congress.gov and FEC OpenFEC. One key covers both. Free, instant signup at https://api.data.gov/signup/."
+          },
+          "geocodio": {
+            "type": "string",
+            "description": "OPTIONAL UPGRADE. Reps-by-address via API. Default path uses the zero-key local shapefile pipeline; Geocodio trades disk footprint for API simplicity. Free tier 2500 lookups/day."
+          },
+          "openStates": {
+            "type": "string",
+            "description": "OPTIONAL UPGRADE. State bills and votes with individual member positions. Without a key, state bill lookup is narrative-only via LLM search; state vote positions and state change-detection require this."
+          },
+          "legiscan": {
+            "type": "string",
+            "description": "OPTIONAL UPGRADE. State bills fallback or primary source. Free tier 30,000 queries/month. Covers federal and state in one key if the user prefers unified access."
+          },
+          "openSecrets": {
+            "type": "string",
+            "description": "OPTIONAL UPGRADE. Federal campaign-finance derived analytics such as industry rollups and revolving-door context. Non-commercial use only. Without a key, narrative context falls back to LLM search, but never for dollar amounts."
+          },
+          "followTheMoney": {
+            "type": "string",
+            "description": "OPTIONAL UPGRADE. State-level campaign finance. Without this, state finance data is explicitly not covered."
+          },
+          "voteSmart": {
+            "type": "string",
+            "description": "OPTIONAL UPGRADE. Candidate bios for ballot explanations. Default bios come from LLM search with tier-5 tagging; Vote Smart is a structured upgrade."
+          },
+          "democracyWorks": {
+            "type": "string",
+            "description": "OPTIONAL UPGRADE. Ballot logistics such as dates, deadlines, and polling places. Partner-gated; requires an application. Default uses Google Civic voterInfoQuery (free, less reliable)."
+          },
+          "cicero": {
+            "type": "string",
+            "description": "OPTIONAL UPGRADE (paid). Local municipal, county, and school-board representative coverage. This is the only local source; without it, local reps are explicitly not covered."
+          },
+          "ballotReady": {
+            "type": "string",
+            "description": "OPTIONAL UPGRADE (commercial). Structured down-ballot data. Default scope covers federal, statewide, and six secretary-of-state feeds; BallotReady lights up fuller down-ballot coverage."
+          },
+          "googleCivic": {
+            "type": "string",
+            "description": "OPTIONAL but required for politiclaw_get_my_ballot. Google Cloud API key with the Civic Information API enabled for voterInfoQuery. Distinct from api.data.gov; create it in the Google Cloud console."
+          }
+        }
+      }
+    }
+  }
+}

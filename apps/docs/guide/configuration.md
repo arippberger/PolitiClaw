@@ -1,59 +1,37 @@
 # Configuration
 
-PolitiClaw exposes its settings through the plugin config schema, with one required API key and several optional upgrades.
+PolitiClaw ships a broader config schema than the current runtime actually uses, so this guide separates live settings from declared-only placeholders.
 
-## Required key
+## Wired Today
 
-`plugins.politiclaw.apiKeys.apiDataGov`
+These keys are active in the current runtime:
 
-- Powers Congress.gov-backed bill and vote data.
-- Powers FEC OpenFEC candidate finance lookups.
-- One key covers both services.
+- `plugins.politiclaw.apiKeys.apiDataGov`
+  - Required for the current federal bill, House vote, committee schedule, and FEC finance paths.
+  - One key covers both api.congress.gov and FEC OpenFEC.
+- `plugins.politiclaw.apiKeys.googleCivic`
+  - Needed for the generic ballot and election-logistics flow when a built-in state ballot adapter does not answer first.
+- `plugins.politiclaw.apiKeys.geocodio`
+  - Optional upgrade for reps-by-address lookup when you want the API path instead of the zero-key local shapefile path.
 
-## Optional keys
+## Declared In Schema, But Not Live Yet
 
-`plugins.politiclaw.apiKeys.googleCivic`
+Additional provider keys exist in the shipped config schema for planned integrations. Do not treat those entries as supported until the generated source coverage page marks them as `implemented` or `optional_upgrade`.
 
-- Required for `politiclaw_get_my_ballot`.
-- Used for personalized ballot lookup.
+That distinction matters because a config key being present in `openclaw.plugin.json` does not guarantee a runtime adapter is wired today.
 
-`plugins.politiclaw.apiKeys.geocodio`
+## Source Of Truth
 
-- Optional address-to-district lookup upgrade.
-- Useful when you prefer API resolution instead of a local shapefile pipeline.
+Use these generated pages whenever you need exact status:
 
-`plugins.politiclaw.apiKeys.openStates`
+- [Generated Config Schema](../reference/generated/config-schema)
+- [Generated Source Coverage](../reference/generated/source-coverage)
 
-- Structured state-level bills and vote positions when available.
+## Practical Setup Order
 
-`plugins.politiclaw.apiKeys.legiscan`
+For most users, the simplest order is:
 
-- Alternative source for state legislative data.
-
-`plugins.politiclaw.apiKeys.openSecrets`
-
-- Optional federal finance enrichment where the plugin supports it.
-
-`plugins.politiclaw.apiKeys.followTheMoney`
-
-- Optional state campaign-finance coverage.
-
-`plugins.politiclaw.apiKeys.voteSmart`
-
-- Optional structured candidate biography support.
-
-`plugins.politiclaw.apiKeys.democracyWorks`
-
-- Optional ballot logistics upgrade.
-
-`plugins.politiclaw.apiKeys.cicero`
-
-- Optional paid local representative coverage.
-
-`plugins.politiclaw.apiKeys.ballotReady`
-
-- Optional commercial down-ballot data coverage.
-
-## Configuration approach
-
-Keep the required key in place first, then add optional providers only for the workflows you actually plan to use. This keeps the plugin simpler to reason about and makes missing-feature troubleshooting much clearer.
+1. Add `apiDataGov`.
+2. Decide whether you need `googleCivic` for ballot workflows.
+3. Decide whether you want `geocodio`, or whether the local shapefile path is enough.
+4. Re-run [`politiclaw_doctor`](../reference/generated/tools/politiclaw_doctor) after changing config.

@@ -1,0 +1,1144 @@
+[
+  {
+    "name": "politiclaw_set_preferences",
+    "label": "Save PolitiClaw preferences",
+    "groupId": "preferences",
+    "groupLabel": "Preferences and onboarding",
+    "sourcePath": "packages/politiclaw-plugin/src/tools/preferences.ts",
+    "description": "Save or update the user's political preferences (address, state, district). Writes to the plugin-private SQLite DB. Use this during onboarding or whenever the user updates their address.",
+    "parameters": [
+      {
+        "name": "address",
+        "required": true,
+        "type": "string",
+        "description": "Street address. Used for representative and ballot lookup."
+      },
+      {
+        "name": "zip",
+        "required": false,
+        "type": "string",
+        "description": ""
+      },
+      {
+        "name": "state",
+        "required": false,
+        "type": "string",
+        "description": "2-letter state code (e.g., CA)."
+      },
+      {
+        "name": "district",
+        "required": false,
+        "type": "string",
+        "description": "Congressional district if known."
+      }
+    ],
+    "rawSchema": {
+      "type": "object",
+      "required": [
+        "address"
+      ],
+      "properties": {
+        "address": {
+          "description": "Street address. Used for representative and ballot lookup.",
+          "type": "string"
+        },
+        "zip": {
+          "type": "string"
+        },
+        "state": {
+          "description": "2-letter state code (e.g., CA).",
+          "type": "string"
+        },
+        "district": {
+          "description": "Congressional district if known.",
+          "type": "string"
+        }
+      }
+    }
+  },
+  {
+    "name": "politiclaw_get_preferences",
+    "label": "Load PolitiClaw preferences",
+    "groupId": "preferences",
+    "groupLabel": "Preferences and onboarding",
+    "sourcePath": "packages/politiclaw-plugin/src/tools/preferences.ts",
+    "description": "Return the currently-saved political preferences (address, state, district), or null if none are set.",
+    "parameters": [],
+    "rawSchema": {
+      "type": "object",
+      "properties": {}
+    }
+  },
+  {
+    "name": "politiclaw_record_stance_signal",
+    "label": "Record PolitiClaw stance signal",
+    "groupId": "preferences",
+    "groupLabel": "Preferences and onboarding",
+    "sourcePath": "packages/politiclaw-plugin/src/tools/preferences.ts",
+    "description": "Record a single agree/disagree/skip signal from the user in response to a shown bill or issue. Later scoring can aggregate these signals into learned issue stances; this tool only records the raw signal.",
+    "parameters": [
+      {
+        "name": "direction",
+        "required": true,
+        "type": "\"agree\" | \"disagree\" | \"skip\"",
+        "description": ""
+      },
+      {
+        "name": "source",
+        "required": true,
+        "type": "\"onboarding\" | \"monitoring\" | \"dashboard\"",
+        "description": ""
+      },
+      {
+        "name": "issue",
+        "required": false,
+        "type": "string",
+        "description": "Issue slug, e.g. 'climate'."
+      },
+      {
+        "name": "billId",
+        "required": false,
+        "type": "string",
+        "description": "Bill id this signal applies to."
+      },
+      {
+        "name": "weight",
+        "required": false,
+        "type": "number",
+        "description": "Signal strength (> 0); defaults to 1.0."
+      }
+    ],
+    "rawSchema": {
+      "type": "object",
+      "required": [
+        "direction",
+        "source"
+      ],
+      "properties": {
+        "direction": {
+          "anyOf": [
+            {
+              "const": "agree",
+              "type": "string"
+            },
+            {
+              "const": "disagree",
+              "type": "string"
+            },
+            {
+              "const": "skip",
+              "type": "string"
+            }
+          ]
+        },
+        "source": {
+          "anyOf": [
+            {
+              "const": "onboarding",
+              "type": "string"
+            },
+            {
+              "const": "monitoring",
+              "type": "string"
+            },
+            {
+              "const": "dashboard",
+              "type": "string"
+            }
+          ]
+        },
+        "issue": {
+          "description": "Issue slug, e.g. 'climate'.",
+          "type": "string"
+        },
+        "billId": {
+          "description": "Bill id this signal applies to.",
+          "type": "string"
+        },
+        "weight": {
+          "exclusiveMinimum": 0,
+          "description": "Signal strength (> 0); defaults to 1.0.",
+          "type": "number"
+        }
+      }
+    }
+  },
+  {
+    "name": "politiclaw_set_issue_stance",
+    "label": "Set a declared issue stance",
+    "groupId": "preferences",
+    "groupLabel": "Preferences and onboarding",
+    "sourcePath": "packages/politiclaw-plugin/src/tools/preferences.ts",
+    "description": "Record the user's declared position (support / oppose / neutral) on a named policy issue, with a 1-5 importance weight. Drives bill alignment scoring and rep scoring. Re-running with the same issue overwrites the previous stance.",
+    "parameters": [
+      {
+        "name": "issue",
+        "required": true,
+        "type": "string",
+        "description": "Issue label. Normalized to lowercase kebab-case (e.g. 'Affordable Housing' → 'affordable-housing')."
+      },
+      {
+        "name": "stance",
+        "required": true,
+        "type": "\"support\" | \"oppose\" | \"neutral\"",
+        "description": ""
+      },
+      {
+        "name": "weight",
+        "required": false,
+        "type": "integer",
+        "description": "How strongly the user cares (1-5). Defaults to 3."
+      }
+    ],
+    "rawSchema": {
+      "type": "object",
+      "required": [
+        "issue",
+        "stance"
+      ],
+      "properties": {
+        "issue": {
+          "description": "Issue label. Normalized to lowercase kebab-case (e.g. 'Affordable Housing' → 'affordable-housing').",
+          "type": "string"
+        },
+        "stance": {
+          "anyOf": [
+            {
+              "const": "support",
+              "type": "string"
+            },
+            {
+              "const": "oppose",
+              "type": "string"
+            },
+            {
+              "const": "neutral",
+              "type": "string"
+            }
+          ]
+        },
+        "weight": {
+          "minimum": 1,
+          "maximum": 5,
+          "description": "How strongly the user cares (1-5). Defaults to 3.",
+          "type": "integer"
+        }
+      }
+    }
+  },
+  {
+    "name": "politiclaw_list_issue_stances",
+    "label": "List declared issue stances",
+    "groupId": "preferences",
+    "groupLabel": "Preferences and onboarding",
+    "sourcePath": "packages/politiclaw-plugin/src/tools/preferences.ts",
+    "description": "Return every declared issue stance, ordered by weight (high to low). Use to show the user what PolitiClaw is scoring bills and reps against.",
+    "parameters": [],
+    "rawSchema": {
+      "type": "object",
+      "properties": {}
+    }
+  },
+  {
+    "name": "politiclaw_delete_issue_stance",
+    "label": "Delete a declared issue stance",
+    "groupId": "preferences",
+    "groupLabel": "Preferences and onboarding",
+    "sourcePath": "packages/politiclaw-plugin/src/tools/preferences.ts",
+    "description": "Remove a single declared issue stance by issue slug or label.",
+    "parameters": [
+      {
+        "name": "issue",
+        "required": true,
+        "type": "string",
+        "description": "Issue slug or label to delete."
+      }
+    ],
+    "rawSchema": {
+      "type": "object",
+      "required": [
+        "issue"
+      ],
+      "properties": {
+        "issue": {
+          "description": "Issue slug or label to delete.",
+          "type": "string"
+        }
+      }
+    }
+  },
+  {
+    "name": "politiclaw_set_monitoring_cadence",
+    "label": "Set PolitiClaw monitoring cadence",
+    "groupId": "preferences",
+    "groupLabel": "Preferences and onboarding",
+    "sourcePath": "packages/politiclaw-plugin/src/tools/preferences.ts",
+    "description": "Pick how loud PolitiClaw monitoring should be and reconcile the gateway cron jobs to match: 'off' (no monitoring), 'election_proximity' (default — quiet except near elections, plus change-gated rep-vote and hearings watches), 'weekly' (weekly digest + monthly rep report + watches), or 'both' (all jobs). Persists the choice in preferences and calls setup_monitoring so installed jobs outside the chosen set are paused (not deleted — preserves gateway state if the user flips back).",
+    "parameters": [
+      {
+        "name": "cadence",
+        "required": true,
+        "type": "\"off\" | \"election_proximity\" | \"weekly\" | \"both\"",
+        "description": "How loud PolitiClaw monitoring should be. 'off' installs no jobs. 'election_proximity' adds ramped alerts at 30/14/7/1 days plus rep-vote and hearings watches. 'weekly' adds the weekly digest and monthly rep report instead. 'both' installs all jobs."
+      }
+    ],
+    "rawSchema": {
+      "type": "object",
+      "required": [
+        "cadence"
+      ],
+      "properties": {
+        "cadence": {
+          "description": "How loud PolitiClaw monitoring should be. 'off' installs no jobs. 'election_proximity' adds ramped alerts at 30/14/7/1 days plus rep-vote and hearings watches. 'weekly' adds the weekly digest and monthly rep report instead. 'both' installs all jobs.",
+          "anyOf": [
+            {
+              "const": "off",
+              "type": "string"
+            },
+            {
+              "const": "election_proximity",
+              "type": "string"
+            },
+            {
+              "const": "weekly",
+              "type": "string"
+            },
+            {
+              "const": "both",
+              "type": "string"
+            }
+          ]
+        }
+      }
+    }
+  },
+  {
+    "name": "politiclaw_start_onboarding",
+    "label": "Start PolitiClaw onboarding (conversation or quiz)",
+    "groupId": "preferences",
+    "groupLabel": "Preferences and onboarding",
+    "sourcePath": "packages/politiclaw-plugin/src/tools/onboarding.ts",
+    "description": "Bootstraps the issue-stance set for a new (or returning) user. Input: optional `mode` of \"conversation\" or \"quiz\". When omitted, returns a choice prompt for the skill to forward to the user. When set, returns everything the skill needs to conduct the flow — opening prompts + canonical slugs for conversation, or the full question bank for quiz — plus any existing stances so returning users skip already-answered topics. Answers are persisted via politiclaw_set_issue_stance.",
+    "parameters": [
+      {
+        "name": "mode",
+        "required": false,
+        "type": "\"conversation\" | \"quiz\"",
+        "description": "Onboarding interaction style. Omit to receive a choice prompt the skill can forward to the user."
+      }
+    ],
+    "rawSchema": {
+      "type": "object",
+      "properties": {
+        "mode": {
+          "description": "Onboarding interaction style. Omit to receive a choice prompt the skill can forward to the user.",
+          "anyOf": [
+            {
+              "const": "conversation",
+              "type": "string"
+            },
+            {
+              "const": "quiz",
+              "type": "string"
+            }
+          ]
+        }
+      }
+    }
+  },
+  {
+    "name": "politiclaw_get_my_reps",
+    "label": "Get my federal representatives",
+    "groupId": "representatives",
+    "groupLabel": "Representatives and alignment",
+    "sourcePath": "packages/politiclaw-plugin/src/tools/reps.ts",
+    "description": "Resolve federal representatives (US Senate + US House) for the saved address. Reads cached reps by default; pass refresh=true to re-fetch. Uses the zero-key local shapefile pipeline by default, or Geocodio when configured.",
+    "parameters": [
+      {
+        "name": "refresh",
+        "required": false,
+        "type": "boolean",
+        "description": "When true, bypass the cache and re-fetch from the source adapter. Default: false."
+      }
+    ],
+    "rawSchema": {
+      "type": "object",
+      "properties": {
+        "refresh": {
+          "description": "When true, bypass the cache and re-fetch from the source adapter. Default: false.",
+          "type": "boolean"
+        }
+      }
+    }
+  },
+  {
+    "name": "politiclaw_download_shapefiles",
+    "label": "Download local rep lookup data",
+    "groupId": "representatives",
+    "groupLabel": "Representatives and alignment",
+    "sourcePath": "packages/politiclaw-plugin/src/tools/downloadShapefiles.ts",
+    "description": "Download and cache the zero-key congressional district + legislator data under the plugin state directory.",
+    "parameters": [
+      {
+        "name": "force",
+        "required": false,
+        "type": "boolean",
+        "description": "When true, re-download and overwrite the cached shapefile bundle."
+      }
+    ],
+    "rawSchema": {
+      "type": "object",
+      "properties": {
+        "force": {
+          "description": "When true, re-download and overwrite the cached shapefile bundle.",
+          "type": "boolean"
+        }
+      }
+    }
+  },
+  {
+    "name": "politiclaw_score_representative",
+    "label": "Score a representative against your declared stances",
+    "groupId": "representatives",
+    "groupLabel": "Representatives and alignment",
+    "sourcePath": "packages/politiclaw-plugin/src/tools/repScoring.ts",
+    "description": "Compute per-issue alignment for a stored representative based on their House roll-call votes, your declared issue stances, and your recorded stance signals on specific bills. Deterministic (no LLM) — direction for rep scoring comes exclusively from your explicit stance signals on bills, so the rep's record is counted, not narrated. Confidence below the 0.4 floor renders as \"insufficient data\". Procedural motions are excluded by default; pass includeProcedural=true for the raw tally. Senate votes are not yet ingested, so senators will show \"insufficient data\" until Senate vote coverage exists.",
+    "parameters": [
+      {
+        "name": "repId",
+        "required": true,
+        "type": "string",
+        "description": "Stable rep id (bioguide when available). Call politiclaw_get_my_reps first to look it up."
+      },
+      {
+        "name": "includeProcedural",
+        "required": false,
+        "type": "boolean",
+        "description": "When true, procedural roll calls (motions-to-adjourn, previous-question, etc.) are INCLUDED in the tally. Default is false."
+      }
+    ],
+    "rawSchema": {
+      "type": "object",
+      "required": [
+        "repId"
+      ],
+      "properties": {
+        "repId": {
+          "description": "Stable rep id (bioguide when available). Call politiclaw_get_my_reps first to look it up.",
+          "type": "string"
+        },
+        "includeProcedural": {
+          "description": "When true, procedural roll calls (motions-to-adjourn, previous-question, etc.) are INCLUDED in the tally. Default is false.",
+          "type": "boolean"
+        }
+      }
+    }
+  },
+  {
+    "name": "politiclaw_rep_report",
+    "label": "Monthly-style representative alignment report for all stored reps",
+    "groupId": "representatives",
+    "groupLabel": "Representatives and alignment",
+    "sourcePath": "packages/politiclaw-plugin/src/tools/repReport.ts",
+    "description": "Recomputes alignment for every representative in the reps table (same logic as politiclaw_score_representative) and returns one combined report with per-rep sections, congress.gov links for cited bills, and source-tier labels. Requires declared issue stances and stored reps. Intended for periodic digests (see politiclaw.rep_report cron template).",
+    "parameters": [
+      {
+        "name": "includeProcedural",
+        "required": false,
+        "type": "boolean",
+        "description": "When true, procedural House roll calls are INCLUDED in scoring (same semantics as politiclaw_score_representative). Default is false."
+      }
+    ],
+    "rawSchema": {
+      "type": "object",
+      "properties": {
+        "includeProcedural": {
+          "description": "When true, procedural House roll calls are INCLUDED in scoring (same semantics as politiclaw_score_representative). Default is false.",
+          "type": "boolean"
+        }
+      }
+    }
+  },
+  {
+    "name": "politiclaw_search_bills",
+    "label": "Search recent federal bills",
+    "groupId": "bills",
+    "groupLabel": "Bills and votes",
+    "sourcePath": "packages/politiclaw-plugin/src/tools/bills.ts",
+    "description": "List recent federal bills from api.congress.gov (tier 1). Filter by congress, billType, updateDate range, and title substring. Requires plugins.politiclaw.apiKeys.apiDataGov. Cached for 6h; pass refresh=true to re-fetch.",
+    "parameters": [
+      {
+        "name": "congress",
+        "required": false,
+        "type": "integer",
+        "description": "Congress number. Defaults to the 119th (2025-2027)."
+      },
+      {
+        "name": "billType",
+        "required": false,
+        "type": "string",
+        "description": "Bill type (HR, S, HJRES, SJRES, HCONRES, SCONRES, HRES, SRES)."
+      },
+      {
+        "name": "titleContains",
+        "required": false,
+        "type": "string",
+        "description": "Case-insensitive substring match on bill title."
+      },
+      {
+        "name": "fromDateTime",
+        "required": false,
+        "type": "string",
+        "description": "ISO-8601 lower bound on bill updateDate. Example: 2026-01-01T00:00:00Z."
+      },
+      {
+        "name": "toDateTime",
+        "required": false,
+        "type": "string",
+        "description": "ISO-8601 upper bound on bill updateDate."
+      },
+      {
+        "name": "limit",
+        "required": false,
+        "type": "integer",
+        "description": "Max bills to return (1-50)."
+      },
+      {
+        "name": "refresh",
+        "required": false,
+        "type": "boolean",
+        "description": "When true, bypass the cache and re-fetch."
+      }
+    ],
+    "rawSchema": {
+      "type": "object",
+      "properties": {
+        "congress": {
+          "minimum": 1,
+          "description": "Congress number. Defaults to the 119th (2025-2027).",
+          "type": "integer"
+        },
+        "billType": {
+          "description": "Bill type (HR, S, HJRES, SJRES, HCONRES, SCONRES, HRES, SRES).",
+          "type": "string"
+        },
+        "titleContains": {
+          "description": "Case-insensitive substring match on bill title.",
+          "type": "string"
+        },
+        "fromDateTime": {
+          "description": "ISO-8601 lower bound on bill updateDate. Example: 2026-01-01T00:00:00Z.",
+          "type": "string"
+        },
+        "toDateTime": {
+          "description": "ISO-8601 upper bound on bill updateDate.",
+          "type": "string"
+        },
+        "limit": {
+          "minimum": 1,
+          "maximum": 50,
+          "description": "Max bills to return (1-50).",
+          "type": "integer"
+        },
+        "refresh": {
+          "description": "When true, bypass the cache and re-fetch.",
+          "type": "boolean"
+        }
+      }
+    }
+  },
+  {
+    "name": "politiclaw_get_bill_details",
+    "label": "Fetch a single federal bill",
+    "groupId": "bills",
+    "groupLabel": "Bills and votes",
+    "sourcePath": "packages/politiclaw-plugin/src/tools/bills.ts",
+    "description": "Fetch one bill's full detail (sponsors, subjects, summary, latest action) from api.congress.gov (tier 1). Accepts either a canonical billId (e.g. '119-hr-1234') or congress + billType + number. Requires plugins.politiclaw.apiKeys.apiDataGov.",
+    "parameters": [
+      {
+        "name": "billId",
+        "required": false,
+        "type": "string",
+        "description": "Canonical bill id: '<congress>-<billType>-<number>', e.g. '119-hr-1234'."
+      },
+      {
+        "name": "congress",
+        "required": false,
+        "type": "integer",
+        "description": ""
+      },
+      {
+        "name": "billType",
+        "required": false,
+        "type": "string",
+        "description": ""
+      },
+      {
+        "name": "number",
+        "required": false,
+        "type": "string",
+        "description": ""
+      },
+      {
+        "name": "refresh",
+        "required": false,
+        "type": "boolean",
+        "description": ""
+      }
+    ],
+    "rawSchema": {
+      "type": "object",
+      "properties": {
+        "billId": {
+          "description": "Canonical bill id: '<congress>-<billType>-<number>', e.g. '119-hr-1234'.",
+          "type": "string"
+        },
+        "congress": {
+          "minimum": 1,
+          "type": "integer"
+        },
+        "billType": {
+          "type": "string"
+        },
+        "number": {
+          "type": "string"
+        },
+        "refresh": {
+          "type": "boolean"
+        }
+      }
+    }
+  },
+  {
+    "name": "politiclaw_score_bill",
+    "label": "Score a bill against your declared stances",
+    "groupId": "bills",
+    "groupLabel": "Bills and votes",
+    "sourcePath": "packages/politiclaw-plugin/src/tools/scoring.ts",
+    "description": "Compute how much a federal bill touches the user's declared issue stances. Deterministic (no LLM): matches policy area, subjects, title, and summary against each declared stance. Reports relevance and confidence; confidence below the 0.4 floor renders as \"insufficient data\". Rationale names specific matched subjects (never abstract generalities). Requires declared issue stances (see politiclaw_set_issue_stance) and plugins.politiclaw.apiKeys.apiDataGov for the bill source.",
+    "parameters": [
+      {
+        "name": "billId",
+        "required": false,
+        "type": "string",
+        "description": "Canonical bill id: '<congress>-<billType>-<number>', e.g. '119-hr-1234'."
+      },
+      {
+        "name": "congress",
+        "required": false,
+        "type": "integer",
+        "description": ""
+      },
+      {
+        "name": "billType",
+        "required": false,
+        "type": "string",
+        "description": ""
+      },
+      {
+        "name": "number",
+        "required": false,
+        "type": "string",
+        "description": ""
+      },
+      {
+        "name": "refresh",
+        "required": false,
+        "type": "boolean",
+        "description": "When true, bypass the bill-detail cache and re-fetch."
+      }
+    ],
+    "rawSchema": {
+      "type": "object",
+      "properties": {
+        "billId": {
+          "description": "Canonical bill id: '<congress>-<billType>-<number>', e.g. '119-hr-1234'.",
+          "type": "string"
+        },
+        "congress": {
+          "minimum": 1,
+          "type": "integer"
+        },
+        "billType": {
+          "type": "string"
+        },
+        "number": {
+          "type": "string"
+        },
+        "refresh": {
+          "description": "When true, bypass the bill-detail cache and re-fetch.",
+          "type": "boolean"
+        }
+      }
+    }
+  },
+  {
+    "name": "politiclaw_ingest_house_votes",
+    "label": "Ingest recent House roll-call votes",
+    "groupId": "bills",
+    "groupLabel": "Bills and votes",
+    "sourcePath": "packages/politiclaw-plugin/src/tools/voteIngest.ts",
+    "description": "Sweep api.congress.gov's `/house-vote` endpoint and persist recent House roll-call votes (plus per-member positions keyed by bioguide id) into the plugin-private DB. Idempotent: unchanged entries (by Clerk update_date) skip the detail fetch. Requires plugins.politiclaw.apiKeys.apiDataGov. Senate roll-call votes are not yet served by api.congress.gov, so this tool currently ingests House only.",
+    "parameters": [
+      {
+        "name": "congress",
+        "required": false,
+        "type": "integer",
+        "description": "Congress number. Defaults to the 119th (2025-2027)."
+      },
+      {
+        "name": "session",
+        "required": false,
+        "type": "integer",
+        "description": "Session within the congress (1 or 2). Defaults to 1."
+      },
+      {
+        "name": "limit",
+        "required": false,
+        "type": "integer",
+        "description": "Max list-level roll-call entries to sweep (1-100). Each listed vote may trigger an extra detail+members fetch, so 100 entries can mean up to ~200 api.data.gov calls against the 5000/hr quota."
+      },
+      {
+        "name": "offset",
+        "required": false,
+        "type": "integer",
+        "description": ""
+      },
+      {
+        "name": "force",
+        "required": false,
+        "type": "boolean",
+        "description": "When true, re-fetch detail+members for every listed vote even when its update_date is unchanged. Use for schema backfills."
+      }
+    ],
+    "rawSchema": {
+      "type": "object",
+      "properties": {
+        "congress": {
+          "minimum": 1,
+          "description": "Congress number. Defaults to the 119th (2025-2027).",
+          "type": "integer"
+        },
+        "session": {
+          "minimum": 1,
+          "maximum": 2,
+          "description": "Session within the congress (1 or 2). Defaults to 1.",
+          "type": "integer"
+        },
+        "limit": {
+          "minimum": 1,
+          "maximum": 100,
+          "description": "Max list-level roll-call entries to sweep (1-100). Each listed vote may trigger an extra detail+members fetch, so 100 entries can mean up to ~200 api.data.gov calls against the 5000/hr quota.",
+          "type": "integer"
+        },
+        "offset": {
+          "minimum": 0,
+          "type": "integer"
+        },
+        "force": {
+          "description": "When true, re-fetch detail+members for every listed vote even when its update_date is unchanged. Use for schema backfills.",
+          "type": "boolean"
+        }
+      }
+    }
+  },
+  {
+    "name": "politiclaw_get_my_ballot",
+    "label": "Preview ballot logistics and contests for your saved address",
+    "groupId": "ballot",
+    "groupLabel": "Ballot and election prep",
+    "sourcePath": "packages/politiclaw-plugin/src/tools/ballot.ts",
+    "description": "Fetch election logistics and contest rows from Google Civic voterInfoQuery. Requires plugins.politiclaw.apiKeys.googleCivic with the Civic Information API enabled. Coverage labels are honest: this tool lists what Google returns today and marks each race PARTIAL unless fuller structured coverage is available.",
+    "parameters": [
+      {
+        "name": "refresh",
+        "required": false,
+        "type": "boolean",
+        "description": "When true, bypass the cached Google Civic snapshot and re-query voterInfoQuery."
+      }
+    ],
+    "rawSchema": {
+      "type": "object",
+      "properties": {
+        "refresh": {
+          "description": "When true, bypass the cached Google Civic snapshot and re-query voterInfoQuery.",
+          "type": "boolean"
+        }
+      }
+    }
+  },
+  {
+    "name": "politiclaw_explain_my_ballot",
+    "label": "Explain each contest on your ballot with facts + framing — never a recommendation",
+    "groupId": "ballot",
+    "groupLabel": "Ballot and election prep",
+    "sourcePath": "packages/politiclaw-plugin/src/tools/explainBallot.ts",
+    "description": "Per-contest, non-prescriptive framing of your ballot. For measures, renders deterministic 'A YES vote would…' / 'A NO vote would…' lines drawn from Google Civic's published summary (tier 2 aggregator — verify against official text). For candidate races, explains what the race decides and attaches candidate bios from the tier-5 web-search adapter when wired. Never says 'vote YES/NO'. Always includes the verify-against-official-source disclaimer when any rendered line is LLM-search-derived. Requires declared issue stances, a saved address, and plugins.politiclaw.apiKeys.googleCivic.",
+    "parameters": [
+      {
+        "name": "refresh",
+        "required": false,
+        "type": "boolean",
+        "description": "When true, bypass the cached ballot snapshot and re-query voterInfoQuery."
+      }
+    ],
+    "rawSchema": {
+      "type": "object",
+      "properties": {
+        "refresh": {
+          "description": "When true, bypass the cached ballot snapshot and re-query voterInfoQuery.",
+          "type": "boolean"
+        }
+      }
+    }
+  },
+  {
+    "name": "politiclaw_prepare_me_for_my_next_election",
+    "label": "Prepare one readable guide for the user's next election",
+    "groupId": "ballot",
+    "groupLabel": "Ballot and election prep",
+    "sourcePath": "packages/politiclaw-plugin/src/tools/prepareForElection.ts",
+    "description": "Meta-tool: composes the user's saved address, declared stances, stored reps, and ballot snapshot into one readable election guide. Runs the prereq checks itself — missing address, missing reps, or missing stances return a 'setup needed' pointer at the exact tool to run, not a stack trace. Use this as the default when the user says 'help me with my ballot' or 'what do I need to know for the election.' Atomic tools (politiclaw_explain_my_ballot, politiclaw_score_representative, politiclaw_research_candidate) remain available for focused follow-ups.",
+    "parameters": [
+      {
+        "name": "refresh",
+        "required": false,
+        "type": "boolean",
+        "description": "When true, bypass the ballot-snapshot cache and re-query voterInfoQuery."
+      }
+    ],
+    "rawSchema": {
+      "type": "object",
+      "properties": {
+        "refresh": {
+          "description": "When true, bypass the ballot-snapshot cache and re-query voterInfoQuery.",
+          "type": "boolean"
+        }
+      }
+    }
+  },
+  {
+    "name": "politiclaw_check_upcoming_votes",
+    "label": "Check upcoming votes + bill changes since last run",
+    "groupId": "monitoring",
+    "groupLabel": "Monitoring and cadence",
+    "sourcePath": "packages/politiclaw-plugin/src/tools/monitoring.ts",
+    "description": "Run the change-detection loop: fetch recent federal bills + upcoming committee events from api.congress.gov (tier 1), compare each against the persisted snapshot, and return only items that are new or have materially changed since the last check. Bill changes are scored against declared issue stances when any are set. A second invocation on unchanged data returns an empty delta. Requires plugins.politiclaw.apiKeys.apiDataGov.",
+    "parameters": [
+      {
+        "name": "congress",
+        "required": false,
+        "type": "integer",
+        "description": "Congress number. Defaults to the 119th (2025-2027)."
+      },
+      {
+        "name": "billType",
+        "required": false,
+        "type": "string",
+        "description": "Restrict bill check to HR, S, HJRES, etc."
+      },
+      {
+        "name": "fromDateTime",
+        "required": false,
+        "type": "string",
+        "description": "ISO-8601 lower bound passed to both bills (updateDate) and events (startDateTime)."
+      },
+      {
+        "name": "toDateTime",
+        "required": false,
+        "type": "string",
+        "description": "ISO-8601 upper bound."
+      },
+      {
+        "name": "chamber",
+        "required": false,
+        "type": "\"House\" | \"Senate\" | \"Joint\"",
+        "description": ""
+      },
+      {
+        "name": "limit",
+        "required": false,
+        "type": "integer",
+        "description": "Max bills to examine (1-50)."
+      },
+      {
+        "name": "refresh",
+        "required": false,
+        "type": "boolean",
+        "description": "When true, bypass the 6h bills-list cache and re-fetch from api.congress.gov."
+      }
+    ],
+    "rawSchema": {
+      "type": "object",
+      "properties": {
+        "congress": {
+          "minimum": 1,
+          "description": "Congress number. Defaults to the 119th (2025-2027).",
+          "type": "integer"
+        },
+        "billType": {
+          "description": "Restrict bill check to HR, S, HJRES, etc.",
+          "type": "string"
+        },
+        "fromDateTime": {
+          "description": "ISO-8601 lower bound passed to both bills (updateDate) and events (startDateTime).",
+          "type": "string"
+        },
+        "toDateTime": {
+          "description": "ISO-8601 upper bound.",
+          "type": "string"
+        },
+        "chamber": {
+          "anyOf": [
+            {
+              "const": "House",
+              "type": "string"
+            },
+            {
+              "const": "Senate",
+              "type": "string"
+            },
+            {
+              "const": "Joint",
+              "type": "string"
+            }
+          ]
+        },
+        "limit": {
+          "minimum": 1,
+          "maximum": 50,
+          "description": "Max bills to examine (1-50).",
+          "type": "integer"
+        },
+        "refresh": {
+          "description": "When true, bypass the 6h bills-list cache and re-fetch from api.congress.gov.",
+          "type": "boolean"
+        }
+      }
+    }
+  },
+  {
+    "name": "politiclaw_setup_monitoring",
+    "label": "Install PolitiClaw default monitoring cron jobs",
+    "groupId": "monitoring",
+    "groupLabel": "Monitoring and cadence",
+    "sourcePath": "packages/politiclaw-plugin/src/tools/monitoringSetup.ts",
+    "description": "Install (or upsert in place) the default PolitiClaw monitoring cron jobs: weekly_summary (every 7d), rep_vote_watch (every 6h), tracked_hearings (every 12h), rep_report (~every 30d). Idempotent — re-running patches existing jobs rather than duplicating them. Submits via the gateway's cron.add / cron.update RPC; does not edit jobs.json directly. Behavior of each job is controlled by the skills/politiclaw-monitoring and skills/politiclaw-summary markdown — the agent can retune either without a plugin rebuild.",
+    "parameters": [],
+    "rawSchema": {
+      "type": "object",
+      "properties": {}
+    }
+  },
+  {
+    "name": "politiclaw_pause_monitoring",
+    "label": "Pause all PolitiClaw monitoring cron jobs",
+    "groupId": "monitoring",
+    "groupLabel": "Monitoring and cadence",
+    "sourcePath": "packages/politiclaw-plugin/src/tools/monitoringSetup.ts",
+    "description": "Disable every PolitiClaw-owned cron job (names prefixed \"politiclaw.weekly_summary\", etc). Leaves user-authored and other-plugin jobs alone. Idempotent; jobs already paused render as 'already paused'.",
+    "parameters": [],
+    "rawSchema": {
+      "type": "object",
+      "properties": {}
+    }
+  },
+  {
+    "name": "politiclaw_resume_monitoring",
+    "label": "Resume paused PolitiClaw monitoring cron jobs",
+    "groupId": "monitoring",
+    "groupLabel": "Monitoring and cadence",
+    "sourcePath": "packages/politiclaw-plugin/src/tools/monitoringSetup.ts",
+    "description": "Re-enable every PolitiClaw-owned cron job. Does not re-install jobs that were never created — use politiclaw_setup_monitoring for that. Idempotent; jobs already active render as 'already active'.",
+    "parameters": [],
+    "rawSchema": {
+      "type": "object",
+      "properties": {}
+    }
+  },
+  {
+    "name": "politiclaw_research_candidate",
+    "label": "Look up FEC candidate finance totals + tier-5 bio",
+    "groupId": "research",
+    "groupLabel": "Candidate research and outreach",
+    "sourcePath": "packages/politiclaw-plugin/src/tools/researchCandidate.ts",
+    "description": "Research a federal candidate (President, Senate, House) via FEC OpenFEC plus an optional LLM-search bio. Pass `candidateId` (e.g. H8CA12345) for a full per-cycle totals summary with an attached bio; pass `name` for a fuzzy search that returns up to 5 FEC matches (no bio on the search path — re-run by `candidateId` to pull one). Dollar amounts come only from FEC (tier 1) — industry rollups, donor identities, and independent expenditures are intentionally out of scope until an OpenSecrets key lands. The bio is tier-5 by default and only reaches tier 1/2 when every citation is a primary-government or neutral civic-infrastructure domain. Requires plugins.politiclaw.apiKeys.apiDataGov (same key as api.congress.gov).",
+    "parameters": [
+      {
+        "name": "candidateId",
+        "required": false,
+        "type": "string",
+        "description": "FEC candidate id (e.g. `H8CA12345`). Preferred when known — routes straight to the totals endpoint."
+      },
+      {
+        "name": "name",
+        "required": false,
+        "type": "string",
+        "description": "Free-text candidate name query. Used when `candidateId` is absent; returns up to 5 FEC candidate matches for disambiguation."
+      },
+      {
+        "name": "cycle",
+        "required": false,
+        "type": "integer",
+        "description": "Optional four-digit election cycle (e.g. 2024) to filter searches to active candidates for that cycle."
+      },
+      {
+        "name": "office",
+        "required": false,
+        "type": "\"H\" | \"S\" | \"P\"",
+        "description": "Optional office filter — H (House), S (Senate), P (President)."
+      },
+      {
+        "name": "state",
+        "required": false,
+        "type": "string",
+        "description": "Optional two-letter state filter (uppercased before the FEC call)."
+      }
+    ],
+    "rawSchema": {
+      "type": "object",
+      "properties": {
+        "candidateId": {
+          "description": "FEC candidate id (e.g. `H8CA12345`). Preferred when known — routes straight to the totals endpoint.",
+          "type": "string"
+        },
+        "name": {
+          "description": "Free-text candidate name query. Used when `candidateId` is absent; returns up to 5 FEC candidate matches for disambiguation.",
+          "type": "string"
+        },
+        "cycle": {
+          "description": "Optional four-digit election cycle (e.g. 2024) to filter searches to active candidates for that cycle.",
+          "type": "integer"
+        },
+        "office": {
+          "description": "Optional office filter — H (House), S (Senate), P (President).",
+          "anyOf": [
+            {
+              "const": "H",
+              "type": "string"
+            },
+            {
+              "const": "S",
+              "type": "string"
+            },
+            {
+              "const": "P",
+              "type": "string"
+            }
+          ]
+        },
+        "state": {
+          "description": "Optional two-letter state filter (uppercased before the FEC call).",
+          "type": "string"
+        }
+      }
+    }
+  },
+  {
+    "name": "politiclaw_research_challengers",
+    "label": "Compare incumbents and challengers by FEC finance totals",
+    "groupId": "research",
+    "groupLabel": "Candidate research and outreach",
+    "sourcePath": "packages/politiclaw-plugin/src/tools/researchChallengers.ts",
+    "description": "For each stored rep (or a specific one via repId), look up every federal candidate filed for that race this cycle and render a side-by-side FEC finance comparison. Dollar amounts come only from FEC (tier 1). Pass `cycle` for historical comparisons. Requires plugins.politiclaw.apiKeys.apiDataGov. Call politiclaw_get_my_reps first if no reps are stored.",
+    "parameters": [
+      {
+        "name": "repId",
+        "required": false,
+        "type": "string",
+        "description": "Optional: focus on one stored rep (from politiclaw_get_my_reps). When absent, compares challengers for every stored rep in one turn."
+      },
+      {
+        "name": "cycle",
+        "required": false,
+        "type": "integer",
+        "description": "Optional four-digit election cycle (e.g. 2026). Defaults to the current year if even, otherwise next year."
+      }
+    ],
+    "rawSchema": {
+      "type": "object",
+      "properties": {
+        "repId": {
+          "description": "Optional: focus on one stored rep (from politiclaw_get_my_reps). When absent, compares challengers for every stored rep in one turn.",
+          "type": "string"
+        },
+        "cycle": {
+          "description": "Optional four-digit election cycle (e.g. 2026). Defaults to the current year if even, otherwise next year.",
+          "type": "integer"
+        }
+      }
+    }
+  },
+  {
+    "name": "politiclaw_draft_letter",
+    "label": "Draft a letter to a representative",
+    "groupId": "research",
+    "groupLabel": "Candidate research and outreach",
+    "sourcePath": "packages/politiclaw-plugin/src/tools/draftLetter.ts",
+    "description": "Draft a polite, sourced letter from the user to one of their stored reps on a declared issue, optionally citing a specific federal bill. Deterministic slot-fill (no LLM). Output is copy-paste ready for the user's own email client — PolitiClaw never sends mail. Letters are capped at 400 words and persist in the letters table for audit. Requires a declared stance on the issue (politiclaw_set_issue_stance) and, when citing a bill, plugins.politiclaw.apiKeys.apiDataGov for bill lookup.",
+    "parameters": [
+      {
+        "name": "repId",
+        "required": true,
+        "type": "string",
+        "description": "Stable rep id (bioguide when available). Call politiclaw_get_my_reps first to look it up."
+      },
+      {
+        "name": "issue",
+        "required": true,
+        "type": "string",
+        "description": "Issue slug from your declared stances (e.g. 'affordable-housing'). Must already be set via politiclaw_set_issue_stance."
+      },
+      {
+        "name": "billId",
+        "required": false,
+        "type": "string",
+        "description": "Optional canonical bill id ('119-hr-1234'). When present the letter cites the specific bill."
+      },
+      {
+        "name": "customNote",
+        "required": false,
+        "type": "string",
+        "description": "Optional one-sentence personal hook appended verbatim above the closing. Keep short — the draft is already near its word ceiling."
+      }
+    ],
+    "rawSchema": {
+      "type": "object",
+      "required": [
+        "repId",
+        "issue"
+      ],
+      "properties": {
+        "repId": {
+          "description": "Stable rep id (bioguide when available). Call politiclaw_get_my_reps first to look it up.",
+          "type": "string"
+        },
+        "issue": {
+          "description": "Issue slug from your declared stances (e.g. 'affordable-housing'). Must already be set via politiclaw_set_issue_stance.",
+          "type": "string"
+        },
+        "billId": {
+          "description": "Optional canonical bill id ('119-hr-1234'). When present the letter cites the specific bill.",
+          "type": "string"
+        },
+        "customNote": {
+          "description": "Optional one-sentence personal hook appended verbatim above the closing. Keep short — the draft is already near its word ceiling.",
+          "type": "string"
+        }
+      }
+    }
+  },
+  {
+    "name": "politiclaw_doctor",
+    "label": "Diagnose PolitiClaw install health",
+    "groupId": "operations",
+    "groupLabel": "Operations and diagnostics",
+    "sourcePath": "packages/politiclaw-plugin/src/tools/doctor.ts",
+    "description": "Run a local health check: schema version, SQLite integrity, preferences, API keys, reps cache, and monitoring cron status. Returns a structured report with ok/warn/fail per check plus an actionable hint for every non-ok result. Read-only — never modifies state. Call this first when something looks broken.",
+    "parameters": [],
+    "rawSchema": {
+      "type": "object",
+      "properties": {}
+    }
+  }
+]
