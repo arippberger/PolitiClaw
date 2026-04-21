@@ -5,7 +5,12 @@ export default defineConfig({
   description:
     "Living documentation for the PolitiClaw OpenClaw plugin.",
   cleanUrls: true,
+  head: [
+    ["link", { rel: "icon", type: "image/png", href: "/politiclaw-mark.png" }]
+  ],
   themeConfig: {
+    logo: { src: "/politiclaw-mark.png", alt: "PolitiClaw" },
+    siteTitle: "politiclaw",
     nav: [
       { text: "Get Started", link: "/guide/getting-started" },
       { text: "Reference", link: "/reference/tools" },
