@@ -1,4 +1,4 @@
-# Monitoring
+# Manage Monitoring
 
 ## Core Idea
 
