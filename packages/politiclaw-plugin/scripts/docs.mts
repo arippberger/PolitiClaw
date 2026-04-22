@@ -13,6 +13,10 @@ import {
   POLITICLAW_TOOL_GROUPS,
   REGISTERED_POLITICLAW_TOOL_DOCS,
 } from "../src/docs/toolRegistry.ts";
+import {
+  TOOL_AUDIT_ENTRIES,
+  type ToolAuditEntry,
+} from "../src/docs/toolAudit.ts";
 import { openMemoryDb } from "../src/storage/sqlite.ts";
 
 type OutputFile = {
@@ -139,6 +143,7 @@ function buildOutputs(): OutputFile[] {
     parameters: describeToolParameters(entry.tool.parameters),
     rawSchema: entry.tool.parameters,
   }));
+  const toolAuditDocs = buildToolAuditDocs();
   outputs.push({
     path: join(generatedRoot, "tools.json"),
     content: formatJson(toolsJson),
@@ -153,6 +158,14 @@ function buildOutputs(): OutputFile[] {
       content: renderToolPage(entry),
     });
   }
+  outputs.push({
+    path: join(generatedRoot, "tool-audit.json"),
+    content: formatJson(toolAuditDocs),
+  });
+  outputs.push({
+    path: join(generatedRoot, "tool-audit.md"),
+    content: renderToolAuditPage(toolAuditDocs),
+  });
 
   outputs.push({
     path: join(generatedRoot, "config-schema.json"),
@@ -291,6 +304,41 @@ function readStorageDocs(): { tables: StorageTableDoc[]; indexes: StorageIndexDo
   }
 }
 
+function buildToolAuditDocs(): Array<
+  ToolAuditEntry & {
+    label: string;
+    groupId: string;
+    groupLabel: string;
+    sourcePath: string;
+  }
+> {
+  const auditByName = new Map(TOOL_AUDIT_ENTRIES.map((entry) => [entry.name, entry]));
+  const docs = REGISTERED_POLITICLAW_TOOL_DOCS.map((entry) => {
+    const audit = auditByName.get(entry.tool.name);
+    if (!audit) {
+      throw new Error(`Missing tool audit entry for ${entry.tool.name}.`);
+    }
+    return {
+      ...audit,
+      label: entry.tool.label ?? entry.tool.name,
+      groupId: entry.groupId,
+      groupLabel: entry.groupLabel,
+      sourcePath: entry.sourcePath,
+    };
+  });
+
+  const unknown = TOOL_AUDIT_ENTRIES.filter(
+    (entry) => !REGISTERED_POLITICLAW_TOOL_DOCS.some((toolDoc) => toolDoc.tool.name === entry.name),
+  );
+  if (unknown.length > 0) {
+    throw new Error(
+      `Tool audit catalog includes unregistered tool(s): ${unknown.map((entry) => entry.name).join(", ")}.`,
+    );
+  }
+
+  return docs;
+}
+
 function renderGeneratedToolIndex(): string {
   const lines: string[] = [
     "# Generated Tool Reference",
@@ -311,6 +359,49 @@ function renderGeneratedToolIndex(): string {
     }
     lines.push("");
   }
+
+  return lines.join("\n");
+}
+
+function renderToolAuditPage(
+  entries: readonly (ToolAuditEntry & {
+    label: string;
+    groupId: string;
+    groupLabel: string;
+    sourcePath: string;
+  })[],
+): string {
+  const lines: string[] = [
+    "# Generated Tool Audit",
+    "",
+    "This page is generated from the runtime tool registry plus the maintainer-facing visibility audit catalog.",
+    "",
+    "Review question: would a normal user knowingly reach for this tool by name, or is it better treated as a follow-up or implementation detail?",
+    "",
+    "| Tool | Group | Tier | Docs action | Why |",
+    "| --- | --- | --- | --- | --- |",
+  ];
+
+  for (const entry of entries) {
+    lines.push(
+      `| [\`${entry.name}\`](./tools/${entry.name}.md) | ${escapeTableCell(entry.groupLabel)} | \`${entry.tier}\` | \`${entry.docsAction}\` | ${escapeTableCell(entry.rationale)} |`,
+    );
+  }
+
+  lines.push(
+    "",
+    "## Tier meanings",
+    "",
+    "- `core`: belongs in primary task-based guides and should be treated as a default entry point.",
+    "- `advanced`: useful, but better as a follow-up or power-user move.",
+    "- `internal`: keep available and documented, but avoid leading users to it in primary docs.",
+    "",
+    "## Docs action meanings",
+    "",
+    "- `lead-in-guides`: surface in onboarding, task pages, and user-facing navigation.",
+    "- `follow-up-or-advanced-docs`: keep visible for deeper workflows, but not as the default front door.",
+    "- `generated-reference-only`: keep in generated reference and maintainer docs unless there is a specific reason to surface it.",
+  );
 
   return lines.join("\n");
 }

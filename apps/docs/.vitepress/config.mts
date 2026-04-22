@@ -32,6 +32,7 @@ export default defineConfig({
         text: "Reference",
         items: [
           { text: "Tools", link: "/reference/tools" },
+          { text: "Tool Audit", link: "/reference/tool-audit" },
           { text: "Config Schema", link: "/reference/config-schema" },
           { text: "Source Coverage", link: "/reference/source-coverage" },
           { text: "Cron Jobs", link: "/reference/cron-jobs" },
