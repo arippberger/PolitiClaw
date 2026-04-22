@@ -7,6 +7,7 @@ import { createHouseVotesResolver } from "../../sources/votes/index.js";
 import {
   ingestHouseVotes,
   listMemberVotes,
+  listRecentBillVotes,
   listStoredVotes,
 } from "./ingest.js";
 
@@ -327,5 +328,102 @@ describe("ingestHouseVotes", () => {
       excludeProcedural: true,
     });
     expect(substantive.map((v) => v.id)).toEqual(["house-119-1-17"]);
+  });
+});
+
+describe("listRecentBillVotes", () => {
+  it("joins bill titles and excludes votes with no bill", () => {
+    const db = openMemoryDb();
+    db.prepare(
+      `INSERT INTO bills (id, congress, bill_type, number, title,
+                          last_synced, source_adapter_id, source_tier)
+       VALUES ('119-hr-10', 119, 'HR', '10', 'Bill Ten',
+               1700000000000, 'congressGov', 1)`,
+    ).run();
+    // one bill-linked vote
+    db.prepare(
+      `INSERT INTO roll_call_votes (id, chamber, congress, session, roll_call_number,
+                                    bill_id, result, vote_question, start_date,
+                                    source_adapter_id, source_tier, synced_at)
+       VALUES ('vote-a', 'House', 119, 1, 10, '119-hr-10',
+               'Passed', 'On Passage', '2026-04-01',
+               'congressGov', 1, 1700000000000)`,
+    ).run();
+    // one procedural with no bill — should be excluded
+    db.prepare(
+      `INSERT INTO roll_call_votes (id, chamber, congress, session, roll_call_number,
+                                    bill_id, result, vote_question, start_date,
+                                    source_adapter_id, source_tier, synced_at)
+       VALUES ('vote-b', 'House', 119, 1, 11, NULL,
+               'Agreed to', 'Motion to Adjourn', '2026-04-02',
+               'congressGov', 1, 1700000000000)`,
+    ).run();
+
+    const rows = listRecentBillVotes(db);
+    expect(rows).toHaveLength(1);
+    expect(rows[0]!.voteId).toBe("vote-a");
+    expect(rows[0]!.billId).toBe("119-hr-10");
+    expect(rows[0]!.billTitle).toBe("Bill Ten");
+    expect(rows[0]!.result).toBe("Passed");
+  });
+
+  it("sorts newest first by start_date descending", () => {
+    const db = openMemoryDb();
+    db.prepare(
+      `INSERT INTO bills (id, congress, bill_type, number, title,
+                          last_synced, source_adapter_id, source_tier)
+       VALUES ('119-hr-1', 119, 'HR', '1', 'Bill A',
+               1700000000000, 'congressGov', 1),
+              ('119-hr-2', 119, 'HR', '2', 'Bill B',
+               1700000000000, 'congressGov', 1)`,
+    ).run();
+    db.prepare(
+      `INSERT INTO roll_call_votes (id, chamber, congress, session, roll_call_number,
+                                    bill_id, result, vote_question, start_date,
+                                    source_adapter_id, source_tier, synced_at)
+       VALUES ('vote-old', 'House', 119, 1, 1, '119-hr-1',
+               'Passed', 'On Passage', '2026-01-01',
+               'congressGov', 1, 1700000000000),
+              ('vote-new', 'House', 119, 1, 2, '119-hr-2',
+               'Passed', 'On Passage', '2026-04-01',
+               'congressGov', 1, 1700000000000)`,
+    ).run();
+
+    const rows = listRecentBillVotes(db);
+    expect(rows.map((r) => r.voteId)).toEqual(["vote-new", "vote-old"]);
+  });
+
+  it("returns null bill_title when the bill row is missing", () => {
+    const db = openMemoryDb();
+    db.prepare(
+      `INSERT INTO roll_call_votes (id, chamber, congress, session, roll_call_number,
+                                    bill_id, result, vote_question, start_date,
+                                    source_adapter_id, source_tier, synced_at)
+       VALUES ('vote-orphan', 'House', 119, 1, 99, '119-hr-999',
+               'Passed', 'On Passage', '2026-04-01',
+               'congressGov', 1, 1700000000000)`,
+    ).run();
+    const rows = listRecentBillVotes(db);
+    expect(rows).toHaveLength(1);
+    expect(rows[0]!.billTitle).toBeNull();
+  });
+
+  it("respects the limit parameter", () => {
+    const db = openMemoryDb();
+    for (let i = 0; i < 5; i++) {
+      db.prepare(
+        `INSERT INTO roll_call_votes (id, chamber, congress, session, roll_call_number,
+                                      bill_id, result, vote_question, start_date,
+                                      source_adapter_id, source_tier, synced_at)
+         VALUES (@id, 'House', 119, 1, @rc, @bill, 'Passed', 'Q', @date,
+                 'congressGov', 1, 1700000000000)`,
+      ).run({
+        id: `v-${i}`,
+        rc: i + 1,
+        bill: `119-hr-${i + 1}`,
+        date: `2026-04-0${i + 1}`,
+      });
+    }
+    expect(listRecentBillVotes(db, 3)).toHaveLength(3);
   });
 });

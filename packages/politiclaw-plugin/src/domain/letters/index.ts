@@ -1,6 +1,7 @@
 export {
   draftLetter,
   listLetters,
+  requestLetterRedraft,
   LETTER_MAX_WORDS,
   LETTER_DRAFT_DISCLAIMER,
 } from "./draft.js";
@@ -9,4 +10,6 @@ export type {
   DraftLetterResult,
   DraftLetterDeps,
   LetterCitation,
+  LetterListEntry,
+  RequestLetterRedraftResult,
 } from "./draft.js";

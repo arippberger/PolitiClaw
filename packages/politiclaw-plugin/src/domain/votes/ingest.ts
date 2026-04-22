@@ -369,6 +369,64 @@ export function listStoredVotes(
   }));
 }
 
+export type RecentBillVote = {
+  voteId: string;
+  billId: string;
+  billTitle: string | null;
+  chamber: "House" | "Senate";
+  result: string | null;
+  voteQuestion: string | null;
+  startDate: string | null;
+};
+
+/**
+ * Recent roll-call votes that reference a bill, joined to `bills.title` when
+ * we have it. Used by the dashboard quick-vote UI: each entry becomes a
+ * "would you have voted yes/no/skip on this bill?" prompt that records a
+ * `stance_signals` row.
+ *
+ * Excludes votes with NULL bill_id (procedural motions, motions to recommit,
+ * etc) — those have no clean stance to express.
+ */
+export function listRecentBillVotes(
+  db: PolitiClawDb,
+  limit = 10,
+): RecentBillVote[] {
+  const rows = db
+    .prepare(
+      `SELECT rcv.id           AS vote_id,
+              rcv.bill_id      AS bill_id,
+              b.title          AS bill_title,
+              rcv.chamber      AS chamber,
+              rcv.result       AS result,
+              rcv.vote_question AS vote_question,
+              rcv.start_date   AS start_date
+         FROM roll_call_votes rcv
+         LEFT JOIN bills b ON b.id = rcv.bill_id
+         WHERE rcv.bill_id IS NOT NULL
+         ORDER BY rcv.start_date DESC, rcv.id DESC
+         LIMIT ?`,
+    )
+    .all(limit) as Array<{
+    vote_id: string;
+    bill_id: string;
+    bill_title: string | null;
+    chamber: string;
+    result: string | null;
+    vote_question: string | null;
+    start_date: string | null;
+  }>;
+  return rows.map((row) => ({
+    voteId: row.vote_id,
+    billId: row.bill_id,
+    billTitle: row.bill_title ?? null,
+    chamber: row.chamber as "House" | "Senate",
+    result: row.result ?? null,
+    voteQuestion: row.vote_question ?? null,
+    startDate: row.start_date ?? null,
+  }));
+}
+
 export type StoredMemberVote = MemberVote;
 
 export function listMemberVotes(

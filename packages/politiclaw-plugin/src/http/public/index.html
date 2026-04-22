@@ -10,14 +10,51 @@
   <body>
     <header class="pc-header">
       <h1>PolitiClaw Status</h1>
-      <p class="pc-subtitle">Read-only dashboard. Edits happen via the agent.</p>
+      <p class="pc-subtitle">
+        Local-only dashboard. Edits write directly to the plugin DB.
+      </p>
       <p class="pc-generated" id="pc-generated" aria-live="polite">Loading…</p>
+      <p class="pc-toast" id="pc-toast" role="status" aria-live="polite"></p>
     </header>
 
     <main class="pc-main">
       <section class="pc-section" id="pc-section-preferences">
         <h2>Preferences</h2>
         <div class="pc-section-body" id="pc-preferences-body">Loading…</div>
+        <details class="pc-edit">
+          <summary>Edit preferences</summary>
+          <form id="pc-preferences-form" class="pc-form" novalidate>
+            <label>
+              <span>Address</span>
+              <input type="text" name="address" autocomplete="street-address" />
+            </label>
+            <div class="pc-form-row">
+              <label>
+                <span>ZIP</span>
+                <input type="text" name="zip" autocomplete="postal-code" />
+              </label>
+              <label>
+                <span>State</span>
+                <input type="text" name="state" maxlength="2" />
+              </label>
+              <label>
+                <span>District</span>
+                <input type="text" name="district" />
+              </label>
+            </div>
+            <label>
+              <span>Monitoring cadence</span>
+              <select name="monitoringCadence">
+                <option value="">(unchanged)</option>
+                <option value="off">off</option>
+                <option value="election_proximity">election_proximity</option>
+                <option value="weekly">weekly</option>
+                <option value="both">both</option>
+              </select>
+            </label>
+            <button type="submit">Save preferences</button>
+          </form>
+        </details>
       </section>
 
       <section class="pc-section" id="pc-section-reps">
@@ -28,6 +65,10 @@
       <section class="pc-section" id="pc-section-monitoring">
         <h2>Monitoring jobs</h2>
         <div class="pc-section-body" id="pc-monitoring-body">Loading…</div>
+        <div class="pc-edit-inline">
+          <button type="button" id="pc-monitoring-pause">Pause all</button>
+          <button type="button" id="pc-monitoring-resume">Resume all</button>
+        </div>
       </section>
 
       <section class="pc-section" id="pc-section-election">
@@ -39,12 +80,27 @@
         <h2>Recent alerts</h2>
         <div class="pc-section-body" id="pc-alerts-body">Loading…</div>
       </section>
+
+      <section class="pc-section" id="pc-section-letters">
+        <h2>Recent letters</h2>
+        <div class="pc-section-body" id="pc-letters-body">Loading…</div>
+      </section>
+
+      <section class="pc-section" id="pc-section-quick-vote">
+        <h2>Quick vote on recent bills</h2>
+        <p class="pc-subtitle">
+          Tell PolitiClaw how you'd have voted. Each click records a stance
+          signal that nudges your alignment scores.
+        </p>
+        <div class="pc-section-body" id="pc-quick-vote-body">Loading…</div>
+      </section>
     </main>
 
     <footer class="pc-footer">
       <p>
-        Local-only. No edits from this page. Ask the agent to update
-        preferences, refresh reps, or pause monitoring.
+        Local-only. Edits commit immediately to the plugin SQLite DB. To make
+        changes that need API calls (refreshing reps, drafting a fresh
+        letter), still use the agent.
       </p>
     </footer>
 

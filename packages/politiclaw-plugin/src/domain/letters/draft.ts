@@ -172,7 +172,7 @@ export async function draftLetter(
   };
 }
 
-export function listLetters(db: PolitiClawDb, limit = 20): Array<{
+export type LetterListEntry = {
   id: number;
   repId: string;
   repName: string;
@@ -182,11 +182,15 @@ export function listLetters(db: PolitiClawDb, limit = 20): Array<{
   subject: string;
   wordCount: number;
   createdAt: number;
-}> {
+  redraftRequestedAt: number | null;
+};
+
+export function listLetters(db: PolitiClawDb, limit = 20): LetterListEntry[] {
   const rows = db
     .prepare(
-      `SELECT id, rep_id, rep_name, rep_office, issue, bill_id, subject, word_count, created_at
-       FROM letters ORDER BY created_at DESC LIMIT ?`,
+      `SELECT id, rep_id, rep_name, rep_office, issue, bill_id, subject,
+              word_count, created_at, redraft_requested_at
+         FROM letters ORDER BY created_at DESC LIMIT ?`,
     )
     .all(limit) as Array<{
     id: number;
@@ -198,6 +202,7 @@ export function listLetters(db: PolitiClawDb, limit = 20): Array<{
     subject: string;
     word_count: number;
     created_at: number;
+    redraft_requested_at: number | null;
   }>;
   return rows.map((r) => ({
     id: r.id,
@@ -209,7 +214,36 @@ export function listLetters(db: PolitiClawDb, limit = 20): Array<{
     subject: r.subject,
     wordCount: r.word_count,
     createdAt: r.created_at,
+    redraftRequestedAt: r.redraft_requested_at ?? null,
   }));
+}
+
+export type RequestLetterRedraftResult =
+  | { status: "ok"; letterId: number; redraftRequestedAt: number }
+  | { status: "not_found"; letterId: number };
+
+/**
+ * Stamps a letter row with `redraft_requested_at = now`. The agent picks the
+ * flag up next time it runs the draft tool for the same rep+issue+bill — the
+ * old letter row stays put for audit, and the new draft supersedes it.
+ *
+ * Idempotent: re-requesting overwrites the timestamp with the latest call,
+ * which is what a user pressing the button twice expects.
+ */
+export function requestLetterRedraft(
+  db: PolitiClawDb,
+  letterId: number,
+  now: number = Date.now(),
+): RequestLetterRedraftResult {
+  const result = db
+    .prepare(
+      `UPDATE letters SET redraft_requested_at = ? WHERE id = ?`,
+    )
+    .run(now, letterId);
+  if (result.changes === 0) {
+    return { status: "not_found", letterId };
+  }
+  return { status: "ok", letterId, redraftRequestedAt: now };
 }
 
 function normalizeIssue(raw: string): string {

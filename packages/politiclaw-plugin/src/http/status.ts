@@ -26,10 +26,14 @@ import {
 } from "../domain/scoring/index.js";
 import { POLITICLAW_CRON_NAMES } from "../cron/templates.js";
 import { listRecentAlerts, type AlertKind } from "../domain/alerts/index.js";
+import { listLetters, type LetterListEntry } from "../domain/letters/index.js";
+import { listRecentBillVotes, type RecentBillVote } from "../domain/votes/ingest.js";
 
-export const STATUS_SCHEMA_VERSION = 2 as const;
+export const STATUS_SCHEMA_VERSION = 3 as const;
 export const UPCOMING_ELECTION_WINDOW_DAYS = 60;
 export const RECENT_ALERTS_LIMIT = 10;
+export const RECENT_LETTERS_LIMIT = 10;
+export const RECENT_VOTES_LIMIT = 10;
 
 export type StatusPreferences =
   | {
@@ -131,6 +135,37 @@ export type StatusRecentAlerts =
   | { status: "ok"; alerts: StatusRecentAlert[] }
   | { status: "none"; reason: string };
 
+export type StatusRecentLetter = {
+  id: number;
+  repId: string;
+  repName: string;
+  repOffice: string;
+  issue: string;
+  billId: string | null;
+  subject: string;
+  wordCount: number;
+  createdAtMs: number;
+  redraftRequestedAtMs: number | null;
+};
+
+export type StatusRecentLetters =
+  | { status: "ok"; letters: StatusRecentLetter[] }
+  | { status: "none"; reason: string };
+
+export type StatusRecentVote = {
+  voteId: string;
+  billId: string;
+  billTitle: string | null;
+  chamber: "House" | "Senate";
+  result: string | null;
+  voteQuestion: string | null;
+  startDate: string | null;
+};
+
+export type StatusRecentVotes =
+  | { status: "ok"; votes: StatusRecentVote[] }
+  | { status: "none"; reason: string };
+
 export type StatusPayload = {
   schemaVersion: typeof STATUS_SCHEMA_VERSION;
   generatedAtMs: number;
@@ -139,6 +174,8 @@ export type StatusPayload = {
   monitoring: StatusMonitoring;
   upcomingElection: StatusUpcomingElection;
   recentAlerts: StatusRecentAlerts;
+  recentLetters: StatusRecentLetters;
+  recentVotes: StatusRecentVotes;
 };
 
 export type BuildStatusDeps = {
@@ -157,6 +194,8 @@ export async function buildStatusPayload(deps: BuildStatusDeps): Promise<StatusP
   const monitoring = await buildMonitoringSection(deps.cronAdapter);
   const upcomingElection = buildUpcomingElectionSection(deps.db, preferencesRow, generatedAtMs);
   const recentAlerts = buildRecentAlertsSection(deps.db);
+  const recentLetters = buildRecentLettersSection(deps.db);
+  const recentVotes = buildRecentVotesSection(deps.db);
 
   return {
     schemaVersion: STATUS_SCHEMA_VERSION,
@@ -166,6 +205,8 @@ export async function buildStatusPayload(deps: BuildStatusDeps): Promise<StatusP
     monitoring,
     upcomingElection,
     recentAlerts,
+    recentLetters,
+    recentVotes,
   };
 }
 
@@ -189,6 +230,62 @@ function buildRecentAlertsSection(db: PolitiClawDb): StatusRecentAlerts {
       sourceAdapterId: row.sourceAdapterId,
       sourceTier: row.sourceTier,
     })),
+  };
+}
+
+function buildRecentLettersSection(db: PolitiClawDb): StatusRecentLetters {
+  const rows = listLetters(db, RECENT_LETTERS_LIMIT);
+  if (rows.length === 0) {
+    return {
+      status: "none",
+      reason: "no letters drafted yet — call politiclaw_draft_letter to write one",
+    };
+  }
+  return {
+    status: "ok",
+    letters: rows.map(toStatusLetter),
+  };
+}
+
+function toStatusLetter(row: LetterListEntry): StatusRecentLetter {
+  return {
+    id: row.id,
+    repId: row.repId,
+    repName: row.repName,
+    repOffice: row.repOffice,
+    issue: row.issue,
+    billId: row.billId,
+    subject: row.subject,
+    wordCount: row.wordCount,
+    createdAtMs: row.createdAt,
+    redraftRequestedAtMs: row.redraftRequestedAt,
+  };
+}
+
+function buildRecentVotesSection(db: PolitiClawDb): StatusRecentVotes {
+  const rows = listRecentBillVotes(db, RECENT_VOTES_LIMIT);
+  if (rows.length === 0) {
+    return {
+      status: "none",
+      reason:
+        "no roll-call votes ingested yet — call politiclaw_ingest_house_votes to populate",
+    };
+  }
+  return {
+    status: "ok",
+    votes: rows.map(toStatusVote),
+  };
+}
+
+function toStatusVote(row: RecentBillVote): StatusRecentVote {
+  return {
+    voteId: row.voteId,
+    billId: row.billId,
+    billTitle: row.billTitle,
+    chamber: row.chamber,
+    result: row.result,
+    voteQuestion: row.voteQuestion,
+    startDate: row.startDate,
   };
 }
 

@@ -1,6 +1,11 @@
 import { beforeEach, describe, expect, it } from "vitest";
 
-import { draftLetter, listLetters, LETTER_MAX_WORDS } from "./draft.js";
+import {
+  draftLetter,
+  listLetters,
+  requestLetterRedraft,
+  LETTER_MAX_WORDS,
+} from "./draft.js";
 import { createBillsResolver } from "../../sources/bills/index.js";
 import type { AdapterResult } from "../../sources/common/types.js";
 import type { Bill, BillRef } from "../../sources/bills/types.js";
@@ -352,5 +357,59 @@ describe("draftLetter", () => {
     expect(resolverCalls).toBe(0);
     expect(result.body).toContain("Cached Housing Bill");
     expect(result.bill?.title).toBe("Cached Housing Bill");
+  });
+});
+
+describe("requestLetterRedraft", () => {
+  let db: PolitiClawDb;
+  beforeEach(() => {
+    db = openMemoryDb();
+  });
+
+  function seedStoredLetter(): number {
+    seedRep(db, {
+      id: "P000197",
+      name: "Nancy Pelosi",
+      office: "US House",
+      state: "CA",
+      district: "11",
+      url: "https://pelosi.house.gov",
+    });
+    upsertIssueStance(db, { issue: "housing", stance: "support", weight: 3 });
+    const result = db
+      .prepare(
+        `INSERT INTO letters (rep_id, rep_name, rep_office, issue, bill_id, subject, body,
+                              citations_json, stance_snapshot_hash, word_count, created_at)
+         VALUES ('P000197', 'Nancy Pelosi', 'US House', 'housing', NULL,
+                 'Subj', 'body', '[]', 'hash', 42, ?)`,
+      )
+      .run(Date.now());
+    return Number(result.lastInsertRowid);
+  }
+
+  it("stamps redraft_requested_at and returns it on the result", () => {
+    const letterId = seedStoredLetter();
+    const frozenNow = 1_777_000_000_000;
+    const result = requestLetterRedraft(db, letterId, frozenNow);
+    expect(result.status).toBe("ok");
+    if (result.status !== "ok") return;
+    expect(result.redraftRequestedAt).toBe(frozenNow);
+
+    const listed = listLetters(db);
+    expect(listed[0]!.redraftRequestedAt).toBe(frozenNow);
+  });
+
+  it("returns not_found when the id does not exist", () => {
+    const result = requestLetterRedraft(db, 9999);
+    expect(result.status).toBe("not_found");
+  });
+
+  it("is idempotent — a second call overwrites with the newer timestamp", () => {
+    const letterId = seedStoredLetter();
+    requestLetterRedraft(db, letterId, 1_000);
+    const second = requestLetterRedraft(db, letterId, 2_000);
+    expect(second.status).toBe("ok");
+    if (second.status !== "ok") return;
+    expect(second.redraftRequestedAt).toBe(2_000);
   });
 });

@@ -209,6 +209,68 @@ describe("buildStatusPayload", () => {
     if (payload.monitoring.status === "ok") {
       expect(payload.monitoring.jobs).toEqual([]);
     }
+    expect(payload.recentLetters.status).toBe("none");
+    expect(payload.recentVotes.status).toBe("none");
+  });
+
+  it("returns recent letters when letters exist in the DB", async () => {
+    const db = openMemoryDb();
+    const now = Date.now();
+    db.prepare(
+      `INSERT INTO letters (rep_id, rep_name, rep_office, issue, bill_id, subject, body,
+                            citations_json, stance_snapshot_hash, word_count, created_at)
+       VALUES ('B000001', 'Rep One', 'US House', 'housing', '119-hr-1',
+               'Subject A', 'body', '[]', 'hash', 120, @now)`,
+    ).run({ now });
+    db.prepare(
+      `INSERT INTO letters (rep_id, rep_name, rep_office, issue, bill_id, subject, body,
+                            citations_json, stance_snapshot_hash, word_count, created_at,
+                            redraft_requested_at)
+       VALUES ('B000002', 'Rep Two', 'US Senate', 'climate', NULL,
+               'Subject B', 'body', '[]', 'hash', 99, @now, @redraft)`,
+    ).run({ now: now - 1000, redraft: now });
+
+    const payload = await buildStatusPayload({
+      db,
+      cronAdapter: makeCronAdapter(),
+      now: () => REFERENCE_NOW,
+    });
+
+    expect(payload.recentLetters.status).toBe("ok");
+    if (payload.recentLetters.status !== "ok") throw new Error("expected ok");
+    expect(payload.recentLetters.letters).toHaveLength(2);
+    expect(payload.recentLetters.letters[0]!.subject).toBe("Subject A");
+    expect(payload.recentLetters.letters[1]!.redraftRequestedAtMs).toBe(now);
+  });
+
+  it("returns recent bill-linked votes when any exist", async () => {
+    const db = openMemoryDb();
+    db.prepare(
+      `INSERT INTO bills (id, congress, bill_type, number, title,
+                          last_synced, source_adapter_id, source_tier)
+       VALUES ('119-hr-1', 119, 'HR', '1', 'Housing Reform Act',
+               1700000000000, 'congressGov', 1)`,
+    ).run();
+    db.prepare(
+      `INSERT INTO roll_call_votes (id, chamber, congress, session, roll_call_number,
+                                    bill_id, result, vote_question, start_date,
+                                    source_adapter_id, source_tier, synced_at)
+       VALUES ('vote-1', 'House', 119, 1, 42, '119-hr-1',
+               'Passed', 'On Passage', '2026-03-01',
+               'congressGov', 1, 1700000000000)`,
+    ).run();
+
+    const payload = await buildStatusPayload({
+      db,
+      cronAdapter: makeCronAdapter(),
+      now: () => REFERENCE_NOW,
+    });
+
+    expect(payload.recentVotes.status).toBe("ok");
+    if (payload.recentVotes.status !== "ok") throw new Error("expected ok");
+    expect(payload.recentVotes.votes).toHaveLength(1);
+    expect(payload.recentVotes.votes[0]!.billId).toBe("119-hr-1");
+    expect(payload.recentVotes.votes[0]!.billTitle).toBe("Housing Reform Act");
   });
 
   it("renders preferences + stances when the address is saved", async () => {

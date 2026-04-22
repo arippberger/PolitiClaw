@@ -2,14 +2,26 @@
   "use strict";
 
   const STATUS_URL = "api/status";
+  const PREFS_URL = "api/preferences";
+  const MONITORING_URL = "api/monitoring";
+  const STANCE_URL = "api/stance-signals";
+  const LETTERS_URL = "api/letters/";
+  const CSRF_COOKIE = "pc_csrf";
+  const CSRF_HEADER = "X-PolitiClaw-CSRF";
 
   const elements = {
     generated: document.getElementById("pc-generated"),
+    toast: document.getElementById("pc-toast"),
     preferences: document.getElementById("pc-preferences-body"),
+    preferencesForm: document.getElementById("pc-preferences-form"),
     reps: document.getElementById("pc-reps-body"),
     monitoring: document.getElementById("pc-monitoring-body"),
+    monitoringPause: document.getElementById("pc-monitoring-pause"),
+    monitoringResume: document.getElementById("pc-monitoring-resume"),
     election: document.getElementById("pc-election-body"),
     alerts: document.getElementById("pc-alerts-body"),
+    letters: document.getElementById("pc-letters-body"),
+    quickVote: document.getElementById("pc-quick-vote-body"),
   };
 
   async function load() {
@@ -24,7 +36,15 @@
       render(payload);
     } catch (err) {
       setText(elements.generated, "Failed to load status: " + err.message);
-      ["preferences", "reps", "monitoring", "election", "alerts"].forEach(function (key) {
+      [
+        "preferences",
+        "reps",
+        "monitoring",
+        "election",
+        "alerts",
+        "letters",
+        "quickVote",
+      ].forEach(function (key) {
         elements[key].innerHTML = "";
         elements[key].appendChild(textNode("Unavailable: " + err.message));
       });
@@ -45,6 +65,9 @@
     renderMonitoring(payload.monitoring);
     renderElection(payload.upcomingElection);
     renderAlerts(payload.recentAlerts);
+    renderLetters(payload.recentLetters);
+    renderQuickVote(payload.recentVotes);
+    primePreferencesForm(payload.preferences);
   }
 
   function renderPreferences(section) {
@@ -101,6 +124,17 @@
       ul.appendChild(li);
     });
     container.appendChild(ul);
+  }
+
+  function primePreferencesForm(section) {
+    const form = elements.preferencesForm;
+    if (!form) return;
+    if (section && section.status === "ok") {
+      form.address.value = section.address || "";
+      form.zip.value = section.zip || "";
+      form.state.value = section.state || "";
+      form.district.value = section.district || "";
+    }
   }
 
   function renderReps(section) {
@@ -201,9 +235,7 @@
     if (section.jobs.length === 0) {
       container.appendChild(mutedLine("No PolitiClaw monitoring jobs installed."));
       container.appendChild(
-        actionable(
-          "call politiclaw_configure to install the default cadence",
-        ),
+        actionable("call politiclaw_configure to install the default cadence"),
       );
       return;
     }
@@ -301,6 +333,265 @@
     container.appendChild(kv);
   }
 
+  function renderLetters(section) {
+    const container = elements.letters;
+    container.innerHTML = "";
+    if (!section || section.status === "none") {
+      container.appendChild(mutedLine(section ? section.reason : "No recent letters."));
+      return;
+    }
+    const ul = document.createElement("ul");
+    ul.className = "pc-letters";
+    section.letters.forEach(function (letter) {
+      ul.appendChild(renderLetter(letter));
+    });
+    container.appendChild(ul);
+  }
+
+  function renderLetter(letter) {
+    const li = document.createElement("li");
+    const head = document.createElement("div");
+    head.className = "pc-letter-head";
+
+    const subject = document.createElement("span");
+    subject.className = "pc-rep-name";
+    subject.textContent = letter.subject;
+    head.appendChild(subject);
+    head.appendChild(pill("accent", letter.repOffice));
+    if (letter.redraftRequestedAtMs) {
+      head.appendChild(pill("warn", "redraft pending"));
+    }
+    li.appendChild(head);
+
+    const meta = document.createElement("div");
+    meta.className = "pc-letter-meta";
+    const metaBits = [
+      letter.repName,
+      letter.issue,
+      formatDate(letter.createdAtMs),
+      letter.wordCount + " words",
+    ];
+    if (letter.billId) metaBits.push(letter.billId);
+    meta.textContent = metaBits.join(" · ");
+    li.appendChild(meta);
+
+    const actions = document.createElement("div");
+    actions.className = "pc-edit-inline";
+    const redraftBtn = document.createElement("button");
+    redraftBtn.type = "button";
+    redraftBtn.textContent = letter.redraftRequestedAtMs
+      ? "Re-request draft"
+      : "Request re-draft";
+    redraftBtn.addEventListener("click", function () {
+      redraftBtn.disabled = true;
+      postJson(LETTERS_URL + letter.id + "/redraft", {})
+        .then(function (result) {
+          toast("Re-draft requested for letter #" + letter.id + ". Next agent session will pick it up.");
+          void result;
+          return load();
+        })
+        .catch(function (err) {
+          toast("Re-draft failed: " + err.message, true);
+          redraftBtn.disabled = false;
+        });
+    });
+    actions.appendChild(redraftBtn);
+    li.appendChild(actions);
+    return li;
+  }
+
+  function renderQuickVote(section) {
+    const container = elements.quickVote;
+    container.innerHTML = "";
+    if (!section || section.status === "none") {
+      container.appendChild(mutedLine(section ? section.reason : "No recent votes."));
+      return;
+    }
+    const ul = document.createElement("ul");
+    ul.className = "pc-quick-votes";
+    section.votes.forEach(function (vote) {
+      ul.appendChild(renderQuickVoteItem(vote));
+    });
+    container.appendChild(ul);
+  }
+
+  function renderQuickVoteItem(vote) {
+    const li = document.createElement("li");
+    const head = document.createElement("div");
+    head.className = "pc-letter-head";
+    const title = document.createElement("span");
+    title.className = "pc-rep-name";
+    title.textContent = vote.billTitle || vote.billId;
+    head.appendChild(title);
+    head.appendChild(pill("accent", vote.chamber));
+    if (vote.result) head.appendChild(pill(null, vote.result));
+    li.appendChild(head);
+
+    const meta = document.createElement("div");
+    meta.className = "pc-letter-meta";
+    const metaBits = [vote.billId];
+    if (vote.startDate) metaBits.push(vote.startDate);
+    if (vote.voteQuestion) metaBits.push(vote.voteQuestion);
+    meta.textContent = metaBits.join(" · ");
+    li.appendChild(meta);
+
+    const actions = document.createElement("div");
+    actions.className = "pc-edit-inline";
+    ["agree", "disagree", "skip"].forEach(function (direction) {
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.textContent = direction;
+      btn.addEventListener("click", function () {
+        Array.from(actions.children).forEach(function (b) {
+          b.disabled = true;
+        });
+        postJson(STANCE_URL, { billId: vote.billId, direction: direction })
+          .then(function () {
+            toast("Recorded " + direction + " on " + vote.billId + ".");
+            btn.classList.add("pc-selected");
+          })
+          .catch(function (err) {
+            toast("Save failed: " + err.message, true);
+            Array.from(actions.children).forEach(function (b) {
+              b.disabled = false;
+            });
+          });
+      });
+      actions.appendChild(btn);
+    });
+    li.appendChild(actions);
+    return li;
+  }
+
+  function wirePreferencesForm() {
+    const form = elements.preferencesForm;
+    if (!form) return;
+    form.addEventListener("submit", function (evt) {
+      evt.preventDefault();
+      const fd = new FormData(form);
+      const payload = {};
+      const address = String(fd.get("address") || "").trim();
+      if (address) payload.address = address;
+      const zip = String(fd.get("zip") || "").trim();
+      if (zip) payload.zip = zip;
+      const state = String(fd.get("state") || "").trim();
+      if (state) payload.state = state.toUpperCase();
+      const district = String(fd.get("district") || "").trim();
+      if (district) payload.district = district;
+      const cadence = String(fd.get("monitoringCadence") || "").trim();
+      if (cadence) payload.monitoringCadence = cadence;
+
+      if (Object.keys(payload).length === 0) {
+        toast("Nothing to save.", true);
+        return;
+      }
+
+      const submit = form.querySelector("button[type=submit]");
+      if (submit) submit.disabled = true;
+      postJson(PREFS_URL, payload)
+        .then(function () {
+          toast("Preferences saved.");
+          return load();
+        })
+        .catch(function (err) {
+          toast("Save failed: " + err.message, true);
+        })
+        .finally(function () {
+          if (submit) submit.disabled = false;
+        });
+    });
+  }
+
+  function wireMonitoringButtons() {
+    if (elements.monitoringPause) {
+      elements.monitoringPause.addEventListener("click", function () {
+        toggleMonitoring(false, elements.monitoringPause);
+      });
+    }
+    if (elements.monitoringResume) {
+      elements.monitoringResume.addEventListener("click", function () {
+        toggleMonitoring(true, elements.monitoringResume);
+      });
+    }
+  }
+
+  function toggleMonitoring(enabled, btn) {
+    btn.disabled = true;
+    postJson(MONITORING_URL, { enabled: enabled })
+      .then(function (result) {
+        const flipped = (result.outcomes || []).filter(function (o) {
+          return o.action === "paused" || o.action === "resumed";
+        }).length;
+        toast(
+          (enabled ? "Resumed " : "Paused ") +
+            flipped +
+            " job(s). Refreshing…",
+        );
+        return load();
+      })
+      .catch(function (err) {
+        toast("Toggle failed: " + err.message, true);
+      })
+      .finally(function () {
+        btn.disabled = false;
+      });
+  }
+
+  function postJson(url, body) {
+    const token = readCookie(CSRF_COOKIE);
+    if (!token) {
+      return Promise.reject(new Error("missing CSRF cookie — reload the page"));
+    }
+    const headers = {
+      "Content-Type": "application/json",
+      Accept: "application/json",
+    };
+    headers[CSRF_HEADER] = token;
+    return fetch(url, {
+      method: "POST",
+      headers: headers,
+      body: JSON.stringify(body),
+    }).then(function (response) {
+      return response.json().then(function (payload) {
+        if (!response.ok) {
+          const message =
+            (payload && (payload.message || payload.error)) ||
+            "HTTP " + response.status;
+          const err = new Error(message);
+          err.status = response.status;
+          err.payload = payload;
+          throw err;
+        }
+        return payload;
+      });
+    });
+  }
+
+  function readCookie(name) {
+    const parts = document.cookie.split(";");
+    for (let i = 0; i < parts.length; i++) {
+      const part = parts[i].trim();
+      const eq = part.indexOf("=");
+      if (eq === -1) continue;
+      if (part.slice(0, eq) === name) {
+        return decodeURIComponent(part.slice(eq + 1));
+      }
+    }
+    return null;
+  }
+
+  function toast(message, isError) {
+    const el = elements.toast;
+    if (!el) return;
+    el.textContent = message;
+    el.className = "pc-toast" + (isError ? " pc-toast--error" : " pc-toast--ok");
+    window.clearTimeout(toast._handle);
+    toast._handle = window.setTimeout(function () {
+      el.textContent = "";
+      el.className = "pc-toast";
+    }, 4000);
+  }
+
   function statusLine(kind, text) {
     const line = document.createElement("p");
     line.style.margin = "0 0 0.25rem";
@@ -392,5 +683,7 @@
     return Math.round(fraction * 100) + "%";
   }
 
+  wirePreferencesForm();
+  wireMonitoringButtons();
   load();
 })();

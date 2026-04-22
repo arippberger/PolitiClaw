@@ -16,10 +16,9 @@ export type BallotResolver = {
 
 /**
  * Ballot logistics resolver. Google Civic `voterInfoQuery` is the only source
- * wired in today. Per-state Secretary-of-State adapters (CA/WA/CO/OH/FL/MI)
- * were considered and scoped out after an audit found none of those six
- * states publishes a public address-to-ballot JSON feed suitable for direct
- * integration.
+ * wired in today. Per-state SoS adapters (CA/WA/CO/OH/FL/MI) were considered
+ * and scoped out after an audit found none of those six states publishes a
+ * public address-to-ballot JSON feed suitable for direct integration.
  */
 export function createBallotResolver(options: BallotResolverOptions): BallotResolver {
   const fetcher = options.fetcher ?? globalThis.fetch.bind(globalThis);

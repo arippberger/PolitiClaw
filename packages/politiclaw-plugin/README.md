@@ -62,6 +62,19 @@ Current skills:
 
 Typical edits: tightening or relaxing the anti-prescription guardrails, adding project-specific stance vocabulary, or changing the default tone of drafted letters. Changes to skills do not require `npm run build`.
 
+## Dashboard
+
+The plugin registers a local-only dashboard at `/politiclaw` on the gateway's HTTP surface. It shows your preferences, reps and alignment scores, installed monitoring jobs, upcoming election, recent alerts, recent drafted letters, and recent bill-linked roll-call votes — all driven by the plugin's private SQLite DB.
+
+The dashboard is also editable:
+
+- **Preferences form** — save address, ZIP, state, district, or monitoring cadence without going through the agent.
+- **Pause all / Resume all** — bulk-toggle every PolitiClaw cron job on the gateway.
+- **Quick-vote buttons** — record agree/disagree/skip signals on recent bill-linked votes. Each click is stored as a stance signal that nudges your rep alignment scores.
+- **Request re-draft** — flag a past letter for re-drafting. The next agent session picks up the flag and drafts a fresh version; the browser does not invoke tools directly.
+
+Because the dashboard is registered with `auth: "plugin"`, the gateway adds no auth layer. POST requests are protected by a double-submit CSRF token (`pc_csrf` cookie paired with an `X-PolitiClaw-CSRF` header) and bodies are bounded to 256 KB. Exposure is intended to be local-only; operators who expose the gateway off-host must front the dashboard themselves.
+
 ## Troubleshooting
 
 Run `politiclaw_doctor` first. It checks, in one pass:

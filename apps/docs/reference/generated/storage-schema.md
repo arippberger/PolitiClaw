@@ -2,7 +2,7 @@
 
 This page is generated from a real in-memory SQLite database after migrations run.
 
-Migration count: 12.
+Migration count: 13.
 
 ## Migrations
 
@@ -18,6 +18,7 @@ Migration count: 12.
 - `packages/politiclaw-plugin/src/storage/migrations/0010_letters.sql`
 - `packages/politiclaw-plugin/src/storage/migrations/0011_hot_path_indexes.sql`
 - `packages/politiclaw-plugin/src/storage/migrations/0012_alert_history.sql`
+- `packages/politiclaw-plugin/src/storage/migrations/0013_letter_redraft.sql`
 
 ## Tables
 
@@ -245,6 +246,7 @@ CREATE TABLE kv_store (
 | `stance_snapshot_hash` | `TEXT` | yes | no | n/a |
 | `word_count` | `INTEGER` | yes | no | n/a |
 | `created_at` | `INTEGER` | yes | no | n/a |
+| `redraft_requested_at` | `INTEGER` | no | no | n/a |
 
 ```sql
 CREATE TABLE letters (
@@ -260,7 +262,7 @@ CREATE TABLE letters (
   stance_snapshot_hash  TEXT NOT NULL,
   word_count            INTEGER NOT NULL,
   created_at            INTEGER NOT NULL
-)
+, redraft_requested_at INTEGER)
 ```
 
 ### member_votes
@@ -537,6 +539,7 @@ CREATE TABLE stance_signals (
 | `bills_latest_action` | `bills` | `CREATE INDEX bills_latest_action ON bills(latest_action_date)` |
 | `letters_created` | `letters` | `CREATE INDEX letters_created ON letters(created_at DESC)` |
 | `letters_issue` | `letters` | `CREATE INDEX letters_issue   ON letters(issue)` |
+| `letters_redraft_requested` | `letters` | `CREATE INDEX letters_redraft_requested   ON letters(redraft_requested_at)   WHERE redraft_requested_at IS NOT NULL` |
 | `letters_rep` | `letters` | `CREATE INDEX letters_rep     ON letters(rep_id)` |
 | `member_votes_bioguide` | `member_votes` | `CREATE INDEX member_votes_bioguide ON member_votes(bioguide_id)` |
 | `member_votes_position` | `member_votes` | `CREATE INDEX member_votes_position ON member_votes(position)` |

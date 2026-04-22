@@ -226,3 +226,124 @@ body {
 a {
   color: var(--accent);
 }
+
+.pc-toast {
+  margin: 0.5rem 0 0;
+  padding: 0;
+  font-size: 0.875rem;
+  min-height: 1.2em;
+}
+
+.pc-toast--ok {
+  color: var(--ok);
+}
+
+.pc-toast--error {
+  color: var(--fail);
+}
+
+.pc-edit {
+  margin-top: 0.75rem;
+}
+
+.pc-edit > summary {
+  cursor: pointer;
+  color: var(--accent);
+  font-size: 0.875rem;
+}
+
+.pc-form {
+  margin-top: 0.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.pc-form label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+
+.pc-form input,
+.pc-form select {
+  font: inherit;
+  color: var(--fg);
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 0.25rem;
+  padding: 0.35rem 0.5rem;
+}
+
+.pc-form-row {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.5rem;
+}
+
+.pc-form button,
+.pc-edit-inline button {
+  font: inherit;
+  color: var(--fg);
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 0.3rem;
+  padding: 0.35rem 0.8rem;
+  cursor: pointer;
+}
+
+.pc-form button:hover,
+.pc-edit-inline button:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.pc-form button:disabled,
+.pc-edit-inline button:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.pc-edit-inline {
+  margin-top: 0.5rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.pc-edit-inline button.pc-selected {
+  border-color: var(--ok);
+  color: var(--ok);
+}
+
+.pc-letters,
+.pc-quick-votes {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.pc-letters > li,
+.pc-quick-votes > li {
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--border);
+  border-radius: 0.4rem;
+}
+
+.pc-letter-head {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: baseline;
+}
+
+.pc-letter-meta {
+  color: var(--muted);
+  font-size: 0.85rem;
+  margin-top: 0.2rem;
+}

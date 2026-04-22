@@ -2,21 +2,28 @@
  * Dashboard HTTP route registrar.
  *
  * Registers a single prefix-matched route at `/politiclaw` and demuxes
- * requests inside the handler. Four URLs are served:
- *   GET /politiclaw                  → index.html (trailing slash redirect)
- *   GET /politiclaw/                 → index.html
- *   GET /politiclaw/app.js           → static JS bundle
- *   GET /politiclaw/style.css        → static CSS
- *   GET /politiclaw/api/status       → JSON payload
+ * requests inside the handler. URLs served:
+ *
+ *   GET  /politiclaw                  → index.html (trailing slash redirect)
+ *   GET  /politiclaw/                 → index.html
+ *   GET  /politiclaw/app.js           → static JS bundle
+ *   GET  /politiclaw/style.css        → static CSS
+ *   GET  /politiclaw/api/status       → JSON payload (also issues CSRF cookie)
+ *   POST /politiclaw/api/preferences  → upsert address / cadence / stances
+ *   POST /politiclaw/api/monitoring   → bulk pause/resume PolitiClaw cron jobs
+ *   POST /politiclaw/api/stance-signals       → record a single quick-vote
+ *   POST /politiclaw/api/letters/:id/redraft  → flag a past letter for re-draft
  *
  * Posture:
  *   - `auth: "plugin"` because this is local-only. The gateway adds no auth
  *     layer for plugin-owned routes; the plugin is responsible for any
- *     additional checks. We deliberately add none: the dashboard is intended
- *     to be local-only, and if the gateway is reachable off-host the operator
- *     is responsible for fronting it with auth.
- *   - Only GET is handled. Any other method returns 405.
- *   - The dashboard is read-only, so no CSRF machinery is required.
+ *     additional checks. We deliberately add none: the dashboard is designed
+ *     for localhost access, and a user who exposes the gateway to other hosts
+ *     should be warned separately.
+ *   - GET / HEAD are unauthenticated; both also issue a `pc_csrf` cookie.
+ *   - POST requires a valid `X-PolitiClaw-CSRF` header that mirrors the
+ *     `pc_csrf` cookie (double-submit CSRF). Mismatch → 403.
+ *   - Body parsing is bounded (256 KB) and JSON-only.
  */
 import type { IncomingMessage, ServerResponse } from "node:http";
 
@@ -26,6 +33,15 @@ import {
   type StatusPayload,
 } from "./status.js";
 import { loadDashboardAsset } from "./assets.js";
+import { ensureCsrfCookie, verifyCsrf } from "./csrf.js";
+import { readJsonBody } from "./body.js";
+import {
+  handleLetterRedraft,
+  handleMonitoringToggle,
+  handlePreferencesUpdate,
+  handleStanceSignalCreate,
+  type MutationResult,
+} from "./mutations.js";
 
 export const DASHBOARD_ROUTE_PREFIX = "/politiclaw";
 
@@ -58,6 +74,8 @@ export function createDashboardRoute(
   };
 }
 
+const LETTER_REDRAFT_PATTERN = /^\/api\/letters\/(\d+)\/redraft$/;
+
 export async function handleDashboardRequest(
   req: IncomingMessage,
   res: ServerResponse,
@@ -69,27 +87,85 @@ export async function handleDashboardRequest(
 
   if (!pathname.startsWith(DASHBOARD_ROUTE_PREFIX)) return false;
 
-  if (method !== "GET" && method !== "HEAD") {
-    sendText(res, 405, "Method Not Allowed", { Allow: "GET, HEAD" });
+  const remainder = pathname.slice(DASHBOARD_ROUTE_PREFIX.length);
+
+  if (method === "GET" || method === "HEAD") {
+    if (remainder === "" || remainder === "/") {
+      ensureCsrfCookie(req, res);
+      return serveAsset(res, "index.html", method);
+    }
+    if (remainder === "/api/status") {
+      ensureCsrfCookie(req, res);
+      return serveStatus(res, method, options);
+    }
+    if (remainder === "/app.js") return serveAsset(res, "app.js", method);
+    if (remainder === "/style.css") return serveAsset(res, "style.css", method);
+    sendText(res, 404, "Not Found");
     return true;
   }
 
-  const remainder = pathname.slice(DASHBOARD_ROUTE_PREFIX.length);
-
-  if (remainder === "" || remainder === "/") {
-    return serveAsset(res, "index.html", method);
+  if (method === "POST") {
+    return handlePost(req, res, remainder, options);
   }
 
-  if (remainder === "/api/status") {
-    return serveStatus(res, method, options);
+  sendText(res, 405, "Method Not Allowed", { Allow: "GET, HEAD, POST" });
+  return true;
+}
+
+async function handlePost(
+  req: IncomingMessage,
+  res: ServerResponse,
+  remainder: string,
+  options: DashboardRouteOptions,
+): Promise<boolean> {
+  const csrfCheck = verifyCsrf(req);
+  if (!csrfCheck.ok) {
+    sendJson(res, 403, {
+      error: "csrf_failed",
+      message: csrfCheck.reason,
+    });
+    return true;
   }
 
-  if (remainder === "/app.js") {
-    return serveAsset(res, "app.js", method);
+  if (remainder === "/api/preferences") {
+    const body = await readJsonBody(req);
+    if (!body.ok) {
+      sendJson(res, body.status, { error: "invalid_body", message: body.reason });
+      return true;
+    }
+    const result = handlePreferencesUpdate(options.deps.db, body.value);
+    sendMutation(res, result);
+    return true;
   }
 
-  if (remainder === "/style.css") {
-    return serveAsset(res, "style.css", method);
+  if (remainder === "/api/monitoring") {
+    const body = await readJsonBody(req);
+    if (!body.ok) {
+      sendJson(res, body.status, { error: "invalid_body", message: body.reason });
+      return true;
+    }
+    const result = await handleMonitoringToggle(body.value);
+    sendMutation(res, result);
+    return true;
+  }
+
+  if (remainder === "/api/stance-signals") {
+    const body = await readJsonBody(req);
+    if (!body.ok) {
+      sendJson(res, body.status, { error: "invalid_body", message: body.reason });
+      return true;
+    }
+    const result = handleStanceSignalCreate(options.deps.db, body.value);
+    sendMutation(res, result);
+    return true;
+  }
+
+  const redraftMatch = LETTER_REDRAFT_PATTERN.exec(remainder);
+  if (redraftMatch) {
+    const letterId = Number.parseInt(redraftMatch[1]!, 10);
+    const result = handleLetterRedraft(options.deps.db, letterId);
+    sendMutation(res, result);
+    return true;
   }
 
   sendText(res, 404, "Not Found");
@@ -146,6 +222,23 @@ async function serveStatus(
     res.end(body);
     return true;
   }
+}
+
+function sendMutation(res: ServerResponse, result: MutationResult): void {
+  sendJson(res, result.status, result.body);
+}
+
+function sendJson(
+  res: ServerResponse,
+  statusCode: number,
+  body: unknown,
+): void {
+  const buf = Buffer.from(JSON.stringify(body), "utf8");
+  res.statusCode = statusCode;
+  res.setHeader("Content-Type", "application/json; charset=utf-8");
+  res.setHeader("Content-Length", buf.byteLength);
+  res.setHeader("Cache-Control", "no-store");
+  res.end(buf);
 }
 
 function sendText(
