@@ -1,0 +1,49 @@
+{
+  "bill_id": "hr1234-119",
+  "bill_type": "hr",
+  "number": "1234",
+  "congress": "119",
+  "introduced_at": "2026-01-30",
+  "updated_at": "2026-04-15T14:30:00-04:00",
+  "official_title": "Clean Housing Investment Act of 2026",
+  "short_title": "Clean Housing Investment Act",
+  "popular_title": null,
+  "subjects_top_term": "Housing and Community Development",
+  "subjects": [
+    "Affordable housing",
+    "Federal housing programs",
+    "Housing finance"
+  ],
+  "summary": {
+    "as": "Introduced in House",
+    "date": "2026-01-30",
+    "text": "Establishes a federal grant program for state and local construction of energy-efficient affordable housing units."
+  },
+  "status": "REFERRED",
+  "status_at": "2026-04-10",
+  "history": {
+    "active": false
+  },
+  "sponsor": {
+    "bioguide_id": "P000197",
+    "name": "Pelosi, Nancy",
+    "title": "Rep",
+    "state": "CA",
+    "district": "11",
+    "party": "D"
+  },
+  "actions": [
+    {
+      "acted_at": "2026-01-30",
+      "type": "introduced",
+      "text": "Introduced in House"
+    },
+    {
+      "acted_at": "2026-04-10",
+      "type": "referral",
+      "text": "Referred to the House Committee on Financial Services."
+    }
+  ],
+  "latest_major_action_at": "2026-04-10",
+  "latest_major_action": "Referred to the House Committee on Financial Services."
+}

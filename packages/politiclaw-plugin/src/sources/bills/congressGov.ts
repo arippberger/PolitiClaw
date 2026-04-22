@@ -10,7 +10,7 @@ import { billIdOf } from "./types.js";
 
 const CONGRESS_API_BASE = "https://api.congress.gov/v3";
 
-type Fetcher = typeof fetch;
+type Fetcher = (input: URL | string | Request, init?: RequestInit) => Promise<Response>;
 
 export type CongressGovAdapterOptions = {
   apiKey: string;

@@ -215,6 +215,23 @@
             "description": "OPTIONAL but required for politiclaw_get_my_ballot. Google Cloud API key with the Civic Information API enabled for voterInfoQuery. Distinct from api.data.gov; create it in the Google Cloud console."
           }
         }
+      },
+      "sources": {
+        "type": "object",
+        "additionalProperties": false,
+        "description": "Per-source configuration. Keys here are independent of apiKeys; they control adapter selection and base URLs for self-hosted mirrors.",
+        "properties": {
+          "bills": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "scraperBaseUrl": {
+                "type": "string",
+                "description": "OPTIONAL. Base URL for a self-hosted unitedstates/congress scraper output mirror. When set, bill lookups fall back to this mirror if apiDataGov is absent or rate-limited. Adapter expects the canonical layout: {baseUrl}/{congress}/bills/{billtype}/{billtype}{number}/data.json. No default — the scraper is designed to be self-hosted and we do not endorse any third-party mirror."
+              }
+            }
+          }
+        }
       }
     }
   }

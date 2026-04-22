@@ -105,7 +105,10 @@ export const draftLetterTool: AnyAgentTool = {
     const { db } = getStorage();
     const cfg = getPluginConfig();
     const resolver = parsed.data.billId
-      ? createBillsResolver({ apiDataGovKey: cfg.apiKeys?.apiDataGov })
+      ? createBillsResolver({
+          apiDataGovKey: cfg.apiKeys?.apiDataGov,
+          scraperBaseUrl: cfg.sources?.bills?.scraperBaseUrl,
+        })
       : undefined;
 
     const result = await draftLetter(

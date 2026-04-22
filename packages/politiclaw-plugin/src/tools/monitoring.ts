@@ -242,7 +242,10 @@ export const checkUpcomingVotesTool: AnyAgentTool = {
 
     const { db } = getStorage();
     const cfg = getPluginConfig();
-    const billsResolver = createBillsResolver({ apiDataGovKey: cfg.apiKeys?.apiDataGov });
+    const billsResolver = createBillsResolver({
+      apiDataGovKey: cfg.apiKeys?.apiDataGov,
+      scraperBaseUrl: cfg.sources?.bills?.scraperBaseUrl,
+    });
     const upcomingVotesResolver = createUpcomingVotesResolver({
       apiDataGovKey: cfg.apiKeys?.apiDataGov,
     });

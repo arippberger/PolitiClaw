@@ -212,7 +212,10 @@ export const scoreBillTool: AnyAgentTool = {
 
     const { db } = getStorage();
     const cfg = getPluginConfig();
-    const resolver = createBillsResolver({ apiDataGovKey: cfg.apiKeys?.apiDataGov });
+    const resolver = createBillsResolver({
+      apiDataGovKey: cfg.apiKeys?.apiDataGov,
+      scraperBaseUrl: cfg.sources?.bills?.scraperBaseUrl,
+    });
 
     const result = await scoreBill(db, resolver, ref, {
       refresh: parsed.data.refresh,

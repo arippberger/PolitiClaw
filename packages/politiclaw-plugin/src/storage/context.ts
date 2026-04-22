@@ -21,6 +21,12 @@ export type PluginConfigSnapshot = {
     ballotReady?: string;
     googleCivic?: string;
   };
+  sources?: {
+    bills?: {
+      /** Self-hosted unitedstates/congress scraper output mirror. */
+      scraperBaseUrl?: string;
+    };
+  };
 };
 
 let storage: PolitiClawStorage | null = null;

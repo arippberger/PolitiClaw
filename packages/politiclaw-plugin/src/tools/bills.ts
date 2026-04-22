@@ -164,7 +164,10 @@ export const searchBillsTool: AnyAgentTool = {
 
     const { db } = getStorage();
     const cfg = getPluginConfig();
-    const resolver = createBillsResolver({ apiDataGovKey: cfg.apiKeys?.apiDataGov });
+    const resolver = createBillsResolver({
+      apiDataGovKey: cfg.apiKeys?.apiDataGov,
+      scraperBaseUrl: cfg.sources?.bills?.scraperBaseUrl,
+    });
 
     const result = await searchBills(
       db,
@@ -224,7 +227,10 @@ export const getBillDetailsTool: AnyAgentTool = {
 
     const { db } = getStorage();
     const cfg = getPluginConfig();
-    const resolver = createBillsResolver({ apiDataGovKey: cfg.apiKeys?.apiDataGov });
+    const resolver = createBillsResolver({
+      apiDataGovKey: cfg.apiKeys?.apiDataGov,
+      scraperBaseUrl: cfg.sources?.bills?.scraperBaseUrl,
+    });
 
     const result = await getBillDetail(db, resolver, ref, { refresh: parsed.data.refresh });
     if (result.status === "unavailable") {
