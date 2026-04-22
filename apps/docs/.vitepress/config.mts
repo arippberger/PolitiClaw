@@ -44,6 +44,7 @@ export default defineConfig({
         items: [
           { text: "Architecture", link: "/maintainers/architecture" },
           { text: "Docs System", link: "/maintainers/docs-system" },
+          { text: "Tool Surface Policy", link: "/maintainers/tool-surface" },
           { text: "Release Checklist", link: "/maintainers/release-checklist" },
           { text: "Legacy Docs Audit", link: "/maintainers/legacy-docs-audit" }
         ]

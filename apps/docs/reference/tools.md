@@ -2,6 +2,8 @@
 
 The generated tool reference is the source of truth for every registered PolitiClaw tool, including descriptions, source files, and parameter schemas.
 
+Before deciding what belongs in primary docs versus power-user or operator docs, read the [Tool Surface Policy](../maintainers/tool-surface).
+
 - [Generated Tool Index](./generated/tools/index)
 - [Tool JSON Snapshot](./generated/tools.json)
 
