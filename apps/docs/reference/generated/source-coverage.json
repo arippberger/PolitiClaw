@@ -30,15 +30,15 @@
       "status": "implemented",
       "required": false,
       "summary": "Zero-key default for federal reps-by-address resolution after the cache is primed locally.",
-      "notes": "Uses Census geocoding, cached district polygons, and the bundled legislator resolver. The cache can be primed automatically or via the download tool.",
+      "notes": "Uses Census geocoding, cached district polygons, and the bundled legislator resolver. The cache can be primed automatically during configuration or rep lookup.",
       "sourcePaths": [
         "packages/politiclaw-plugin/src/sources/reps/localShapefiles.ts",
         "packages/politiclaw-plugin/src/sources/reps/shapefileCache.ts",
-        "packages/politiclaw-plugin/src/tools/downloadShapefiles.ts"
+        "packages/politiclaw-plugin/src/tools/configure.ts"
       ],
       "unlockedByTools": [
-        "politiclaw_get_my_reps",
-        "politiclaw_download_shapefiles"
+        "politiclaw_configure",
+        "politiclaw_get_my_reps"
       ]
     },
     {

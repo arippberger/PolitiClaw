@@ -30,19 +30,18 @@ describe("renderPrepareForElectionOutput", () => {
         {
           id: "preferences",
           reason: "no saved address",
-          actionable: "call politiclaw_set_preferences",
+          actionable: "call politiclaw_configure",
         },
         {
           id: "stances",
           reason: "no declared issue stances",
-          actionable: "call politiclaw_start_onboarding",
+          actionable: "call politiclaw_configure",
         },
       ],
     };
     const text = renderPrepareForElectionOutput(result);
     expect(text).toContain("Setup needed");
-    expect(text).toContain("politiclaw_set_preferences");
-    expect(text).toContain("politiclaw_start_onboarding");
+    expect(text).toContain("politiclaw_configure");
   });
 
   it("renders ballot_unavailable with the adapter hint", () => {
@@ -75,7 +74,7 @@ describe("politiclaw_prepare_me_for_my_next_election — execute", () => {
     const res = await prepareForElectionTool.execute!("call-1", {}, undefined, undefined);
     const text = textFrom(res as { content: Array<{ type: string; text: string }> });
     expect(text).toContain("Setup needed");
-    expect(text).toContain("politiclaw_set_preferences");
+    expect(text).toContain("politiclaw_configure");
   });
 
   it("returns setup_needed with the stances pointer when stances are missing", async () => {
@@ -92,8 +91,7 @@ describe("politiclaw_prepare_me_for_my_next_election — execute", () => {
     const res = await prepareForElectionTool.execute!("call-1", {}, undefined, undefined);
     const text = textFrom(res as { content: Array<{ type: string; text: string }> });
     expect(text).toContain("Setup needed");
-    expect(text).toContain("politiclaw_start_onboarding");
-    expect(text).not.toContain("politiclaw_set_preferences");
+    expect(text).toContain("politiclaw_configure");
   });
 
   it("returns ballot_unavailable when googleCivic is absent but all prereqs are met", async () => {

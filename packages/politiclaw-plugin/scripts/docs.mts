@@ -1,4 +1,4 @@
-import { mkdirSync, readdirSync, readFileSync, writeFileSync } from "node:fs";
+import { mkdirSync, readdirSync, readFileSync, unlinkSync, writeFileSync } from "node:fs";
 import { dirname, join, relative, resolve, sep } from "node:path";
 import { fileURLToPath } from "node:url";
 import yaml from "js-yaml";
@@ -648,6 +648,7 @@ function renderStorageSchemaPage(
 
 function syncOutputs(outputs: readonly OutputFile[], checkOnly: boolean): string[] {
   const driftedPaths: string[] = [];
+  const expectedPaths = new Set(outputs.map((output) => output.path));
   for (const output of outputs) {
     const existing = safeRead(output.path);
     if (existing !== output.content) {
@@ -659,7 +660,45 @@ function syncOutputs(outputs: readonly OutputFile[], checkOnly: boolean): string
       writeFileSync(output.path, output.content);
     }
   }
+
+  for (const existingPath of collectExistingFiles(generatedRoot)) {
+    if (expectedPaths.has(existingPath)) continue;
+    if (checkOnly) {
+      driftedPaths.push(existingPath);
+      continue;
+    }
+    unlinkSync(existingPath);
+  }
+
   return driftedPaths;
+}
+
+function collectExistingFiles(root: string): string[] {
+  if (!safeReadDir(root)) return [];
+  const files: string[] = [];
+  const stack = [root];
+  while (stack.length > 0) {
+    const current = stack.pop();
+    if (!current) continue;
+    for (const entry of readdirSync(current, { withFileTypes: true })) {
+      const nextPath = join(current, entry.name);
+      if (entry.isDirectory()) {
+        stack.push(nextPath);
+        continue;
+      }
+      files.push(nextPath);
+    }
+  }
+  return files;
+}
+
+function safeReadDir(path: string): boolean {
+  try {
+    readdirSync(path);
+    return true;
+  } catch {
+    return false;
+  }
 }
 
 function collectPublishedDocsPolicyIssues(): PublishedDocPolicyIssue[] {

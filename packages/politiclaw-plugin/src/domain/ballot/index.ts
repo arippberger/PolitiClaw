@@ -65,7 +65,7 @@ export async function getBallotSnapshot(
     return {
       status: "no_preferences",
       reason: "no address on file",
-      actionable: "call politiclaw_set_preferences first",
+      actionable: "call politiclaw_configure first",
     };
   }
 

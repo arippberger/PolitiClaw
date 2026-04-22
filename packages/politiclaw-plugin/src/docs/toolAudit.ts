@@ -14,16 +14,11 @@ export type ToolAuditEntry = {
 
 export const TOOL_AUDIT_ENTRIES: readonly ToolAuditEntry[] = [
   {
-    name: "politiclaw_set_preferences",
+    name: "politiclaw_configure",
     tier: "core",
     docsAction: "lead-in-guides",
-    rationale: "Essential first-run setup that unlocks reps, ballot lookup, and election prep.",
-  },
-  {
-    name: "politiclaw_get_preferences",
-    tier: "internal",
-    docsAction: "generated-reference-only",
-    rationale: "State inspection helper, useful for debugging but rarely a user goal by itself.",
+    rationale:
+      "Best first-run and reconfiguration entry point because it folds address setup, rep bootstrap, issue-setup handoff, and monitoring cadence into one user-facing flow.",
   },
   {
     name: "politiclaw_record_stance_signal",
@@ -50,28 +45,10 @@ export const TOOL_AUDIT_ENTRIES: readonly ToolAuditEntry[] = [
     rationale: "Cleanup control for users editing their stance set, but not part of the default flow.",
   },
   {
-    name: "politiclaw_set_monitoring_cadence",
-    tier: "core",
-    docsAction: "lead-in-guides",
-    rationale: "Best user-facing control for how loud ongoing monitoring should be.",
-  },
-  {
-    name: "politiclaw_start_onboarding",
-    tier: "core",
-    docsAction: "lead-in-guides",
-    rationale: "Primary setup entry point that hides several lower-level preference tools behind one flow.",
-  },
-  {
     name: "politiclaw_get_my_reps",
     tier: "core",
     docsAction: "lead-in-guides",
     rationale: "Directly answers a common question and is foundational to later rep-scoring workflows.",
-  },
-  {
-    name: "politiclaw_download_shapefiles",
-    tier: "internal",
-    docsAction: "generated-reference-only",
-    rationale: "Operational helper for the zero-key rep lookup path, not something most users should think about.",
   },
   {
     name: "politiclaw_score_representative",
@@ -132,24 +109,6 @@ export const TOOL_AUDIT_ENTRIES: readonly ToolAuditEntry[] = [
     tier: "advanced",
     docsAction: "follow-up-or-advanced-docs",
     rationale: "Great for engaged monitoring, but more procedural than the core user journeys.",
-  },
-  {
-    name: "politiclaw_setup_monitoring",
-    tier: "internal",
-    docsAction: "generated-reference-only",
-    rationale: "Operator-style reconciliation tool that is superseded for most users by cadence selection.",
-  },
-  {
-    name: "politiclaw_pause_monitoring",
-    tier: "internal",
-    docsAction: "generated-reference-only",
-    rationale: "Administrative control for installed jobs, not the preferred everyday monitoring UX.",
-  },
-  {
-    name: "politiclaw_resume_monitoring",
-    tier: "internal",
-    docsAction: "generated-reference-only",
-    rationale: "Administrative control for installed jobs, not the preferred everyday monitoring UX.",
   },
   {
     name: "politiclaw_mute",

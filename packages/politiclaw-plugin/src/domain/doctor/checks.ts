@@ -112,7 +112,7 @@ function checkPreferences(db: PolitiClawDb): DoctorCheck {
         status: "warn",
         summary: "No preferences on file.",
         actionable:
-          "Run politiclaw_set_preferences with at least an address to unlock reps, ballot, and monitoring.",
+          "Run politiclaw_configure with at least an address to unlock reps, ballot, and monitoring.",
       };
     }
     if (!prefs.state || !prefs.zip) {
@@ -122,7 +122,7 @@ function checkPreferences(db: PolitiClawDb): DoctorCheck {
         status: "warn",
         summary: "Preferences missing state or zip.",
         actionable:
-          "Re-run politiclaw_set_preferences with state and zip so ballot/reps adapters can route correctly.",
+          "Re-run politiclaw_configure with state and zip so ballot/reps adapters can route correctly.",
       };
     }
     return {
@@ -241,7 +241,7 @@ async function checkCron(adapter?: GatewayCronAdapter): Promise<DoctorCheck> {
         status: "warn",
         summary: "No PolitiClaw cron jobs installed.",
         actionable:
-          "Run politiclaw_setup_monitoring to install the default cadence.",
+          "Run politiclaw_configure to install the default cadence.",
       };
     }
     const disabled = ours.filter((job) => !job.enabled);
@@ -252,7 +252,7 @@ async function checkCron(adapter?: GatewayCronAdapter): Promise<DoctorCheck> {
         status: "warn",
         summary: `${ours.length} cron job(s) installed but all paused.`,
         actionable:
-          "Run politiclaw_resume_monitoring to re-enable, or politiclaw_setup_monitoring to re-apply the cadence.",
+          "Run politiclaw_configure to re-enable or re-apply the saved cadence.",
       };
     }
     if (disabled.length > 0) {

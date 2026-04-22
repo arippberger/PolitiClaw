@@ -1,129 +1,65 @@
-import { afterEach, beforeEach, describe, expect, it } from "vitest";
+import { describe, expect, it } from "vitest";
 
-import { Kv } from "../storage/kv.js";
+import type { IssueStanceRow } from "../domain/preferences/types.js";
 import {
-  resetStorageConfigForTests,
-  setStorageForTests,
-} from "../storage/context.js";
-import { openMemoryDb } from "../storage/sqlite.js";
-import { upsertIssueStance } from "../domain/preferences/index.js";
-import { startOnboardingTool } from "./onboarding.js";
+  buildStartOnboardingResult,
+  renderChoicePrompt,
+  renderStartOnboardingOutput,
+} from "./onboarding.js";
 
-function textFrom(result: { content?: Array<{ type: string; text?: string }> }): string {
-  const block = result.content?.[0];
-  if (!block || block.type !== "text" || !block.text) {
-    throw new Error("expected text content");
-  }
-  return block.text;
+function stance(issue: string, weight = 3): IssueStanceRow {
+  return {
+    issue,
+    stance: "support",
+    weight,
+    updatedAt: 0,
+  };
 }
 
-function detailsFrom<T>(result: { details?: T }): T {
-  if (!result.details) throw new Error("expected details");
-  return result.details;
-}
-
-describe("politiclaw_start_onboarding", () => {
-  beforeEach(() => {
-    resetStorageConfigForTests();
-    const db = openMemoryDb();
-    setStorageForTests({ db, kv: new Kv(db) });
-  });
-  afterEach(() => {
-    resetStorageConfigForTests();
-  });
-
-  it("returns a choice prompt when mode is omitted", async () => {
-    const res = await startOnboardingTool.execute!("call-1", {}, undefined, undefined);
-    const text = textFrom(res as { content: Array<{ type: string; text: string }> });
+describe("buildStartOnboardingResult", () => {
+  it("returns a choice prompt when mode is omitted", () => {
+    const result = buildStartOnboardingResult({}, []);
+    expect(result.mode).toBe("choice");
+    const text = renderStartOnboardingOutput(result);
     expect(text).toContain("Conversation");
     expect(text).toContain("Quiz");
-    const details = detailsFrom<{ mode: string }>(res as { details: { mode: string } });
-    expect(details.mode).toBe("choice");
   });
 
-  it("returns conversation handoff with opening prompts and canonical slugs", async () => {
-    const res = await startOnboardingTool.execute!(
-      "call-1",
-      { mode: "conversation" },
-      undefined,
-      undefined,
-    );
-    const details = detailsFrom<{
-      mode: string;
-      suggestedOpeningPrompts: string[];
-      canonicalIssueSlugs: string[];
-      existingStances: unknown[];
-    }>(res as {
-      details: {
-        mode: string;
-        suggestedOpeningPrompts: string[];
-        canonicalIssueSlugs: string[];
-        existingStances: unknown[];
-      };
-    });
-    expect(details.mode).toBe("conversation");
-    expect(details.suggestedOpeningPrompts.length).toBeGreaterThan(0);
-    expect(details.canonicalIssueSlugs).toContain("climate");
-    expect(details.existingStances).toEqual([]);
+  it("returns conversation handoff with opening prompts and canonical slugs", () => {
+    const result = buildStartOnboardingResult({ mode: "conversation" }, []);
+    expect(result.mode).toBe("conversation");
+    if (result.mode !== "conversation") throw new Error("unreachable");
+    expect(result.suggestedOpeningPrompts.length).toBeGreaterThan(0);
+    expect(result.canonicalIssueSlugs).toContain("climate");
+    expect(result.existingStances).toEqual([]);
   });
 
-  it("returns quiz handoff with question bank and empty existingStances on first run", async () => {
-    const res = await startOnboardingTool.execute!(
-      "call-1",
-      { mode: "quiz" },
-      undefined,
-      undefined,
-    );
-    const details = detailsFrom<{
-      mode: string;
-      questions: Array<{ id: string; canonicalIssueSlug: string }>;
-      existingStances: unknown[];
-    }>(res as {
-      details: {
-        mode: string;
-        questions: Array<{ id: string; canonicalIssueSlug: string }>;
-        existingStances: unknown[];
-      };
-    });
-    expect(details.mode).toBe("quiz");
-    expect(details.questions.length).toBeGreaterThanOrEqual(10);
-    expect(details.existingStances).toEqual([]);
+  it("returns quiz handoff with the full question bank on first run", () => {
+    const result = buildStartOnboardingResult({ mode: "quiz" }, []);
+    expect(result.mode).toBe("quiz");
+    if (result.mode !== "quiz") throw new Error("unreachable");
+    expect(result.questions.length).toBeGreaterThanOrEqual(10);
+    expect(result.existingStances).toEqual([]);
   });
 
-  it("round-trips existing stances into the quiz handoff (and skips already-answered ones)", async () => {
-    const db = openMemoryDb();
-    setStorageForTests({ db, kv: new Kv(db) });
-    upsertIssueStance(db, { issue: "climate", stance: "support", weight: 4 });
-
-    const res = await startOnboardingTool.execute!(
-      "call-1",
-      { mode: "quiz" },
-      undefined,
-      undefined,
-    );
-    const details = detailsFrom<{
-      questions: Array<{ canonicalIssueSlug: string }>;
-      existingStances: Array<{ issue: string }>;
-    }>(res as {
-      details: {
-        questions: Array<{ canonicalIssueSlug: string }>;
-        existingStances: Array<{ issue: string }>;
-      };
-    });
-    expect(details.existingStances.map((s) => s.issue)).toContain("climate");
-    expect(details.questions.some((q) => q.canonicalIssueSlug === "climate")).toBe(
-      false,
-    );
+  it("skips already-answered questions in quiz mode", () => {
+    const existing = [stance("climate", 4)];
+    const result = buildStartOnboardingResult({ mode: "quiz" }, existing);
+    expect(result.mode).toBe("quiz");
+    if (result.mode !== "quiz") throw new Error("unreachable");
+    expect(result.questions.some((q) => q.canonicalIssueSlug === "climate")).toBe(false);
+    expect(result.existingStances.map((s) => s.issue)).toContain("climate");
   });
+});
 
-  it("choice-prompt text notes existing stance count when present", async () => {
-    const db = openMemoryDb();
-    setStorageForTests({ db, kv: new Kv(db) });
-    upsertIssueStance(db, { issue: "climate", stance: "support", weight: 4 });
-    upsertIssueStance(db, { issue: "healthcare", stance: "oppose", weight: 2 });
-
-    const res = await startOnboardingTool.execute!("call-1", {}, undefined, undefined);
-    const text = textFrom(res as { content: Array<{ type: string; text: string }> });
+describe("renderChoicePrompt", () => {
+  it("notes existing stance count when present", () => {
+    const text = renderChoicePrompt([stance("climate", 4), stance("healthcare", 2)]);
     expect(text).toContain("already have 2 declared stance");
+  });
+
+  it("omits the existing-stance footer when empty", () => {
+    const text = renderChoicePrompt([]);
+    expect(text).not.toContain("already have");
   });
 });

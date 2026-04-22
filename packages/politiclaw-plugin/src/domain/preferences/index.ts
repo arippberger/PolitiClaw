@@ -101,7 +101,7 @@ export function setMonitoringCadence(
     | undefined;
   if (!existing) {
     throw new Error(
-      "Cannot set monitoring cadence before address is saved. Call politiclaw_set_preferences first.",
+      "Cannot set monitoring cadence before address is saved. Call politiclaw_configure first.",
     );
   }
   const now = Date.now();

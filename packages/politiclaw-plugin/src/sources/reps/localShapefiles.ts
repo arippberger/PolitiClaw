@@ -56,7 +56,7 @@ export function createLocalShapefilesAdapter(
           return unavailable(
             ID,
             "failed to read local shapefile cache",
-            "run politiclaw_download_shapefiles to rebuild the cache",
+            "run politiclaw_configure to rebuild the cache",
           );
         }
         logger?.info("PolitiClaw: priming shapefile cache (one-time, ~50 MB)");
@@ -68,7 +68,7 @@ export function createLocalShapefilesAdapter(
           return unavailable(
             ID,
             `unable to prime local shapefile cache (${message})`,
-            "run politiclaw_download_shapefiles and retry",
+            "run politiclaw_configure and retry",
           );
         }
       }

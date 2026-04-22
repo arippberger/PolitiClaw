@@ -1,20 +1,6 @@
-import { Type } from "@sinclair/typebox";
-import type { AnyAgentTool } from "openclaw/plugin-sdk";
-
-import { listIssueStances } from "../domain/preferences/index.js";
 import type { IssueStanceRow } from "../domain/preferences/types.js";
 import { canonicalIssueSlugs } from "../domain/preferences/normalize.js";
 import { QUIZ_QUESTIONS, type QuizQuestion } from "../domain/preferences/quizQuestions.js";
-import { getStorage } from "../storage/context.js";
-
-const StartOnboardingParams = Type.Object({
-  mode: Type.Optional(
-    Type.Union([Type.Literal("conversation"), Type.Literal("quiz")], {
-      description:
-        "Onboarding interaction style. Omit to receive a choice prompt the skill can forward to the user.",
-    }),
-  ),
-});
 
 const SUGGESTED_OPENING_PROMPTS = [
   "What political issues have been on your mind lately?",
@@ -44,11 +30,7 @@ type QuizHandoff = {
 
 export type StartOnboardingResult = ChoicePrompt | ConversationHandoff | QuizHandoff;
 
-function textResult<T>(text: string, details: T) {
-  return { content: [{ type: "text" as const, text }], details };
-}
-
-function renderChoicePrompt(existing: readonly IssueStanceRow[]): string {
+export function renderChoicePrompt(existing: readonly IssueStanceRow[]): string {
   const lines: string[] = [
     "How would you like to set up your issue stances?",
     "",
@@ -157,37 +139,8 @@ export function buildStartOnboardingResult(
 
 export function renderStartOnboardingOutput(result: StartOnboardingResult): string {
   if (result.mode === "choice") {
-    // The choice-prompt renderer needs the existing stance count, which is
-    // only available to the execute path. Rebuild the prompt with an empty
-    // list here — the tool entry overrides this when rendering.
     return renderChoicePrompt([]);
   }
   if (result.mode === "conversation") return renderConversationHandoff(result);
   return renderQuizHandoff(result);
 }
-
-export const startOnboardingTool: AnyAgentTool = {
-  name: "politiclaw_start_onboarding",
-  label: "Start PolitiClaw onboarding (conversation or quiz)",
-  description:
-    "Bootstraps the issue-stance set for a new (or returning) user. Input: optional " +
-    "`mode` of \"conversation\" or \"quiz\". When omitted, returns a choice prompt for the " +
-    "skill to forward to the user. When set, returns everything the skill needs to " +
-    "conduct the flow — opening prompts + canonical slugs for conversation, or the full " +
-    "question bank for quiz — plus any existing stances so returning users skip " +
-    "already-answered topics. Answers are persisted via politiclaw_set_issue_stance.",
-  parameters: StartOnboardingParams,
-  async execute(_toolCallId, rawParams) {
-    const input = (rawParams ?? {}) as { mode?: "conversation" | "quiz" };
-    const { db } = getStorage();
-    const existingStances = listIssueStances(db);
-    const result = buildStartOnboardingResult(input, existingStances);
-    const text =
-      result.mode === "choice"
-        ? renderChoicePrompt(existingStances)
-        : renderStartOnboardingOutput(result);
-    return textResult(text, result);
-  },
-};
-
-export const onboardingTools: AnyAgentTool[] = [startOnboardingTool];

@@ -153,7 +153,7 @@ export function renderPrepareForElectionOutput(
     sections.push(
       `${result.ballot.insufficientDataCount} contest${
         result.ballot.insufficientDataCount === 1 ? "" : "s"
-      } flagged insufficient data — declare more stances with politiclaw_start_onboarding or consult your official sample ballot.`,
+      } flagged insufficient data — declare more stances with politiclaw_configure or consult your official sample ballot.`,
       "",
     );
   }

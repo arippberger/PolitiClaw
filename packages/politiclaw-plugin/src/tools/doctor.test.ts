@@ -59,7 +59,7 @@ describe("politiclaw_doctor tool", () => {
     expect(text).toContain("[fail]");
     expect(text).toContain("[warn]");
     expect(text).toContain("API keys");
-    expect(text).toContain("politiclaw_set_preferences");
+    expect(text).toContain("politiclaw_configure");
   });
 
   it("renders an all-green header when everything is healthy", async () => {

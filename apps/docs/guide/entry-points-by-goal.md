@@ -6,15 +6,14 @@ Use this page when multiple tools can answer a similar need and you want to know
 
 ### Default entry point
 
-- [`politiclaw_start_onboarding`](../reference/generated/tools/politiclaw_start_onboarding)
+- [`politiclaw_configure`](../reference/generated/tools/politiclaw_configure)
 
 ### Why
 
-It bundles the highest-friction setup work into one flow instead of making users manually discover preferences, issue stances, and monitoring in separate steps.
+It bundles the highest-friction setup work into one flow instead of making users manually discover address saving, rep bootstrap, issue stances, and monitoring in separate steps.
 
 ### Use the lower-level tools when
 
-- you already know the exact address and want to save it directly with [`politiclaw_set_preferences`](../reference/generated/tools/politiclaw_set_preferences)
 - you are editing a single issue later with [`politiclaw_set_issue_stance`](../reference/generated/tools/politiclaw_set_issue_stance)
 - you are reviewing or pruning a saved stance set with [`politiclaw_list_issue_stances`](../reference/generated/tools/politiclaw_list_issue_stances) or [`politiclaw_delete_issue_stance`](../reference/generated/tools/politiclaw_delete_issue_stance)
 
@@ -37,17 +36,15 @@ It is the highest-value answer for most users because it checks prerequisites, p
 
 ### Default entry point
 
-- [`politiclaw_set_monitoring_cadence`](../reference/generated/tools/politiclaw_set_monitoring_cadence)
+- [`politiclaw_configure`](../reference/generated/tools/politiclaw_configure)
 
 ### Why
 
-It is the cleanest user-facing control. Most users want to choose how loud monitoring should be, not reason about job installation and reconciliation details.
+It is the cleanest user-facing control. Most users want one place to save setup and choose how loud monitoring should be, not reason about job installation details.
 
 ### Use the lower-level tools when
 
 - you want a one-off snapshot instead of ongoing monitoring, use [`politiclaw_check_upcoming_votes`](../reference/generated/tools/politiclaw_check_upcoming_votes)
-- you are debugging installed jobs, use [`politiclaw_setup_monitoring`](../reference/generated/tools/politiclaw_setup_monitoring)
-- you are explicitly pausing or resuming plugin-owned jobs as an operator, use [`politiclaw_pause_monitoring`](../reference/generated/tools/politiclaw_pause_monitoring) or [`politiclaw_resume_monitoring`](../reference/generated/tools/politiclaw_resume_monitoring)
 - you want to suppress a specific topic without changing cadence, use [`politiclaw_mute`](../reference/generated/tools/politiclaw_mute), [`politiclaw_unmute`](../reference/generated/tools/politiclaw_unmute), and [`politiclaw_list_mutes`](../reference/generated/tools/politiclaw_list_mutes)
 
 ## Candidate and race research

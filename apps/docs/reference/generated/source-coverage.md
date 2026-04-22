@@ -42,9 +42,9 @@ This page is generated from the explicit source coverage catalog.
 - Status: `implemented`
 - Required: no
 - Summary: Zero-key default for federal reps-by-address resolution after the cache is primed locally.
-- Notes: Uses Census geocoding, cached district polygons, and the bundled legislator resolver. The cache can be primed automatically or via the download tool.
-- Tools: `politiclaw_get_my_reps`, `politiclaw_download_shapefiles`
-- Runtime files: `packages/politiclaw-plugin/src/sources/reps/localShapefiles.ts`, `packages/politiclaw-plugin/src/sources/reps/shapefileCache.ts`, `packages/politiclaw-plugin/src/tools/downloadShapefiles.ts`
+- Notes: Uses Census geocoding, cached district polygons, and the bundled legislator resolver. The cache can be primed automatically during configuration or rep lookup.
+- Tools: `politiclaw_configure`, `politiclaw_get_my_reps`
+- Runtime files: `packages/politiclaw-plugin/src/sources/reps/localShapefiles.ts`, `packages/politiclaw-plugin/src/sources/reps/shapefileCache.ts`, `packages/politiclaw-plugin/src/tools/configure.ts`
 
 ### Geocodio
 

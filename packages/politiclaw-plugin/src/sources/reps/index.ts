@@ -52,7 +52,7 @@ export function createRepsResolver(opts: RepsResolverOptions = {}) {
       return unavailable(
         "reps",
         `no rep source available (${reasons.join("; ")})`,
-        "configure plugins.politiclaw.apiKeys.geocodio or run politiclaw_download_shapefiles",
+        "configure plugins.politiclaw.apiKeys.geocodio or run politiclaw_configure to prime the local rep cache",
       );
     },
     adapterIds(): string[] {

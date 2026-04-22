@@ -6,7 +6,7 @@ description: >-
   persists results through politiclaw_set_issue_stance.
 read_when:
   - The user asks to "set up PolitiClaw", "get started", or "help me pick my issues".
-  - The politiclaw_start_onboarding tool is invoked.
+  - The politiclaw_configure tool is invoked and returns an issue-setup handoff.
   - A user with zero declared issue stances asks anything that would require them.
 ---
 
@@ -18,10 +18,10 @@ are supported; the user picks.
 
 ## Entry protocol
 
-1. Call `politiclaw_start_onboarding` (no `mode` argument).
+1. Call `politiclaw_configure` (no `mode` argument).
 2. Present the two choices to the user in your own words. Do not bias —
    neither mode is "better", they suit different users.
-3. Re-invoke `politiclaw_start_onboarding` with the chosen `mode`. The
+3. Re-invoke `politiclaw_configure` with the chosen `mode`. The
    tool returns everything you need to run that mode plus any stances the
    user has already declared.
 

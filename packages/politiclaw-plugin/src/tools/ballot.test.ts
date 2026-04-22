@@ -21,9 +21,9 @@ describe("renderGetMyBallotOutput", () => {
     const text = renderGetMyBallotOutput({
       status: "no_preferences",
       reason: "no address on file",
-      actionable: "call politiclaw_set_preferences first",
+      actionable: "call politiclaw_configure first",
     });
-    expect(text).toContain("politiclaw_set_preferences");
+    expect(text).toContain("politiclaw_configure");
   });
 
   it("announces polling count when count > 0 but no address data is present", () => {

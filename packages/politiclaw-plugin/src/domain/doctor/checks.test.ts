@@ -75,7 +75,7 @@ describe("runDoctor", () => {
     expect(byId.schema_version?.status).toBe("ok");
     expect(byId.db_integrity?.status).toBe("ok");
     expect(byId.preferences?.status).toBe("warn");
-    expect(byId.preferences?.actionable).toContain("politiclaw_set_preferences");
+    expect(byId.preferences?.actionable).toContain("politiclaw_configure");
     expect(byId.api_keys?.status).toBe("fail");
     expect(byId.api_keys?.summary).toContain("api.data.gov");
     expect(byId.reps_cache?.status).toBe("warn");
@@ -150,7 +150,7 @@ describe("runDoctor", () => {
     const cron = report.checks.find((c) => c.id === "cron_jobs")!;
     expect(cron.status).toBe("warn");
     expect(cron.summary).toContain("paused");
-    expect(cron.actionable).toContain("politiclaw_resume_monitoring");
+    expect(cron.actionable).toContain("politiclaw_configure");
   });
 
   it("reports ok when some cron jobs are disabled by cadence but at least one is active", async () => {

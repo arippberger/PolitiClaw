@@ -2,14 +2,12 @@ import type { AnyAgentTool } from "openclaw/plugin-sdk";
 
 import { ballotTools } from "../tools/ballot.js";
 import { billsTools } from "../tools/bills.js";
+import { configureTools } from "../tools/configure.js";
 import { doctorTools } from "../tools/doctor.js";
 import { explainBallotTools } from "../tools/explainBallot.js";
 import { letterTools } from "../tools/draftLetter.js";
-import { shapefileTools } from "../tools/downloadShapefiles.js";
 import { monitoringTools } from "../tools/monitoring.js";
-import { monitoringSetupTools } from "../tools/monitoringSetup.js";
 import { muteTools } from "../tools/mutes.js";
-import { onboardingTools } from "../tools/onboarding.js";
 import { politiclawTools as preferencesTools } from "../tools/preferences.js";
 import { prepareForElectionTools } from "../tools/prepareForElection.js";
 import { repReportTools } from "../tools/repReport.js";
@@ -60,21 +58,21 @@ function makeEntries(
 export const POLITICLAW_TOOL_GROUPS: readonly DocsToolGroup[] = [
   {
     id: "preferences",
-    label: "Preferences and onboarding",
+    label: "Configuration and preferences",
     description:
-      "Save address data, declare issue stances, and bootstrap the onboarding flow.",
+      "Configure the plugin, declare issue stances, and manage the saved preference data that remains user-facing.",
     entries: [
       ...makeEntries(
         "preferences",
-        "Preferences and onboarding",
-        "packages/politiclaw-plugin/src/tools/preferences.ts",
-        preferencesTools,
+        "Configuration and preferences",
+        "packages/politiclaw-plugin/src/tools/configure.ts",
+        configureTools,
       ),
       ...makeEntries(
         "preferences",
-        "Preferences and onboarding",
-        "packages/politiclaw-plugin/src/tools/onboarding.ts",
-        onboardingTools,
+        "Configuration and preferences",
+        "packages/politiclaw-plugin/src/tools/preferences.ts",
+        preferencesTools,
       ),
     ],
   },
@@ -82,19 +80,13 @@ export const POLITICLAW_TOOL_GROUPS: readonly DocsToolGroup[] = [
     id: "representatives",
     label: "Representatives and alignment",
     description:
-      "Resolve federal representatives, prime local lookup data, and summarize current alignment.",
+      "Resolve federal representatives and summarize current alignment.",
     entries: [
       ...makeEntries(
         "representatives",
         "Representatives and alignment",
         "packages/politiclaw-plugin/src/tools/reps.ts",
         repsTools,
-      ),
-      ...makeEntries(
-        "representatives",
-        "Representatives and alignment",
-        "packages/politiclaw-plugin/src/tools/downloadShapefiles.ts",
-        shapefileTools,
       ),
       ...makeEntries(
         "representatives",
@@ -166,19 +158,13 @@ export const POLITICLAW_TOOL_GROUPS: readonly DocsToolGroup[] = [
     id: "monitoring",
     label: "Monitoring and cadence",
     description:
-      "Check upcoming federal activity and reconcile the plugin-owned monitoring jobs.",
+      "Check upcoming federal activity and manage alert suppression once configuration is complete.",
     entries: [
       ...makeEntries(
         "monitoring",
         "Monitoring and cadence",
         "packages/politiclaw-plugin/src/tools/monitoring.ts",
         monitoringTools,
-      ),
-      ...makeEntries(
-        "monitoring",
-        "Monitoring and cadence",
-        "packages/politiclaw-plugin/src/tools/monitoringSetup.ts",
-        monitoringSetupTools,
       ),
       ...makeEntries(
         "monitoring",

@@ -10,20 +10,17 @@ PolitiClaw monitoring is built around a small set of plugin-owned cron templates
 
 Default front door:
 
-- [`politiclaw_set_monitoring_cadence`](../reference/generated/tools/politiclaw_set_monitoring_cadence)
+- [`politiclaw_configure`](../reference/generated/tools/politiclaw_configure)
 
-Follow-up and operator controls:
+Follow-up:
 
 - [`politiclaw_check_upcoming_votes`](../reference/generated/tools/politiclaw_check_upcoming_votes)
-- [`politiclaw_setup_monitoring`](../reference/generated/tools/politiclaw_setup_monitoring)
-- [`politiclaw_pause_monitoring`](../reference/generated/tools/politiclaw_pause_monitoring)
-- [`politiclaw_resume_monitoring`](../reference/generated/tools/politiclaw_resume_monitoring)
 
-If you are choosing between overlapping monitoring tools, see [Entry Points by Goal](./entry-points-by-goal).
+If you are choosing between overlapping monitoring paths, see [Entry Points by Goal](./entry-points-by-goal).
 
 ## What Changes With Cadence
 
-The cadence setting controls which default monitoring jobs stay enabled. The generated cron page is the source of truth for the current templates, but the intent is:
+The cadence setting controls which default monitoring jobs stay enabled. Use `politiclaw_configure` to save or change that cadence. The generated cron page is the source of truth for the current templates, but the intent is:
 
 - `off`: install nothing.
 - `election_proximity`: keep the quieter watch posture plus election ramp-up alerts.
@@ -36,8 +33,8 @@ Monitoring does not edit user-authored cron jobs, and it does not quietly fabric
 
 ## Recommended Workflow
 
-1. Save preferences and issue stances first.
+1. Run `politiclaw_configure` until you have a saved address and at least one issue stance.
 2. Run [`politiclaw_doctor`](../reference/generated/tools/politiclaw_doctor).
-3. Set a cadence with [`politiclaw_set_monitoring_cadence`](../reference/generated/tools/politiclaw_set_monitoring_cadence).
+3. Re-run `politiclaw_configure` any time you want a different cadence.
 4. Use [`politiclaw_check_upcoming_votes`](../reference/generated/tools/politiclaw_check_upcoming_votes) when you want a manual snapshot.
 5. Use the generated cron reference only when you need to inspect exact template behavior or debug operator paths.

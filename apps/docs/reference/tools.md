@@ -13,7 +13,7 @@ Before deciding what belongs in primary docs versus power-user or operator docs,
 If you only need the most common user-facing tools, start here:
 
 - [politiclaw_doctor](./generated/tools/politiclaw_doctor)
-- [politiclaw_set_preferences](./generated/tools/politiclaw_set_preferences)
+- [politiclaw_configure](./generated/tools/politiclaw_configure)
 - [politiclaw_get_my_reps](./generated/tools/politiclaw_get_my_reps)
 - [politiclaw_prepare_me_for_my_next_election](./generated/tools/politiclaw_prepare_me_for_my_next_election)
 - [politiclaw_check_upcoming_votes](./generated/tools/politiclaw_check_upcoming_votes)

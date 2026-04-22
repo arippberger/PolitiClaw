@@ -59,7 +59,7 @@ describe("politiclaw_get_my_reps tool", () => {
 
     const result = await getMyRepsTool.execute!("call-1", {}, undefined, undefined);
     const text = (result.content[0] as { type: "text"; text: string }).text;
-    expect(text).toContain("politiclaw_set_preferences");
+    expect(text).toContain("politiclaw_configure");
   });
 
   it("returns reps when preferences + geocodio key are present", async () => {

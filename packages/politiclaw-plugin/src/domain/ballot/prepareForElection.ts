@@ -9,7 +9,7 @@
  *
  * Prerequisite checks return a structured `setup_needed` result rather than
  * throwing — the skill is expected to forward the `actionable` guidance to
- * the user (e.g. "call politiclaw_set_preferences first"). Adapter-level
+ * the user (e.g. "call politiclaw_configure first"). Adapter-level
  * "unavailable" outcomes from the ballot resolver degrade gracefully into
  * the same shape so the renderer can present one coherent state instead of
  * partial data with a stack trace.
@@ -77,7 +77,7 @@ export async function prepareForElection(
     missing.push({
       id: "preferences",
       reason: "no saved address",
-      actionable: "call politiclaw_set_preferences with the user's street address",
+      actionable: "call politiclaw_configure with the user's street address",
     });
   }
   if (reps.length === 0) {
@@ -91,7 +91,7 @@ export async function prepareForElection(
     missing.push({
       id: "stances",
       reason: "no declared issue stances",
-      actionable: "call politiclaw_start_onboarding to set them up",
+      actionable: "call politiclaw_configure to set them up",
     });
   }
 

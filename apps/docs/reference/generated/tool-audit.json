@@ -1,23 +1,13 @@
 [
   {
-    "name": "politiclaw_set_preferences",
+    "name": "politiclaw_configure",
     "tier": "core",
     "docsAction": "lead-in-guides",
-    "rationale": "Essential first-run setup that unlocks reps, ballot lookup, and election prep.",
-    "label": "Save PolitiClaw preferences",
+    "rationale": "Best first-run and reconfiguration entry point because it folds address setup, rep bootstrap, issue-setup handoff, and monitoring cadence into one user-facing flow.",
+    "label": "Configure PolitiClaw",
     "groupId": "preferences",
-    "groupLabel": "Preferences and onboarding",
-    "sourcePath": "packages/politiclaw-plugin/src/tools/preferences.ts"
-  },
-  {
-    "name": "politiclaw_get_preferences",
-    "tier": "internal",
-    "docsAction": "generated-reference-only",
-    "rationale": "State inspection helper, useful for debugging but rarely a user goal by itself.",
-    "label": "Load PolitiClaw preferences",
-    "groupId": "preferences",
-    "groupLabel": "Preferences and onboarding",
-    "sourcePath": "packages/politiclaw-plugin/src/tools/preferences.ts"
+    "groupLabel": "Configuration and preferences",
+    "sourcePath": "packages/politiclaw-plugin/src/tools/configure.ts"
   },
   {
     "name": "politiclaw_record_stance_signal",
@@ -26,7 +16,7 @@
     "rationale": "Low-level preference telemetry for flows and monitoring, not a normal direct user action.",
     "label": "Record PolitiClaw stance signal",
     "groupId": "preferences",
-    "groupLabel": "Preferences and onboarding",
+    "groupLabel": "Configuration and preferences",
     "sourcePath": "packages/politiclaw-plugin/src/tools/preferences.ts"
   },
   {
@@ -36,7 +26,7 @@
     "rationale": "Directly expresses user priorities and powers bill and rep alignment.",
     "label": "Set a declared issue stance",
     "groupId": "preferences",
-    "groupLabel": "Preferences and onboarding",
+    "groupLabel": "Configuration and preferences",
     "sourcePath": "packages/politiclaw-plugin/src/tools/preferences.ts"
   },
   {
@@ -46,7 +36,7 @@
     "rationale": "Useful for reviewing and tuning saved preferences after onboarding.",
     "label": "List declared issue stances",
     "groupId": "preferences",
-    "groupLabel": "Preferences and onboarding",
+    "groupLabel": "Configuration and preferences",
     "sourcePath": "packages/politiclaw-plugin/src/tools/preferences.ts"
   },
   {
@@ -56,28 +46,8 @@
     "rationale": "Cleanup control for users editing their stance set, but not part of the default flow.",
     "label": "Delete a declared issue stance",
     "groupId": "preferences",
-    "groupLabel": "Preferences and onboarding",
+    "groupLabel": "Configuration and preferences",
     "sourcePath": "packages/politiclaw-plugin/src/tools/preferences.ts"
-  },
-  {
-    "name": "politiclaw_set_monitoring_cadence",
-    "tier": "core",
-    "docsAction": "lead-in-guides",
-    "rationale": "Best user-facing control for how loud ongoing monitoring should be.",
-    "label": "Set PolitiClaw monitoring cadence",
-    "groupId": "preferences",
-    "groupLabel": "Preferences and onboarding",
-    "sourcePath": "packages/politiclaw-plugin/src/tools/preferences.ts"
-  },
-  {
-    "name": "politiclaw_start_onboarding",
-    "tier": "core",
-    "docsAction": "lead-in-guides",
-    "rationale": "Primary setup entry point that hides several lower-level preference tools behind one flow.",
-    "label": "Start PolitiClaw onboarding (conversation or quiz)",
-    "groupId": "preferences",
-    "groupLabel": "Preferences and onboarding",
-    "sourcePath": "packages/politiclaw-plugin/src/tools/onboarding.ts"
   },
   {
     "name": "politiclaw_get_my_reps",
@@ -88,16 +58,6 @@
     "groupId": "representatives",
     "groupLabel": "Representatives and alignment",
     "sourcePath": "packages/politiclaw-plugin/src/tools/reps.ts"
-  },
-  {
-    "name": "politiclaw_download_shapefiles",
-    "tier": "internal",
-    "docsAction": "generated-reference-only",
-    "rationale": "Operational helper for the zero-key rep lookup path, not something most users should think about.",
-    "label": "Download local rep lookup data",
-    "groupId": "representatives",
-    "groupLabel": "Representatives and alignment",
-    "sourcePath": "packages/politiclaw-plugin/src/tools/downloadShapefiles.ts"
   },
   {
     "name": "politiclaw_score_representative",
@@ -198,36 +158,6 @@
     "groupId": "monitoring",
     "groupLabel": "Monitoring and cadence",
     "sourcePath": "packages/politiclaw-plugin/src/tools/monitoring.ts"
-  },
-  {
-    "name": "politiclaw_setup_monitoring",
-    "tier": "internal",
-    "docsAction": "generated-reference-only",
-    "rationale": "Operator-style reconciliation tool that is superseded for most users by cadence selection.",
-    "label": "Install PolitiClaw default monitoring cron jobs",
-    "groupId": "monitoring",
-    "groupLabel": "Monitoring and cadence",
-    "sourcePath": "packages/politiclaw-plugin/src/tools/monitoringSetup.ts"
-  },
-  {
-    "name": "politiclaw_pause_monitoring",
-    "tier": "internal",
-    "docsAction": "generated-reference-only",
-    "rationale": "Administrative control for installed jobs, not the preferred everyday monitoring UX.",
-    "label": "Pause all PolitiClaw monitoring cron jobs",
-    "groupId": "monitoring",
-    "groupLabel": "Monitoring and cadence",
-    "sourcePath": "packages/politiclaw-plugin/src/tools/monitoringSetup.ts"
-  },
-  {
-    "name": "politiclaw_resume_monitoring",
-    "tier": "internal",
-    "docsAction": "generated-reference-only",
-    "rationale": "Administrative control for installed jobs, not the preferred everyday monitoring UX.",
-    "label": "Resume paused PolitiClaw monitoring cron jobs",
-    "groupId": "monitoring",
-    "groupLabel": "Monitoring and cadence",
-    "sourcePath": "packages/politiclaw-plugin/src/tools/monitoringSetup.ts"
   },
   {
     "name": "politiclaw_mute",

@@ -18,4 +18,4 @@ A draft is strongest when it follows one of these:
 
 ## Setup prerequisites
 
-The tool requires a declared issue stance. If the user has not set one yet, start with [`politiclaw_start_onboarding`](../reference/generated/tools/politiclaw_start_onboarding) or [`politiclaw_set_issue_stance`](../reference/generated/tools/politiclaw_set_issue_stance).
+The tool requires a declared issue stance. If the user has not set one yet, start with [`politiclaw_configure`](../reference/generated/tools/politiclaw_configure) or [`politiclaw_set_issue_stance`](../reference/generated/tools/politiclaw_set_issue_stance).
