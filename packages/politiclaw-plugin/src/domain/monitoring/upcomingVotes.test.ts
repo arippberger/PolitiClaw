@@ -8,6 +8,7 @@ import type {
   UpcomingEvent,
   UpcomingEventsFilters,
 } from "../../sources/upcomingVotes/types.js";
+import { listRecentAlerts } from "../alerts/index.js";
 import { addMute } from "../mutes/index.js";
 import { upsertIssueStance } from "../preferences/index.js";
 import { checkUpcomingVotes } from "./upcomingVotes.js";
@@ -296,5 +297,43 @@ describe("checkUpcomingVotes", () => {
     expect(result.changedBills).toHaveLength(0);
     expect(result.changedEvents).toHaveLength(0);
     expect(result.reasons.bills?.actionable).toContain("apiDataGov");
+  });
+
+  it("appends an alert_history row for every surfaced change, once", async () => {
+    const bills = makeBillsResolver(async () => okBills([baseHousingBill]));
+    const events = makeEventsResolver(async () => okEvents([baseEvent]));
+
+    await checkUpcomingVotes(db, bills, events);
+    const firstRun = listRecentAlerts(db);
+    expect(firstRun.map((row) => row.kind).sort()).toEqual([
+      "bill_change",
+      "event_change",
+    ]);
+    const billRow = firstRun.find((row) => row.kind === "bill_change")!;
+    expect(billRow.refId).toBe("119-hr-1234");
+    expect(billRow.changeReason).toBe("new");
+    expect(billRow.sourceAdapterId).toBe("congressGov");
+    expect(billRow.sourceTier).toBe(1);
+
+    await checkUpcomingVotes(db, bills, events);
+    const secondRun = listRecentAlerts(db);
+    expect(secondRun).toHaveLength(firstRun.length);
+  });
+
+  it("does not append alert rows when both sources are unavailable", async () => {
+    const bills = makeBillsResolver(async () => ({
+      status: "unavailable",
+      adapterId: "congressGov",
+      reason: "missing key",
+      actionable: "set apiDataGov",
+    }));
+    const events = makeEventsResolver(async () => ({
+      status: "unavailable",
+      adapterId: "congressGov.committeeMeetings",
+      reason: "missing key",
+    }));
+
+    await checkUpcomingVotes(db, bills, events);
+    expect(listRecentAlerts(db)).toEqual([]);
   });
 });

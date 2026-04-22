@@ -12,9 +12,9 @@
  * Posture:
  *   - `auth: "plugin"` because this is local-only. The gateway adds no auth
  *     layer for plugin-owned routes; the plugin is responsible for any
- *     additional checks. We deliberately add none — the dashboard is
- *     intended to be local-only; if the gateway is reachable off-host,
- *     the operator is responsible for fronting it with auth.
+ *     additional checks. We deliberately add none: the dashboard is intended
+ *     to be local-only, and if the gateway is reachable off-host the operator
+ *     is responsible for fronting it with auth.
  *   - Only GET is handled. Any other method returns 405.
  *   - The dashboard is read-only, so no CSRF machinery is required.
  */

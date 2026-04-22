@@ -9,6 +9,7 @@
     reps: document.getElementById("pc-reps-body"),
     monitoring: document.getElementById("pc-monitoring-body"),
     election: document.getElementById("pc-election-body"),
+    alerts: document.getElementById("pc-alerts-body"),
   };
 
   async function load() {
@@ -23,7 +24,7 @@
       render(payload);
     } catch (err) {
       setText(elements.generated, "Failed to load status: " + err.message);
-      ["preferences", "reps", "monitoring", "election"].forEach(function (key) {
+      ["preferences", "reps", "monitoring", "election", "alerts"].forEach(function (key) {
         elements[key].innerHTML = "";
         elements[key].appendChild(textNode("Unavailable: " + err.message));
       });
@@ -43,6 +44,7 @@
     renderReps(payload.reps);
     renderMonitoring(payload.monitoring);
     renderElection(payload.upcomingElection);
+    renderAlerts(payload.recentAlerts);
   }
 
   function renderPreferences(section) {
@@ -225,6 +227,48 @@
         meta.textContent = "updated " + formatDate(job.updatedAtMs);
         li.appendChild(meta);
       }
+      ul.appendChild(li);
+    });
+    container.appendChild(ul);
+  }
+
+  function renderAlerts(section) {
+    const container = elements.alerts;
+    container.innerHTML = "";
+    if (!section || section.status === "none") {
+      container.appendChild(mutedLine(section ? section.reason : "No alerts."));
+      return;
+    }
+    const ul = document.createElement("ul");
+    ul.className = "pc-alerts";
+    section.alerts.forEach(function (alert) {
+      const li = document.createElement("li");
+      const head = document.createElement("div");
+      head.className = "pc-alert-head";
+      head.appendChild(
+        pill(
+          alert.kind === "bill_change" ? "accent" : "ok",
+          alert.kind === "bill_change" ? "bill" : "event",
+        ),
+      );
+      head.appendChild(pill(null, alert.changeReason));
+      head.appendChild(pill("accent", "tier " + alert.sourceTier));
+      const summary = document.createElement("span");
+      summary.className = "pc-alert-summary";
+      summary.textContent = alert.summary;
+      head.appendChild(summary);
+      li.appendChild(head);
+
+      const meta = document.createElement("div");
+      meta.className = "pc-alert-meta";
+      meta.textContent =
+        formatDate(alert.createdAtMs) +
+        " · " +
+        alert.sourceAdapterId +
+        " · " +
+        alert.refId;
+      li.appendChild(meta);
+
       ul.appendChild(li);
     });
     container.appendChild(ul);
