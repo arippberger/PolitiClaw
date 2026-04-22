@@ -20,6 +20,10 @@ The generator reads from:
 - the skill front matter
 - a real migrated in-memory SQLite database
 
+## Hosting assumption
+
+The published site uses VitePress `cleanUrls`, so the hosting layer must also serve generated `.html` files at extensionless paths like `/reference/tools` and `/guide/getting-started`. On Vercel, keep `apps/docs/vercel.json` aligned with that expectation.
+
 ## Commands
 
 Run these from the repository root:
