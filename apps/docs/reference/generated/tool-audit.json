@@ -1,0 +1,302 @@
+[
+  {
+    "name": "politiclaw_set_preferences",
+    "tier": "core",
+    "docsAction": "lead-in-guides",
+    "rationale": "Essential first-run setup that unlocks reps, ballot lookup, and election prep.",
+    "label": "Save PolitiClaw preferences",
+    "groupId": "preferences",
+    "groupLabel": "Preferences and onboarding",
+    "sourcePath": "packages/politiclaw-plugin/src/tools/preferences.ts"
+  },
+  {
+    "name": "politiclaw_get_preferences",
+    "tier": "internal",
+    "docsAction": "generated-reference-only",
+    "rationale": "State inspection helper, useful for debugging but rarely a user goal by itself.",
+    "label": "Load PolitiClaw preferences",
+    "groupId": "preferences",
+    "groupLabel": "Preferences and onboarding",
+    "sourcePath": "packages/politiclaw-plugin/src/tools/preferences.ts"
+  },
+  {
+    "name": "politiclaw_record_stance_signal",
+    "tier": "internal",
+    "docsAction": "generated-reference-only",
+    "rationale": "Low-level preference telemetry for flows and monitoring, not a normal direct user action.",
+    "label": "Record PolitiClaw stance signal",
+    "groupId": "preferences",
+    "groupLabel": "Preferences and onboarding",
+    "sourcePath": "packages/politiclaw-plugin/src/tools/preferences.ts"
+  },
+  {
+    "name": "politiclaw_set_issue_stance",
+    "tier": "core",
+    "docsAction": "lead-in-guides",
+    "rationale": "Directly expresses user priorities and powers bill and rep alignment.",
+    "label": "Set a declared issue stance",
+    "groupId": "preferences",
+    "groupLabel": "Preferences and onboarding",
+    "sourcePath": "packages/politiclaw-plugin/src/tools/preferences.ts"
+  },
+  {
+    "name": "politiclaw_list_issue_stances",
+    "tier": "advanced",
+    "docsAction": "follow-up-or-advanced-docs",
+    "rationale": "Useful for reviewing and tuning saved preferences after onboarding.",
+    "label": "List declared issue stances",
+    "groupId": "preferences",
+    "groupLabel": "Preferences and onboarding",
+    "sourcePath": "packages/politiclaw-plugin/src/tools/preferences.ts"
+  },
+  {
+    "name": "politiclaw_delete_issue_stance",
+    "tier": "advanced",
+    "docsAction": "follow-up-or-advanced-docs",
+    "rationale": "Cleanup control for users editing their stance set, but not part of the default flow.",
+    "label": "Delete a declared issue stance",
+    "groupId": "preferences",
+    "groupLabel": "Preferences and onboarding",
+    "sourcePath": "packages/politiclaw-plugin/src/tools/preferences.ts"
+  },
+  {
+    "name": "politiclaw_set_monitoring_cadence",
+    "tier": "core",
+    "docsAction": "lead-in-guides",
+    "rationale": "Best user-facing control for how loud ongoing monitoring should be.",
+    "label": "Set PolitiClaw monitoring cadence",
+    "groupId": "preferences",
+    "groupLabel": "Preferences and onboarding",
+    "sourcePath": "packages/politiclaw-plugin/src/tools/preferences.ts"
+  },
+  {
+    "name": "politiclaw_start_onboarding",
+    "tier": "core",
+    "docsAction": "lead-in-guides",
+    "rationale": "Primary setup entry point that hides several lower-level preference tools behind one flow.",
+    "label": "Start PolitiClaw onboarding (conversation or quiz)",
+    "groupId": "preferences",
+    "groupLabel": "Preferences and onboarding",
+    "sourcePath": "packages/politiclaw-plugin/src/tools/onboarding.ts"
+  },
+  {
+    "name": "politiclaw_get_my_reps",
+    "tier": "core",
+    "docsAction": "lead-in-guides",
+    "rationale": "Directly answers a common question and is foundational to later rep-scoring workflows.",
+    "label": "Get my federal representatives",
+    "groupId": "representatives",
+    "groupLabel": "Representatives and alignment",
+    "sourcePath": "packages/politiclaw-plugin/src/tools/reps.ts"
+  },
+  {
+    "name": "politiclaw_download_shapefiles",
+    "tier": "internal",
+    "docsAction": "generated-reference-only",
+    "rationale": "Operational helper for the zero-key rep lookup path, not something most users should think about.",
+    "label": "Download local rep lookup data",
+    "groupId": "representatives",
+    "groupLabel": "Representatives and alignment",
+    "sourcePath": "packages/politiclaw-plugin/src/tools/downloadShapefiles.ts"
+  },
+  {
+    "name": "politiclaw_score_representative",
+    "tier": "core",
+    "docsAction": "lead-in-guides",
+    "rationale": "One of the clearest user-value tools: how a rep's House votes line up with declared issues.",
+    "label": "Score a representative against your declared stances",
+    "groupId": "representatives",
+    "groupLabel": "Representatives and alignment",
+    "sourcePath": "packages/politiclaw-plugin/src/tools/repScoring.ts"
+  },
+  {
+    "name": "politiclaw_rep_report",
+    "tier": "advanced",
+    "docsAction": "follow-up-or-advanced-docs",
+    "rationale": "Batch version of rep scoring, useful for digests and power users more than casual queries.",
+    "label": "Monthly-style representative alignment report for all stored reps",
+    "groupId": "representatives",
+    "groupLabel": "Representatives and alignment",
+    "sourcePath": "packages/politiclaw-plugin/src/tools/repReport.ts"
+  },
+  {
+    "name": "politiclaw_search_bills",
+    "tier": "core",
+    "docsAction": "lead-in-guides",
+    "rationale": "Natural first step for bill exploration and a good front door to legislative tracking.",
+    "label": "Search recent federal bills",
+    "groupId": "bills",
+    "groupLabel": "Bills and votes",
+    "sourcePath": "packages/politiclaw-plugin/src/tools/bills.ts"
+  },
+  {
+    "name": "politiclaw_get_bill_details",
+    "tier": "advanced",
+    "docsAction": "follow-up-or-advanced-docs",
+    "rationale": "Detailed inspection tool that is valuable after a bill has already been identified.",
+    "label": "Fetch a single federal bill",
+    "groupId": "bills",
+    "groupLabel": "Bills and votes",
+    "sourcePath": "packages/politiclaw-plugin/src/tools/bills.ts"
+  },
+  {
+    "name": "politiclaw_score_bill",
+    "tier": "core",
+    "docsAction": "lead-in-guides",
+    "rationale": "Turns raw bill lookup into a user-relevant answer by mapping it to declared issues.",
+    "label": "Score a bill against your declared stances",
+    "groupId": "bills",
+    "groupLabel": "Bills and votes",
+    "sourcePath": "packages/politiclaw-plugin/src/tools/scoring.ts"
+  },
+  {
+    "name": "politiclaw_ingest_house_votes",
+    "tier": "internal",
+    "docsAction": "generated-reference-only",
+    "rationale": "Data-ingestion plumbing that supports rep scoring but is not a user-facing civic task.",
+    "label": "Ingest recent House roll-call votes",
+    "groupId": "bills",
+    "groupLabel": "Bills and votes",
+    "sourcePath": "packages/politiclaw-plugin/src/tools/voteIngest.ts"
+  },
+  {
+    "name": "politiclaw_get_my_ballot",
+    "tier": "internal",
+    "docsAction": "generated-reference-only",
+    "rationale": "Raw ballot snapshot is useful as plumbing, but the higher-level ballot tools are better public entry points.",
+    "label": "Preview ballot logistics and contests for your saved address",
+    "groupId": "ballot",
+    "groupLabel": "Ballot and election prep",
+    "sourcePath": "packages/politiclaw-plugin/src/tools/ballot.ts"
+  },
+  {
+    "name": "politiclaw_explain_my_ballot",
+    "tier": "advanced",
+    "docsAction": "follow-up-or-advanced-docs",
+    "rationale": "Valuable for focused ballot deep dives, but narrower than the full election guide.",
+    "label": "Explain each contest on your ballot with facts + framing — never a recommendation",
+    "groupId": "ballot",
+    "groupLabel": "Ballot and election prep",
+    "sourcePath": "packages/politiclaw-plugin/src/tools/explainBallot.ts"
+  },
+  {
+    "name": "politiclaw_prepare_me_for_my_next_election",
+    "tier": "core",
+    "docsAction": "lead-in-guides",
+    "rationale": "Best ballot front door because it bundles setup checks, contest framing, and rep context.",
+    "label": "Prepare one readable guide for the user's next election",
+    "groupId": "ballot",
+    "groupLabel": "Ballot and election prep",
+    "sourcePath": "packages/politiclaw-plugin/src/tools/prepareForElection.ts"
+  },
+  {
+    "name": "politiclaw_check_upcoming_votes",
+    "tier": "advanced",
+    "docsAction": "follow-up-or-advanced-docs",
+    "rationale": "Great for engaged monitoring, but more procedural than the core user journeys.",
+    "label": "Check upcoming votes + bill changes since last run",
+    "groupId": "monitoring",
+    "groupLabel": "Monitoring and cadence",
+    "sourcePath": "packages/politiclaw-plugin/src/tools/monitoring.ts"
+  },
+  {
+    "name": "politiclaw_setup_monitoring",
+    "tier": "internal",
+    "docsAction": "generated-reference-only",
+    "rationale": "Operator-style reconciliation tool that is superseded for most users by cadence selection.",
+    "label": "Install PolitiClaw default monitoring cron jobs",
+    "groupId": "monitoring",
+    "groupLabel": "Monitoring and cadence",
+    "sourcePath": "packages/politiclaw-plugin/src/tools/monitoringSetup.ts"
+  },
+  {
+    "name": "politiclaw_pause_monitoring",
+    "tier": "internal",
+    "docsAction": "generated-reference-only",
+    "rationale": "Administrative control for installed jobs, not the preferred everyday monitoring UX.",
+    "label": "Pause all PolitiClaw monitoring cron jobs",
+    "groupId": "monitoring",
+    "groupLabel": "Monitoring and cadence",
+    "sourcePath": "packages/politiclaw-plugin/src/tools/monitoringSetup.ts"
+  },
+  {
+    "name": "politiclaw_resume_monitoring",
+    "tier": "internal",
+    "docsAction": "generated-reference-only",
+    "rationale": "Administrative control for installed jobs, not the preferred everyday monitoring UX.",
+    "label": "Resume paused PolitiClaw monitoring cron jobs",
+    "groupId": "monitoring",
+    "groupLabel": "Monitoring and cadence",
+    "sourcePath": "packages/politiclaw-plugin/src/tools/monitoringSetup.ts"
+  },
+  {
+    "name": "politiclaw_mute",
+    "tier": "advanced",
+    "docsAction": "follow-up-or-advanced-docs",
+    "rationale": "Useful tuning control once monitoring is already in use.",
+    "label": "Mute a bill, rep, or issue",
+    "groupId": "monitoring",
+    "groupLabel": "Monitoring and cadence",
+    "sourcePath": "packages/politiclaw-plugin/src/tools/mutes.ts"
+  },
+  {
+    "name": "politiclaw_unmute",
+    "tier": "advanced",
+    "docsAction": "follow-up-or-advanced-docs",
+    "rationale": "Complements mute management for returning users, but not part of onboarding or first-run paths.",
+    "label": "Unmute a bill, rep, or issue",
+    "groupId": "monitoring",
+    "groupLabel": "Monitoring and cadence",
+    "sourcePath": "packages/politiclaw-plugin/src/tools/mutes.ts"
+  },
+  {
+    "name": "politiclaw_list_mutes",
+    "tier": "advanced",
+    "docsAction": "follow-up-or-advanced-docs",
+    "rationale": "Audit view for monitoring suppressions, relevant mainly after custom tuning.",
+    "label": "List current mutes",
+    "groupId": "monitoring",
+    "groupLabel": "Monitoring and cadence",
+    "sourcePath": "packages/politiclaw-plugin/src/tools/mutes.ts"
+  },
+  {
+    "name": "politiclaw_research_candidate",
+    "tier": "core",
+    "docsAction": "lead-in-guides",
+    "rationale": "Directly maps to a common election question and offers strong standalone value.",
+    "label": "Look up FEC candidate finance totals + tier-5 bio",
+    "groupId": "research",
+    "groupLabel": "Candidate research and outreach",
+    "sourcePath": "packages/politiclaw-plugin/src/tools/researchCandidate.ts"
+  },
+  {
+    "name": "politiclaw_research_challengers",
+    "tier": "advanced",
+    "docsAction": "follow-up-or-advanced-docs",
+    "rationale": "Helpful side-by-side race view, but more specialized than single-candidate research.",
+    "label": "Compare incumbents and challengers by FEC finance totals",
+    "groupId": "research",
+    "groupLabel": "Candidate research and outreach",
+    "sourcePath": "packages/politiclaw-plugin/src/tools/researchChallengers.ts"
+  },
+  {
+    "name": "politiclaw_draft_letter",
+    "tier": "core",
+    "docsAction": "lead-in-guides",
+    "rationale": "Clear outcome-oriented action that follows naturally from bills, reps, and issue stances.",
+    "label": "Draft a letter to a representative",
+    "groupId": "research",
+    "groupLabel": "Candidate research and outreach",
+    "sourcePath": "packages/politiclaw-plugin/src/tools/draftLetter.ts"
+  },
+  {
+    "name": "politiclaw_doctor",
+    "tier": "core",
+    "docsAction": "lead-in-guides",
+    "rationale": "Best recovery entry point when anything about setup, data, or monitoring looks broken.",
+    "label": "Diagnose PolitiClaw install health",
+    "groupId": "operations",
+    "groupLabel": "Operations and diagnostics",
+    "sourcePath": "packages/politiclaw-plugin/src/tools/doctor.ts"
+  }
+]
