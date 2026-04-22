@@ -31,8 +31,8 @@ import { withBase } from "vitepress";
 
   <div class="pc-cta">
     <a href="/guide/getting-started" class="pc-btn primary">get started <span class="arrow">→</span></a>
-    <a href="/reference/tools" class="pc-btn secondary">browse reference</a>
-    <a href="/maintainers/architecture" class="pc-btn ghost">↗ maintainers</a>
+    <a href="/guide/entry-points-by-goal" class="pc-btn secondary">browse by task</a>
+    <a href="/reference/tools" class="pc-btn ghost">browse reference</a>
   </div>
 
   <div class="pc-chips">
@@ -49,16 +49,16 @@ import { withBase } from "vitepress";
     <div class="desc">Read the two-pass layout of the site and the shortest path from a fresh install to a real answer.</div>
     <span class="arrow">→</span>
   </a>
-  <a class="pc-card" href="/guide/installation-and-verification">
-    <div class="idx">02 · install</div>
-    <div class="ttl">installation &amp; verification</div>
-    <div class="desc">Link the plugin into an OpenClaw gateway, run the workspace checks, and verify with <code>politiclaw_doctor</code>.</div>
+  <a class="pc-card" href="/guide/understand-my-ballot">
+    <div class="idx">02 · task</div>
+    <div class="ttl">understand my ballot</div>
+    <div class="desc">Start with the highest-value ballot workflow instead of piecing together the lower-level tools yourself.</div>
     <span class="arrow">→</span>
   </a>
-  <a class="pc-card" href="/reference/tools">
-    <div class="idx">03 · tools</div>
-    <div class="ttl">runtime tool reference</div>
-    <div class="desc">Every registered tool with its description, source file, and parameter schema — generated from the current runtime.</div>
+  <a class="pc-card" href="/guide/track-bills-and-votes">
+    <div class="idx">03 · task</div>
+    <div class="ttl">track bills &amp; votes</div>
+    <div class="desc">Use the bill search and scoring path when the main question is what changed and why it matters.</div>
     <span class="arrow">→</span>
   </a>
 </div>
@@ -220,40 +220,40 @@ import { withBase } from "vitepress";
 <h2 class="pc-h2">start here</h2>
 
 <div class="pc-card-grid cols-3">
+  <a class="pc-card" href="/guide/see-how-my-reps-align">
+    <div class="idx">04 · task</div>
+    <div class="ttl">see how my reps align</div>
+    <div class="desc">Find the representative workflow first, then drop into reports or outreach only when needed.</div>
+    <span class="arrow">→</span>
+  </a>
+  <a class="pc-card" href="/guide/research-candidates">
+    <div class="idx">05 · task</div>
+    <div class="ttl">research candidates</div>
+    <div class="desc">Start from the single-candidate workflow before opening the more detailed race-comparison path.</div>
+    <span class="arrow">→</span>
+  </a>
+  <a class="pc-card" href="/guide/draft-outreach">
+    <div class="idx">06 · task</div>
+    <div class="ttl">draft outreach</div>
+    <div class="desc">Turn bill research, rep scoring, or ballot prep into a draft the user can send themselves.</div>
+    <span class="arrow">→</span>
+  </a>
+  <a class="pc-card" href="/guide/monitoring">
+    <div class="idx">07 · task</div>
+    <div class="ttl">manage monitoring</div>
+    <div class="desc">Use cadence as the main control, with lower-level monitoring tools available when you need them.</div>
+    <span class="arrow">→</span>
+  </a>
   <a class="pc-card" href="/guide/configuration">
-    <div class="idx">04 · config</div>
+    <div class="idx">08 · config</div>
     <div class="ttl">configuration</div>
     <div class="desc">Live keys (<code>apiDataGov</code>, <code>googleCivic</code>, <code>geocodio</code>) separated from schema-only placeholders.</div>
     <span class="arrow">→</span>
   </a>
-  <a class="pc-card" href="/guide/privacy-and-storage">
-    <div class="idx">05 · privacy</div>
-    <div class="ttl">privacy &amp; storage</div>
-    <div class="desc">Where state lives, what leaves the machine, and which adapters are transport-pending.</div>
-    <span class="arrow">→</span>
-  </a>
-  <a class="pc-card" href="/guide/monitoring">
-    <div class="idx">06 · monitor</div>
-    <div class="ttl">monitoring</div>
-    <div class="desc">Cadence modes (<code>off</code>, <code>election_proximity</code>, <code>weekly</code>, <code>both</code>) and what each one turns on.</div>
-    <span class="arrow">→</span>
-  </a>
-  <a class="pc-card" href="/guide/troubleshooting">
-    <div class="idx">07 · fix</div>
-    <div class="ttl">troubleshooting</div>
-    <div class="desc">Common failure modes and how the doctor tool surfaces them as actionable gaps instead of stack traces.</div>
-    <span class="arrow">→</span>
-  </a>
-  <a class="pc-card" href="/reference/config-schema">
-    <div class="idx">08 · schema</div>
-    <div class="ttl">config schema <span class="pc-pill stable">generated</span></div>
-    <div class="desc">Every config key with its current status: <code>implemented</code>, <code>optional_upgrade</code>, or <code>schema_only</code>.</div>
-    <span class="arrow">→</span>
-  </a>
-  <a class="pc-card" href="/reference/source-coverage">
-    <div class="idx">09 · coverage</div>
-    <div class="ttl">source coverage <span class="pc-pill stable">generated</span></div>
-    <div class="desc">The provider matrix — which sources the runtime can actually call today, and which are declared only.</div>
+  <a class="pc-card" href="/reference/tools">
+    <div class="idx">09 · reference</div>
+    <div class="ttl">runtime reference</div>
+    <div class="desc">Drop to the generated reference when you need exact tool schemas, config keys, or source coverage facts.</div>
     <span class="arrow">→</span>
   </a>
 </div>

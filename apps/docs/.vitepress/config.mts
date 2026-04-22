@@ -13,6 +13,7 @@ export default defineConfig({
     siteTitle: "politiclaw",
     nav: [
       { text: "Get Started", link: "/guide/getting-started" },
+      { text: "By Task", link: "/guide/entry-points-by-goal" },
       { text: "Reference", link: "/reference/tools" },
       { text: "Maintainers", link: "/maintainers/architecture" },
     ],
@@ -22,10 +23,15 @@ export default defineConfig({
         items: [
           { text: "Getting Started", link: "/guide/getting-started" },
           { text: "Entry Points by Goal", link: "/guide/entry-points-by-goal" },
+          { text: "Understand My Ballot", link: "/guide/understand-my-ballot" },
+          { text: "Track Bills and Votes", link: "/guide/track-bills-and-votes" },
+          { text: "See How My Reps Align", link: "/guide/see-how-my-reps-align" },
+          { text: "Research Candidates", link: "/guide/research-candidates" },
+          { text: "Draft Outreach", link: "/guide/draft-outreach" },
+          { text: "Manage Monitoring", link: "/guide/monitoring" },
           { text: "Installation and Verification", link: "/guide/installation-and-verification" },
           { text: "Configuration", link: "/guide/configuration" },
           { text: "Privacy and Storage", link: "/guide/privacy-and-storage" },
-          { text: "Monitoring", link: "/guide/monitoring" },
           { text: "Troubleshooting", link: "/guide/troubleshooting" }
         ]
       },
