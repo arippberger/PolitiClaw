@@ -6,6 +6,7 @@ import {
   upsertPreferences,
   recordStanceSignal,
 } from "../domain/preferences/index.js";
+import { recordAlert } from "../domain/alerts/index.js";
 import type {
   CronAddInput,
   CronUpdatePatch,
@@ -479,5 +480,57 @@ describe("buildStatusPayload", () => {
     if (payload.upcomingElection.status === "cache_miss") {
       expect(payload.upcomingElection.actionable).toContain("politiclaw_get_my_ballot");
     }
+  });
+
+  it("recentAlerts is 'none' with a pointer when no alerts have been recorded", async () => {
+    const db = openMemoryDb();
+    const payload = await buildStatusPayload({
+      db,
+      cronAdapter: makeCronAdapter(),
+      now: () => REFERENCE_NOW,
+    });
+
+    expect(payload.recentAlerts.status).toBe("none");
+    if (payload.recentAlerts.status === "none") {
+      expect(payload.recentAlerts.reason).toContain("politiclaw_check_upcoming_votes");
+    }
+  });
+
+  it("recentAlerts returns newest-first rows with source provenance", async () => {
+    const db = openMemoryDb();
+    recordAlert(db, {
+      kind: "bill_change",
+      refId: "119-hr-1234",
+      changeReason: "new",
+      summary: "119 HR 1234: Clean Housing Investment Act",
+      sourceAdapterId: "congressGov",
+      sourceTier: 1,
+      createdAt: 1_700_000_000_000,
+    });
+    recordAlert(db, {
+      kind: "event_change",
+      refId: "119-house-hearing-1",
+      changeReason: "changed",
+      summary: "2026-04-22 — Financial Services hearing",
+      sourceAdapterId: "congressGov.committeeMeetings",
+      sourceTier: 1,
+      createdAt: 1_700_000_001_000,
+    });
+
+    const payload = await buildStatusPayload({
+      db,
+      cronAdapter: makeCronAdapter(),
+      now: () => REFERENCE_NOW,
+    });
+
+    expect(payload.recentAlerts.status).toBe("ok");
+    if (payload.recentAlerts.status !== "ok") return;
+    expect(payload.recentAlerts.alerts).toHaveLength(2);
+    expect(payload.recentAlerts.alerts[0]!.kind).toBe("event_change");
+    expect(payload.recentAlerts.alerts[0]!.sourceAdapterId).toBe(
+      "congressGov.committeeMeetings",
+    );
+    expect(payload.recentAlerts.alerts[1]!.kind).toBe("bill_change");
+    expect(payload.recentAlerts.alerts[1]!.summary).toContain("Clean Housing");
   });
 });

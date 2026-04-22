@@ -160,10 +160,10 @@ describe("handleDashboardRequest", () => {
     expect(state.statusCode).toBe(200);
     expect(String(state.headers["Content-Type"])).toMatch(/application\/json/);
     const parsed = JSON.parse(bodyText(res)) as StatusPayload;
-    expect(parsed.schemaVersion).toBe(1);
+    expect(parsed.schemaVersion).toBe(2);
     expect(parsed.preferences.status).toBe("missing");
     expect(captured).not.toBeNull();
-    expect(captured?.schemaVersion).toBe(1);
+    expect(captured?.schemaVersion).toBe(2);
   });
 
   it("returns 405 with Allow header for non-GET methods", async () => {

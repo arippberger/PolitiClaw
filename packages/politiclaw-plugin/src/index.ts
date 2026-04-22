@@ -29,7 +29,7 @@ export default definePluginEntry({
     );
     for (const tool of REGISTERED_POLITICLAW_TOOLS) api.registerTool(tool);
 
-    // Phase 8a-1 read-only dashboard. Served under `/politiclaw/*` on the
+    // Read-only dashboard. Served under `/politiclaw/*` on the
     // gateway's HTTP surface. Auth is "plugin" (no gateway-side auth);
     // exposure is local-only by default — document the remote-exposure
     // caveat if the gateway is reachable off-host. Route builds its own

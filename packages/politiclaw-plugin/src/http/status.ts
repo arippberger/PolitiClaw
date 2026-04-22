@@ -1,5 +1,5 @@
 /**
- * Status payload builder for the read-only dashboard (Phase 8a-1).
+ * Status payload builder for the read-only dashboard.
  *
  * Composes plugin-DB reads + the gateway cron list into a single JSON object
  * consumed by `src/http/public/app.js`. No remote data-source fetches: the
@@ -25,9 +25,11 @@ import {
   type RepIssueAlignment,
 } from "../domain/scoring/index.js";
 import { POLITICLAW_CRON_NAMES } from "../cron/templates.js";
+import { listRecentAlerts, type AlertKind } from "../domain/alerts/index.js";
 
-export const STATUS_SCHEMA_VERSION = 1 as const;
+export const STATUS_SCHEMA_VERSION = 2 as const;
 export const UPCOMING_ELECTION_WINDOW_DAYS = 60;
+export const RECENT_ALERTS_LIMIT = 10;
 
 export type StatusPreferences =
   | {
@@ -114,6 +116,21 @@ export type StatusUpcomingElection =
   | { status: "no_preferences"; reason: string; actionable: string }
   | { status: "cache_miss"; reason: string; actionable: string };
 
+export type StatusRecentAlert = {
+  id: number;
+  createdAtMs: number;
+  kind: AlertKind;
+  refId: string;
+  changeReason: string;
+  summary: string;
+  sourceAdapterId: string;
+  sourceTier: number;
+};
+
+export type StatusRecentAlerts =
+  | { status: "ok"; alerts: StatusRecentAlert[] }
+  | { status: "none"; reason: string };
+
 export type StatusPayload = {
   schemaVersion: typeof STATUS_SCHEMA_VERSION;
   generatedAtMs: number;
@@ -121,6 +138,7 @@ export type StatusPayload = {
   reps: StatusReps;
   monitoring: StatusMonitoring;
   upcomingElection: StatusUpcomingElection;
+  recentAlerts: StatusRecentAlerts;
 };
 
 export type BuildStatusDeps = {
@@ -138,6 +156,7 @@ export async function buildStatusPayload(deps: BuildStatusDeps): Promise<StatusP
   const reps = buildRepsSection(deps.db, preferencesRow);
   const monitoring = await buildMonitoringSection(deps.cronAdapter);
   const upcomingElection = buildUpcomingElectionSection(deps.db, preferencesRow, generatedAtMs);
+  const recentAlerts = buildRecentAlertsSection(deps.db);
 
   return {
     schemaVersion: STATUS_SCHEMA_VERSION,
@@ -146,6 +165,30 @@ export async function buildStatusPayload(deps: BuildStatusDeps): Promise<StatusP
     reps,
     monitoring,
     upcomingElection,
+    recentAlerts,
+  };
+}
+
+function buildRecentAlertsSection(db: PolitiClawDb): StatusRecentAlerts {
+  const rows = listRecentAlerts(db, { limit: RECENT_ALERTS_LIMIT });
+  if (rows.length === 0) {
+    return {
+      status: "none",
+      reason: "no alerts recorded yet — they appear here after politiclaw_check_upcoming_votes finds a new or changed item",
+    };
+  }
+  return {
+    status: "ok",
+    alerts: rows.map((row) => ({
+      id: row.id,
+      createdAtMs: row.createdAt,
+      kind: row.kind,
+      refId: row.refId,
+      changeReason: row.changeReason,
+      summary: row.summary,
+      sourceAdapterId: row.sourceAdapterId,
+      sourceTier: row.sourceTier,
+    })),
   };
 }
 

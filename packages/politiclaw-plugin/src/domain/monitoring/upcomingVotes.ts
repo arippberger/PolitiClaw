@@ -6,6 +6,7 @@ import type {
   UpcomingEventsFilters,
 } from "../../sources/upcomingVotes/types.js";
 import type { BillListFilters } from "../../sources/bills/types.js";
+import { recordAlert } from "../alerts/index.js";
 import { searchBills, type StoredBill } from "../bills/index.js";
 import { listMutedRefs } from "../mutes/index.js";
 import { computeBillAlignment, type AlignmentResult } from "../scoring/alignment.js";
@@ -176,12 +177,55 @@ export async function checkUpcomingVotes(
   result.changedBills.sort(byAlignmentThenAction);
   result.changedEvents.sort(byEventStart);
 
+  persistAlertHistory(db, result);
+
   const billsOk = billsResult.status === "ok";
   const eventsOk = eventsResult.status === "ok";
   if (!billsOk && !eventsOk) result.status = "unavailable";
   else if (!billsOk || !eventsOk) result.status = "partial";
 
   return result;
+}
+
+/**
+ * Append an `alert_history` row for every change surfaced here, in the same
+ * order the user sees them rendered. Runs after sort so persisted order
+ * matches presented order for any later audit.
+ */
+function persistAlertHistory(
+  db: PolitiClawDb,
+  result: CheckUpcomingVotesResult,
+): void {
+  for (const entry of result.changedBills) {
+    recordAlert(db, {
+      kind: "bill_change",
+      refId: entry.bill.id,
+      changeReason: entry.change.reason,
+      summary: billAlertSummary(entry.bill),
+      sourceAdapterId: entry.bill.sourceAdapterId,
+      sourceTier: entry.bill.sourceTier,
+    });
+  }
+  for (const entry of result.changedEvents) {
+    const source = result.source.events;
+    recordAlert(db, {
+      kind: "event_change",
+      refId: entry.event.id,
+      changeReason: entry.change.reason,
+      summary: eventAlertSummary(entry.event),
+      sourceAdapterId: source?.adapterId ?? "unknown",
+      sourceTier: source?.tier ?? 0,
+    });
+  }
+}
+
+function billAlertSummary(bill: StoredBill): string {
+  return `${bill.congress} ${bill.billType} ${bill.number}: ${bill.title}`;
+}
+
+function eventAlertSummary(event: UpcomingEvent): string {
+  const when = event.startDateTime ?? "(no date)";
+  return `${when} — ${event.title}`;
 }
 
 /**

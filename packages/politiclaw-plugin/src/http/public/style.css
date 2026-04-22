@@ -146,7 +146,8 @@ body {
 
 .pc-stances,
 .pc-reps,
-.pc-jobs {
+.pc-jobs,
+.pc-alerts {
   list-style: none;
   margin: 0.5rem 0 0;
   padding: 0;
@@ -157,10 +158,28 @@ body {
 
 .pc-reps > li,
 .pc-jobs > li,
-.pc-stances > li {
+.pc-stances > li,
+.pc-alerts > li {
   padding: 0.5rem 0.75rem;
   border: 1px solid var(--border);
   border-radius: 0.4rem;
+}
+
+.pc-alert-head {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: baseline;
+}
+
+.pc-alert-summary {
+  font-weight: 500;
+}
+
+.pc-alert-meta {
+  color: var(--muted);
+  font-size: 0.85rem;
+  margin-top: 0.25rem;
 }
 
 .pc-rep-head,

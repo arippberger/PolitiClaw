@@ -1,5 +1,5 @@
 /**
- * Dashboard HTTP route registrar (Phase 8a-1).
+ * Dashboard HTTP route registrar.
  *
  * Registers a single prefix-matched route at `/politiclaw` and demuxes
  * requests inside the handler. Four URLs are served:
@@ -12,9 +12,9 @@
  * Posture:
  *   - `auth: "plugin"` because this is local-only. The gateway adds no auth
  *     layer for plugin-owned routes; the plugin is responsible for any
- *     additional checks. We deliberately add none — see docs/plan.md Phase 8a
- *     exit criteria (local-only; caveat documented if user exposes the gateway
- *     remotely).
+ *     additional checks. We deliberately add none: the dashboard is designed
+ *     for localhost access, and a user who exposes the gateway to other hosts
+ *     should be warned separately.
  *   - Only GET is handled. Any other method returns 405.
  *   - The dashboard is read-only, so no CSRF machinery is required.
  */

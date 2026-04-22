@@ -2,7 +2,7 @@
 
 This page is generated from a real in-memory SQLite database after migrations run.
 
-Migration count: 11.
+Migration count: 12.
 
 ## Migrations
 
@@ -17,8 +17,35 @@ Migration count: 11.
 - `packages/politiclaw-plugin/src/storage/migrations/0009_monitoring_cadence.sql`
 - `packages/politiclaw-plugin/src/storage/migrations/0010_letters.sql`
 - `packages/politiclaw-plugin/src/storage/migrations/0011_hot_path_indexes.sql`
+- `packages/politiclaw-plugin/src/storage/migrations/0012_alert_history.sql`
 
 ## Tables
+
+### alert_history
+
+| Column | Type | Not Null | Primary Key | Default |
+| --- | --- | --- | --- | --- |
+| `id` | `INTEGER` | no | yes | n/a |
+| `created_at` | `INTEGER` | yes | no | n/a |
+| `kind` | `TEXT` | yes | no | n/a |
+| `ref_id` | `TEXT` | yes | no | n/a |
+| `change_reason` | `TEXT` | yes | no | n/a |
+| `summary` | `TEXT` | yes | no | n/a |
+| `source_adapter_id` | `TEXT` | yes | no | n/a |
+| `source_tier` | `INTEGER` | yes | no | n/a |
+
+```sql
+CREATE TABLE alert_history (
+  id                INTEGER PRIMARY KEY AUTOINCREMENT,
+  created_at        INTEGER NOT NULL,
+  kind              TEXT NOT NULL CHECK(kind IN ('bill_change', 'event_change')),
+  ref_id            TEXT NOT NULL,
+  change_reason     TEXT NOT NULL,
+  summary           TEXT NOT NULL,
+  source_adapter_id TEXT NOT NULL,
+  source_tier       INTEGER NOT NULL
+)
+```
 
 ### alert_settings
 
@@ -499,6 +526,8 @@ CREATE TABLE stance_signals (
 
 | Index | Table | Definition |
 | --- | --- | --- |
+| `alert_history_created` | `alert_history` | `CREATE INDEX alert_history_created ON alert_history(created_at DESC)` |
+| `alert_history_ref` | `alert_history` | `CREATE INDEX alert_history_ref     ON alert_history(ref_id)` |
 | `ballot_explanations_computed` | `ballot_explanations` | `CREATE INDEX ballot_explanations_computed ON ballot_explanations(computed_at DESC)` |
 | `ballots_fetched` | `ballots` | `CREATE INDEX ballots_fetched ON ballots(fetched_at)` |
 | `bill_alignment_bill` | `bill_alignment` | `CREATE INDEX bill_alignment_bill ON bill_alignment(bill_id)` |
