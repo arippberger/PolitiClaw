@@ -181,11 +181,10 @@ import { withBase } from "vitepress";
 <div class="pc-step">
   <div class="num"><span class="n">03</span>seed</div>
   <div>
-    <div class="pc-step-title">save an address and load reps</div>
-    <p>Save preferences once, then fetch reps. If you are using the zero-key path, prime the shapefile cache first.</p>
-<pre><span class="k">politiclaw_set_preferences</span> <span class="s">"address=..."</span>
-<span class="k">politiclaw_download_shapefiles</span>   <span class="c"># zero-key path only</span>
-<span class="k">politiclaw_get_my_reps</span></pre>
+    <div class="pc-step-title">run configuration once, then verify reps</div>
+    <p>Use the single setup tool to save your address, prime the zero-key path if needed, and load reps.</p>
+<pre><span class="k">politiclaw_configure</span> <span class="s">"address=..."</span>
+<span class="k">politiclaw_get_my_reps</span>   <span class="c"># optional direct verification</span></pre>
   </div>
 </div>
 

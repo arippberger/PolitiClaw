@@ -1,5 +1,4 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
-  "outputDirectory": ".vitepress/dist",
-  "cleanUrls": true
+  "outputDirectory": ".vitepress/dist"
 }

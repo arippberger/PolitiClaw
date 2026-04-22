@@ -1,17 +1,17 @@
 [
   {
-    "name": "politiclaw_set_preferences",
-    "label": "Save PolitiClaw preferences",
+    "name": "politiclaw_configure",
+    "label": "Configure PolitiClaw",
     "groupId": "preferences",
-    "groupLabel": "Preferences and onboarding",
-    "sourcePath": "packages/politiclaw-plugin/src/tools/preferences.ts",
-    "description": "Save or update the user's political preferences (address, state, district). Writes to the plugin-private SQLite DB. Use this during onboarding or whenever the user updates their address.",
+    "groupLabel": "Configuration and preferences",
+    "sourcePath": "packages/politiclaw-plugin/src/tools/configure.ts",
+    "description": "Single front door for PolitiClaw setup and reconfiguration. Saves or updates the user's address, resolves reps, runs issue-stance setup, and applies monitoring cadence in one flow. When information is missing, returns the next setup step instead of requiring separate setup tools.",
     "parameters": [
       {
         "name": "address",
-        "required": true,
+        "required": false,
         "type": "string",
-        "description": "Street address. Used for representative and ballot lookup."
+        "description": "Street address. When provided, saves it and refreshes reps for that address."
       },
       {
         "name": "zip",
@@ -30,16 +30,37 @@
         "required": false,
         "type": "string",
         "description": "Congressional district if known."
+      },
+      {
+        "name": "mode",
+        "required": false,
+        "type": "\"conversation\" | \"quiz\"",
+        "description": "Optional issue-setup style. Use when the user is ready to walk through stance setup."
+      },
+      {
+        "name": "issueStances",
+        "required": false,
+        "type": "object[]",
+        "description": ""
+      },
+      {
+        "name": "monitoringCadence",
+        "required": false,
+        "type": "\"off\" | \"election_proximity\" | \"weekly\" | \"both\"",
+        "description": "How loud PolitiClaw monitoring should be. Defaults to election_proximity when first configuring unless a cadence is already saved."
+      },
+      {
+        "name": "refreshReps",
+        "required": false,
+        "type": "boolean",
+        "description": "When true, bypass the reps cache and re-resolve representatives."
       }
     ],
     "rawSchema": {
       "type": "object",
-      "required": [
-        "address"
-      ],
       "properties": {
         "address": {
-          "description": "Street address. Used for representative and ballot lookup.",
+          "description": "Street address. When provided, saves it and refreshes reps for that address.",
           "type": "string"
         },
         "zip": {
@@ -52,28 +73,92 @@
         "district": {
           "description": "Congressional district if known.",
           "type": "string"
+        },
+        "mode": {
+          "description": "Optional issue-setup style. Use when the user is ready to walk through stance setup.",
+          "anyOf": [
+            {
+              "const": "conversation",
+              "type": "string"
+            },
+            {
+              "const": "quiz",
+              "type": "string"
+            }
+          ]
+        },
+        "issueStances": {
+          "additionalProperties": false,
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "issue",
+              "stance"
+            ],
+            "properties": {
+              "issue": {
+                "description": "Issue label. Normalized to lowercase kebab-case (e.g. 'Affordable Housing' → 'affordable-housing').",
+                "type": "string"
+              },
+              "stance": {
+                "anyOf": [
+                  {
+                    "const": "support",
+                    "type": "string"
+                  },
+                  {
+                    "const": "oppose",
+                    "type": "string"
+                  },
+                  {
+                    "const": "neutral",
+                    "type": "string"
+                  }
+                ]
+              },
+              "weight": {
+                "minimum": 1,
+                "maximum": 5,
+                "description": "How strongly the user cares (1-5). Defaults to 3.",
+                "type": "integer"
+              }
+            }
+          }
+        },
+        "monitoringCadence": {
+          "description": "How loud PolitiClaw monitoring should be. Defaults to election_proximity when first configuring unless a cadence is already saved.",
+          "anyOf": [
+            {
+              "const": "off",
+              "type": "string"
+            },
+            {
+              "const": "election_proximity",
+              "type": "string"
+            },
+            {
+              "const": "weekly",
+              "type": "string"
+            },
+            {
+              "const": "both",
+              "type": "string"
+            }
+          ]
+        },
+        "refreshReps": {
+          "description": "When true, bypass the reps cache and re-resolve representatives.",
+          "type": "boolean"
         }
       }
-    }
-  },
-  {
-    "name": "politiclaw_get_preferences",
-    "label": "Load PolitiClaw preferences",
-    "groupId": "preferences",
-    "groupLabel": "Preferences and onboarding",
-    "sourcePath": "packages/politiclaw-plugin/src/tools/preferences.ts",
-    "description": "Return the currently-saved political preferences (address, state, district), or null if none are set.",
-    "parameters": [],
-    "rawSchema": {
-      "type": "object",
-      "properties": {}
     }
   },
   {
     "name": "politiclaw_record_stance_signal",
     "label": "Record PolitiClaw stance signal",
     "groupId": "preferences",
-    "groupLabel": "Preferences and onboarding",
+    "groupLabel": "Configuration and preferences",
     "sourcePath": "packages/politiclaw-plugin/src/tools/preferences.ts",
     "description": "Record a single agree/disagree/skip signal from the user in response to a shown bill or issue. Later scoring can aggregate these signals into learned issue stances; this tool only records the raw signal.",
     "parameters": [
@@ -167,7 +252,7 @@
     "name": "politiclaw_set_issue_stance",
     "label": "Set a declared issue stance",
     "groupId": "preferences",
-    "groupLabel": "Preferences and onboarding",
+    "groupLabel": "Configuration and preferences",
     "sourcePath": "packages/politiclaw-plugin/src/tools/preferences.ts",
     "description": "Record the user's declared position (support / oppose / neutral) on a named policy issue, with a 1-5 importance weight. Drives bill alignment scoring and rep scoring. Re-running with the same issue overwrites the previous stance.",
     "parameters": [
@@ -230,7 +315,7 @@
     "name": "politiclaw_list_issue_stances",
     "label": "List declared issue stances",
     "groupId": "preferences",
-    "groupLabel": "Preferences and onboarding",
+    "groupLabel": "Configuration and preferences",
     "sourcePath": "packages/politiclaw-plugin/src/tools/preferences.ts",
     "description": "Return every declared issue stance, ordered by weight (high to low). Use to show the user what PolitiClaw is scoring bills and reps against.",
     "parameters": [],
@@ -243,7 +328,7 @@
     "name": "politiclaw_delete_issue_stance",
     "label": "Delete a declared issue stance",
     "groupId": "preferences",
-    "groupLabel": "Preferences and onboarding",
+    "groupLabel": "Configuration and preferences",
     "sourcePath": "packages/politiclaw-plugin/src/tools/preferences.ts",
     "description": "Remove a single declared issue stance by issue slug or label.",
     "parameters": [
@@ -268,85 +353,6 @@
     }
   },
   {
-    "name": "politiclaw_set_monitoring_cadence",
-    "label": "Set PolitiClaw monitoring cadence",
-    "groupId": "preferences",
-    "groupLabel": "Preferences and onboarding",
-    "sourcePath": "packages/politiclaw-plugin/src/tools/preferences.ts",
-    "description": "Pick how loud PolitiClaw monitoring should be and reconcile the gateway cron jobs to match: 'off' (no monitoring), 'election_proximity' (default — quiet except near elections, plus change-gated rep-vote and hearings watches), 'weekly' (weekly digest + monthly rep report + watches), or 'both' (all jobs). Persists the choice in preferences and calls setup_monitoring so installed jobs outside the chosen set are paused (not deleted — preserves gateway state if the user flips back).",
-    "parameters": [
-      {
-        "name": "cadence",
-        "required": true,
-        "type": "\"off\" | \"election_proximity\" | \"weekly\" | \"both\"",
-        "description": "How loud PolitiClaw monitoring should be. 'off' installs no jobs. 'election_proximity' adds ramped alerts at 30/14/7/1 days plus rep-vote and hearings watches. 'weekly' adds the weekly digest and monthly rep report instead. 'both' installs all jobs."
-      }
-    ],
-    "rawSchema": {
-      "type": "object",
-      "required": [
-        "cadence"
-      ],
-      "properties": {
-        "cadence": {
-          "description": "How loud PolitiClaw monitoring should be. 'off' installs no jobs. 'election_proximity' adds ramped alerts at 30/14/7/1 days plus rep-vote and hearings watches. 'weekly' adds the weekly digest and monthly rep report instead. 'both' installs all jobs.",
-          "anyOf": [
-            {
-              "const": "off",
-              "type": "string"
-            },
-            {
-              "const": "election_proximity",
-              "type": "string"
-            },
-            {
-              "const": "weekly",
-              "type": "string"
-            },
-            {
-              "const": "both",
-              "type": "string"
-            }
-          ]
-        }
-      }
-    }
-  },
-  {
-    "name": "politiclaw_start_onboarding",
-    "label": "Start PolitiClaw onboarding (conversation or quiz)",
-    "groupId": "preferences",
-    "groupLabel": "Preferences and onboarding",
-    "sourcePath": "packages/politiclaw-plugin/src/tools/onboarding.ts",
-    "description": "Bootstraps the issue-stance set for a new (or returning) user. Input: optional `mode` of \"conversation\" or \"quiz\". When omitted, returns a choice prompt for the skill to forward to the user. When set, returns everything the skill needs to conduct the flow — opening prompts + canonical slugs for conversation, or the full question bank for quiz — plus any existing stances so returning users skip already-answered topics. Answers are persisted via politiclaw_set_issue_stance.",
-    "parameters": [
-      {
-        "name": "mode",
-        "required": false,
-        "type": "\"conversation\" | \"quiz\"",
-        "description": "Onboarding interaction style. Omit to receive a choice prompt the skill can forward to the user."
-      }
-    ],
-    "rawSchema": {
-      "type": "object",
-      "properties": {
-        "mode": {
-          "description": "Onboarding interaction style. Omit to receive a choice prompt the skill can forward to the user.",
-          "anyOf": [
-            {
-              "const": "conversation",
-              "type": "string"
-            },
-            {
-              "const": "quiz",
-              "type": "string"
-            }
-          ]
-        }
-      }
-    }
-  },
-  {
     "name": "politiclaw_get_my_reps",
     "label": "Get my federal representatives",
     "groupId": "representatives",
@@ -366,31 +372,6 @@
       "properties": {
         "refresh": {
           "description": "When true, bypass the cache and re-fetch from the source adapter. Default: false.",
-          "type": "boolean"
-        }
-      }
-    }
-  },
-  {
-    "name": "politiclaw_download_shapefiles",
-    "label": "Download local rep lookup data",
-    "groupId": "representatives",
-    "groupLabel": "Representatives and alignment",
-    "sourcePath": "packages/politiclaw-plugin/src/tools/downloadShapefiles.ts",
-    "description": "Download and cache the zero-key congressional district + legislator data under the plugin state directory.",
-    "parameters": [
-      {
-        "name": "force",
-        "required": false,
-        "type": "boolean",
-        "description": "When true, re-download and overwrite the cached shapefile bundle."
-      }
-    ],
-    "rawSchema": {
-      "type": "object",
-      "properties": {
-        "force": {
-          "description": "When true, re-download and overwrite the cached shapefile bundle.",
           "type": "boolean"
         }
       }
@@ -915,45 +896,6 @@
           "type": "boolean"
         }
       }
-    }
-  },
-  {
-    "name": "politiclaw_setup_monitoring",
-    "label": "Install PolitiClaw default monitoring cron jobs",
-    "groupId": "monitoring",
-    "groupLabel": "Monitoring and cadence",
-    "sourcePath": "packages/politiclaw-plugin/src/tools/monitoringSetup.ts",
-    "description": "Install (or upsert in place) the default PolitiClaw monitoring cron jobs: weekly_summary (every 7d), rep_vote_watch (every 6h), tracked_hearings (every 12h), rep_report (~every 30d). Idempotent — re-running patches existing jobs rather than duplicating them. Submits via the gateway's cron.add / cron.update RPC; does not edit jobs.json directly. Behavior of each job is controlled by the skills/politiclaw-monitoring and skills/politiclaw-summary markdown — the agent can retune either without a plugin rebuild.",
-    "parameters": [],
-    "rawSchema": {
-      "type": "object",
-      "properties": {}
-    }
-  },
-  {
-    "name": "politiclaw_pause_monitoring",
-    "label": "Pause all PolitiClaw monitoring cron jobs",
-    "groupId": "monitoring",
-    "groupLabel": "Monitoring and cadence",
-    "sourcePath": "packages/politiclaw-plugin/src/tools/monitoringSetup.ts",
-    "description": "Disable every PolitiClaw-owned cron job (names prefixed \"politiclaw.weekly_summary\", etc). Leaves user-authored and other-plugin jobs alone. Idempotent; jobs already paused render as 'already paused'.",
-    "parameters": [],
-    "rawSchema": {
-      "type": "object",
-      "properties": {}
-    }
-  },
-  {
-    "name": "politiclaw_resume_monitoring",
-    "label": "Resume paused PolitiClaw monitoring cron jobs",
-    "groupId": "monitoring",
-    "groupLabel": "Monitoring and cadence",
-    "sourcePath": "packages/politiclaw-plugin/src/tools/monitoringSetup.ts",
-    "description": "Re-enable every PolitiClaw-owned cron job. Does not re-install jobs that were never created — use politiclaw_setup_monitoring for that. Idempotent; jobs already active render as 'already active'.",
-    "parameters": [],
-    "rawSchema": {
-      "type": "object",
-      "properties": {}
     }
   },
   {

@@ -1,26 +1,22 @@
 # Generated Tool Reference
 
-This section is generated from the registered runtime tool objects. Current count: 30.
+This section is generated from the registered runtime tool objects. Current count: 23.
 
-## Preferences and onboarding
+## Configuration and preferences
 
-Save address data, declare issue stances, and bootstrap the onboarding flow.
+Configure the plugin, declare issue stances, and manage the saved preference data that remains user-facing.
 
-- [`politiclaw_set_preferences`](./politiclaw_set_preferences.md) — Save PolitiClaw preferences
-- [`politiclaw_get_preferences`](./politiclaw_get_preferences.md) — Load PolitiClaw preferences
+- [`politiclaw_configure`](./politiclaw_configure.md) — Configure PolitiClaw
 - [`politiclaw_record_stance_signal`](./politiclaw_record_stance_signal.md) — Record PolitiClaw stance signal
 - [`politiclaw_set_issue_stance`](./politiclaw_set_issue_stance.md) — Set a declared issue stance
 - [`politiclaw_list_issue_stances`](./politiclaw_list_issue_stances.md) — List declared issue stances
 - [`politiclaw_delete_issue_stance`](./politiclaw_delete_issue_stance.md) — Delete a declared issue stance
-- [`politiclaw_set_monitoring_cadence`](./politiclaw_set_monitoring_cadence.md) — Set PolitiClaw monitoring cadence
-- [`politiclaw_start_onboarding`](./politiclaw_start_onboarding.md) — Start PolitiClaw onboarding (conversation or quiz)
 
 ## Representatives and alignment
 
-Resolve federal representatives, prime local lookup data, and summarize current alignment.
+Resolve federal representatives and summarize current alignment.
 
 - [`politiclaw_get_my_reps`](./politiclaw_get_my_reps.md) — Get my federal representatives
-- [`politiclaw_download_shapefiles`](./politiclaw_download_shapefiles.md) — Download local rep lookup data
 - [`politiclaw_score_representative`](./politiclaw_score_representative.md) — Score a representative against your declared stances
 - [`politiclaw_rep_report`](./politiclaw_rep_report.md) — Monthly-style representative alignment report for all stored reps
 
@@ -43,12 +39,9 @@ Fetch ballot data, explain contests, and assemble a single election guide.
 
 ## Monitoring and cadence
 
-Check upcoming federal activity and reconcile the plugin-owned monitoring jobs.
+Check upcoming federal activity and manage alert suppression once configuration is complete.
 
 - [`politiclaw_check_upcoming_votes`](./politiclaw_check_upcoming_votes.md) — Check upcoming votes + bill changes since last run
-- [`politiclaw_setup_monitoring`](./politiclaw_setup_monitoring.md) — Install PolitiClaw default monitoring cron jobs
-- [`politiclaw_pause_monitoring`](./politiclaw_pause_monitoring.md) — Pause all PolitiClaw monitoring cron jobs
-- [`politiclaw_resume_monitoring`](./politiclaw_resume_monitoring.md) — Resume paused PolitiClaw monitoring cron jobs
 - [`politiclaw_mute`](./politiclaw_mute.md) — Mute a bill, rep, or issue
 - [`politiclaw_unmute`](./politiclaw_unmute.md) — Unmute a bill, rep, or issue
 - [`politiclaw_list_mutes`](./politiclaw_list_mutes.md) — List current mutes

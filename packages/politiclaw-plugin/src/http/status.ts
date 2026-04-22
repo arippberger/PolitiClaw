@@ -157,7 +157,7 @@ function buildPreferencesSection(
     return {
       status: "missing",
       reason: "no address on file",
-      actionable: "call politiclaw_set_preferences first",
+      actionable: "call politiclaw_configure first",
     };
   }
   const stances = listIssueStances(db).map((row) => ({
@@ -186,7 +186,7 @@ function buildRepsSection(
     return {
       status: "no_preferences",
       reason: "no address on file",
-      actionable: "call politiclaw_set_preferences first",
+      actionable: "call politiclaw_configure first",
     };
   }
   const stored = listReps(db);
@@ -361,7 +361,7 @@ function buildUpcomingElectionSection(
     return {
       status: "no_preferences",
       reason: "no address on file",
-      actionable: "call politiclaw_set_preferences first",
+      actionable: "call politiclaw_configure first",
     };
   }
 

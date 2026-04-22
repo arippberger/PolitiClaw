@@ -200,7 +200,7 @@
       container.appendChild(mutedLine("No PolitiClaw monitoring jobs installed."));
       container.appendChild(
         actionable(
-          "call politiclaw_setup_monitoring to install the default cadence",
+          "call politiclaw_configure to install the default cadence",
         ),
       );
       return;

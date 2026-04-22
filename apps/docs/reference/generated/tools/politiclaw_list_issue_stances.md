@@ -1,7 +1,7 @@
 # politiclaw_list_issue_stances
 
 - Label: List declared issue stances
-- Group: Preferences and onboarding
+- Group: Configuration and preferences
 - Source file: `packages/politiclaw-plugin/src/tools/preferences.ts`
 
 ## Description

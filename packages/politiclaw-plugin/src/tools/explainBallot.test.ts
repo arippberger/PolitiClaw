@@ -34,10 +34,10 @@ describe("renderExplainMyBallotOutput", () => {
     const text = renderExplainMyBallotOutput({
       status: "no_preferences",
       reason: "no address on file",
-      actionable: "call politiclaw_set_preferences first",
+      actionable: "call politiclaw_configure first",
     });
     expect(text).toContain("no address on file");
-    expect(text).toContain("politiclaw_set_preferences");
+    expect(text).toContain("politiclaw_configure");
   });
 
   it("renders no_stances with actionable hint", () => {

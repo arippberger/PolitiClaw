@@ -40,10 +40,10 @@ npm run docs:dev
 
 After the plugin is installed inside OpenClaw, use the runtime tools to verify the real environment:
 
-1. Save an address with [`politiclaw_set_preferences`](../reference/generated/tools/politiclaw_set_preferences).
+1. Run [`politiclaw_configure`](../reference/generated/tools/politiclaw_configure) with your address.
 2. Run [`politiclaw_doctor`](../reference/generated/tools/politiclaw_doctor).
-3. If you plan to use zero-key rep lookup, prime the local cache with [`politiclaw_download_shapefiles`](../reference/generated/tools/politiclaw_download_shapefiles).
-4. Fetch current reps with [`politiclaw_get_my_reps`](../reference/generated/tools/politiclaw_get_my_reps).
+3. If you plan to use zero-key rep lookup, `politiclaw_configure` primes the local cache as part of rep resolution.
+4. Fetch current reps with [`politiclaw_get_my_reps`](../reference/generated/tools/politiclaw_get_my_reps) if you want a direct verification pass.
 
 ## What Counts As Healthy
 

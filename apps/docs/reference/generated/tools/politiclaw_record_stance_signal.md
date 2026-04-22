@@ -1,7 +1,7 @@
 # politiclaw_record_stance_signal
 
 - Label: Record PolitiClaw stance signal
-- Group: Preferences and onboarding
+- Group: Configuration and preferences
 - Source file: `packages/politiclaw-plugin/src/tools/preferences.ts`
 
 ## Description

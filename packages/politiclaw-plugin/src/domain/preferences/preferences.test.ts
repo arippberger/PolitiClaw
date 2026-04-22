@@ -201,7 +201,7 @@ describe("setMonitoringCadence", () => {
   it("throws when no preferences row exists yet", () => {
     const db = openMemoryDb();
     expect(() => setMonitoringCadence(db, "off")).toThrow(
-      /politiclaw_set_preferences/,
+      /politiclaw_configure/,
     );
   });
 });

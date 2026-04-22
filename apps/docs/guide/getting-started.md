@@ -19,10 +19,10 @@ PolitiClaw lives in this monorepo as an OpenClaw plugin plus a VitePress docs ap
 If you are bringing up a fresh local install, the shortest path is:
 
 1. Install the plugin locally and confirm the workspace builds.
-2. Save an address with [`politiclaw_set_preferences`](../reference/generated/tools/politiclaw_set_preferences).
+2. Run [`politiclaw_configure`](../reference/generated/tools/politiclaw_configure) with your address.
 3. Run [`politiclaw_doctor`](../reference/generated/tools/politiclaw_doctor) to catch missing configuration or storage problems early.
-4. Load reps with [`politiclaw_get_my_reps`](../reference/generated/tools/politiclaw_get_my_reps).
-5. Start issue setup with [`politiclaw_start_onboarding`](../reference/generated/tools/politiclaw_start_onboarding).
+4. If `politiclaw_configure` returns an issue-setup handoff, follow it to save at least one stance.
+5. Re-run [`politiclaw_configure`](../reference/generated/tools/politiclaw_configure) any time you want to refresh reps or change monitoring cadence.
 
 From there, most users branch into either bill tracking, ballot prep, or monitoring. When several tools seem to overlap, use [Entry Points by Goal](./entry-points-by-goal) to find the default front door before jumping into lower-level reference pages.
 

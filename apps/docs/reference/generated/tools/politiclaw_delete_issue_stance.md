@@ -1,7 +1,7 @@
 # politiclaw_delete_issue_stance
 
 - Label: Delete a declared issue stance
-- Group: Preferences and onboarding
+- Group: Configuration and preferences
 - Source file: `packages/politiclaw-plugin/src/tools/preferences.ts`
 
 ## Description

@@ -25,7 +25,7 @@ Set `plugins.politiclaw.apiKeys.googleCivic`. It is required for every ballot lo
 
 ## Representative Lookup Falls Back Or Fails
 
-If you are using the zero-key path, run [`politiclaw_download_shapefiles`](../reference/generated/tools/politiclaw_download_shapefiles) once and retry. If you prefer the API path, add `plugins.politiclaw.apiKeys.geocodio`.
+If you are using the zero-key path, run [`politiclaw_configure`](../reference/generated/tools/politiclaw_configure) once with your address and retry. If you prefer the API path, add `plugins.politiclaw.apiKeys.geocodio`.
 
 ## Candidate Bio Or Ballot Narrative Looks Thin
 

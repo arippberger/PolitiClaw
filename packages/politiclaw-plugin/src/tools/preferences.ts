@@ -235,13 +235,10 @@ export const setMonitoringCadenceTool: AnyAgentTool = {
 };
 
 export const politiclawTools: AnyAgentTool[] = [
-  setPreferencesTool,
-  getPreferencesTool,
   recordStanceSignalTool,
   setIssueStanceTool,
   listIssueStancesTool,
   deleteIssueStanceTool,
-  setMonitoringCadenceTool,
 ];
 
 export { listStanceSignals };

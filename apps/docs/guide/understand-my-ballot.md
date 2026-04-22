@@ -18,8 +18,8 @@ Use it first because it checks setup, pulls ballot context, and returns one read
 
 Most ballot flows depend on:
 
-- [`politiclaw_set_preferences`](../reference/generated/tools/politiclaw_set_preferences)
+- [`politiclaw_configure`](../reference/generated/tools/politiclaw_configure)
 - [`politiclaw_get_my_reps`](../reference/generated/tools/politiclaw_get_my_reps)
-- issue stances from [`politiclaw_start_onboarding`](../reference/generated/tools/politiclaw_start_onboarding)
+- issue stances from [`politiclaw_configure`](../reference/generated/tools/politiclaw_configure) or [`politiclaw_set_issue_stance`](../reference/generated/tools/politiclaw_set_issue_stance)
 
 If anything seems broken, start with [`politiclaw_doctor`](../reference/generated/tools/politiclaw_doctor).

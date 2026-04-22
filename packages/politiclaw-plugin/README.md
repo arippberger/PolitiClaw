@@ -18,15 +18,13 @@ Reload the gateway (or restart the OpenClaw app) to pick up the new tools.
 
 Run these tool calls through your agent in order. None require hand-editing files or the SQLite database.
 
-1. **Set your preferences.** Call `politiclaw_set_preferences` with your street address, zip code, state, and (optionally) congressional district. This is the only identity surface the plugin needs; everything else is derived from it.
+1. **Run configuration once.** Call `politiclaw_configure` with your street address. It saves your address, resolves your federal reps, returns the issue-setup flow when stances are missing, and applies your saved monitoring cadence once setup is complete.
 
-2. **Fetch your representatives.** Call `politiclaw_get_my_reps`. The default path is zero-key — the plugin uses locally bundled U.S. Census shapefiles plus the `unitedstates/congress-legislators` roster to resolve your federal reps by address, so no API calls leave the machine. If you set a Geocodio key (see below), it will use that instead.
+2. **Declare at least one issue stance.** Use the `issueStances` input on `politiclaw_configure` during setup, or add/edit one later with `politiclaw_set_issue_stance`. This is what alignment scoring compares bills against.
 
-3. **Declare at least one issue stance.** Call `politiclaw_set_issue_stance` with an issue name (e.g. `housing`, `climate`, `criminal-justice`) and a short stance description. This is what alignment scoring compares bills against — without at least one stance, scoring has nothing to score.
+3. **Re-run configuration whenever something changes.** `politiclaw_configure` is also the front door for refreshing reps, changing monitoring cadence, or updating the saved address.
 
-4. **Install monitoring cron jobs.** Call `politiclaw_setup_monitoring`. This installs the gateway cron jobs that pull fresh bills, roll-call votes, and election-proximity alerts on a schedule tuned to your declared monitoring cadence.
-
-5. **Wait for the first alert.** The weekly summary cron fires once a week; election-proximity alerts fire more often as an election in your state approaches. If you want a preview of what the next weekly digest will pull from, call `politiclaw_check_upcoming_votes` with a 7-day window — that is the main input the weekly summary composes from. There is no "run the weekly summary now" tool; the digest is cron-driven and assembled via the `politiclaw-summary` skill.
+4. **Wait for the first alert.** The weekly summary cron fires once a week; election-proximity alerts fire more often as an election in your state approaches. If you want a preview of what the next weekly digest will pull from, call `politiclaw_check_upcoming_votes` with a 7-day window — that is the main input the weekly summary composes from. There is no "run the weekly summary now" tool; the digest is cron-driven and assembled via the `politiclaw-summary` skill.
 
 If anything in this path looks wrong, run `politiclaw_doctor` — see [Troubleshooting](#troubleshooting).
 
@@ -56,7 +54,7 @@ Agent behavior for PolitiClaw is driven by plain-markdown skills under `skills/`
 
 Current skills:
 
-- `politiclaw-onboarding` — first-run flow that walks a new user through preferences, reps, stances, and monitoring setup.
+- `politiclaw-onboarding` — first-run flow that helps `politiclaw_configure` collect issue stances in a conversational or quiz-style handoff.
 - `politiclaw-monitoring` — how the agent interprets change-detection results, alignment scores, and election-proximity alerts.
 - `politiclaw-ballot` — how the agent explains ballot items without prescribing a vote.
 - `politiclaw-outreach` — how the agent drafts letters (user-authored, never auto-sent).

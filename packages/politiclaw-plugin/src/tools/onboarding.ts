@@ -48,7 +48,7 @@ function textResult<T>(text: string, details: T) {
   return { content: [{ type: "text" as const, text }], details };
 }
 
-function renderChoicePrompt(existing: readonly IssueStanceRow[]): string {
+export function renderChoicePrompt(existing: readonly IssueStanceRow[]): string {
   const lines: string[] = [
     "How would you like to set up your issue stances?",
     "",
