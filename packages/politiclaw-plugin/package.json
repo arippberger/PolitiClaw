@@ -35,13 +35,11 @@
   },
   "dependencies": {
     "@turf/boolean-point-in-polygon": "^7.3.5",
-    "better-sqlite3": "^11.5.0",
     "js-yaml": "^4.1.1",
     "shapefile": "^0.6.6",
     "zod": "^3.23.0"
   },
   "devDependencies": {
-    "@types/better-sqlite3": "^7.6.0",
     "@types/js-yaml": "^4.0.9",
     "@types/node": "^22.0.0",
     "eslint": "^9.0.0",
@@ -51,6 +49,6 @@
     "vitest": "^3.0.0"
   },
   "engines": {
-    "node": ">=20"
+    "node": ">=22.5.0"
   }
 }
