@@ -1,11 +1,11 @@
 ---
 name: politiclaw-onboarding
 description: >-
-  How to run the initial issue-stance setup with a new PolitiClaw user.
-  Offers two modes — a guided conversation and a structured quiz — and
-  persists results through politiclaw_set_issue_stance. These declared
-  stances are the baseline PolitiClaw uses to score representative
-  accountability; no score exists without them.
+  How to capture the issue stances PolitiClaw will later measure the user's
+  reps against. Runs the initial setup with a new user via one of two modes —
+  a guided conversation or a structured quiz — and persists results through
+  politiclaw_set_issue_stance so the accountability loop has values to compare
+  votes to.
 read_when:
   - The user asks to "set up PolitiClaw", "get started", or "help me pick my issues".
   - The politiclaw_configure tool is invoked and returns an issue-setup handoff.

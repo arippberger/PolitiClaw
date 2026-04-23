@@ -1,9 +1,11 @@
 ---
 name: politiclaw-ballot
 description: >-
-  How to help users understand upcoming elections without prescribing votes.
-  Enforces no prescriptive recommendations and strict guardrails on when
-  LLM-search-derived narrative is allowed.
+  How to map each contest on the user's ballot against the stances they
+  declared — showing where candidates and incumbents align with their values
+  and where they don't — without prescribing votes. Enforces no prescriptive
+  recommendations and strict guardrails on when LLM-search-derived narrative
+  is allowed.
 read_when:
   - The user asks about their ballot, candidates, measures, or election day logistics.
   - politiclaw_get_my_ballot, politiclaw_research_candidate, politiclaw_explain_my_ballot,

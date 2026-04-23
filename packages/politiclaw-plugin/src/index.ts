@@ -9,7 +9,7 @@ export default definePluginEntry({
   id: "politiclaw",
   name: "PolitiClaw",
   description:
-    "Local-first personal political co-pilot: monitors legislation, tracks representatives, prepares you for elections, and drafts outreach.",
+    "Local-first civic copilot that holds your representatives accountable to the values you declare. Learns the stances you care about, watches federal legislation and elections for you, and flags when your reps' votes and actions align — or don't — with those stances. Drafts letters you send yourself; never speaks on your behalf and never tells you how to vote.",
   register(api) {
     // Memory posture: every byte of political data this plugin generates —
     // stances, alignments, rep scores, ballot explanations, letter drafts —

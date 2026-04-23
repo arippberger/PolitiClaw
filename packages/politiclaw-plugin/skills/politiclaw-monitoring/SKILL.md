@@ -1,11 +1,12 @@
 ---
 name: politiclaw-monitoring
 description: >-
-  How to run the PolitiClaw monitoring loop. Frames every monitoring
-  output around whether representatives acted consistently with the user's
-  declared stances. Decides when to alert, when to summarize, and when to
-  stay silent. Enforces the anti-echo-chamber rule that every substantial
-  summary must include a dissenting or complicating view when one exists.
+  How to surface bills, votes, and committee events that touch the stances the
+  user declared — so they can see when their reps are (or aren't) representing
+  them — without drifting into advocacy. Decides when to alert, when to
+  summarize, and when to stay silent. Enforces the anti-echo-chamber rule
+  that every substantial summary must include a dissenting or complicating
+  view when one exists.
 read_when:
   - A PolitiClaw cron template fires (weekly_summary, rep_vote_watch,
     tracked_hearings, rep_report).

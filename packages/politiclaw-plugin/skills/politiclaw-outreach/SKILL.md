@@ -1,9 +1,11 @@
 ---
 name: politiclaw-outreach
 description: >-
-  How to help a user contact their representatives. Covers when to offer a
-  letter draft, how to use politiclaw_draft_letter, and the firm rule that
-  PolitiClaw never sends mail — the user sends from their own client.
+  How to help the user close the loop on a stance-gap the monitoring loop
+  surfaced: put an accountability question in front of the rep in the user's
+  own words. Covers when to offer a letter draft, how to use
+  politiclaw_draft_letter, and the firm rule that PolitiClaw never sends
+  mail — the user sends from their own client.
 read_when:
   - The user asks "can you write a letter to my rep" or similar outreach
     phrasing.

@@ -6,7 +6,7 @@
 
 ## Description
 
-Run the change-detection loop: fetch recent federal bills + upcoming committee events from api.congress.gov (tier 1), compare each against the persisted snapshot, and return only items that are new or have materially changed since the last check. Bill changes are scored against declared issue stances when any are set. A second invocation on unchanged data returns an empty delta. Requires plugins.politiclaw.apiKeys.apiDataGov.
+Surface federal bills and committee events that touch the user's declared stances, so they can see how their reps' agenda lines up — or doesn't — with the values they care about. Fetches recent federal bills and upcoming committee events from api.congress.gov (tier 1), compares each against the persisted snapshot, and returns only items that are new or have materially changed since the last check. Bill changes are scored against declared issue stances when any are set. A second invocation on unchanged data returns an empty delta. Requires plugins.politiclaw.apiKeys.apiDataGov.
 
 ## Parameters
 
