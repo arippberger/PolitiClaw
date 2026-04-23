@@ -5,6 +5,9 @@ import { z } from "zod";
 import {
   ALIGNMENT_DISCLAIMER,
   CONFIDENCE_FLOOR,
+  PATTERN_ALIGNED_MIN,
+  PATTERN_CONCERNING_MAX,
+  PATTERN_CONCERNING_MIN_WEIGHT,
   scoreRepresentative,
   type RepIssueAlignment,
   type ScoreRepresentativeResult,
@@ -33,6 +36,32 @@ const ScoreRepresentativeInputSchema = z.object({
 
 function textResult<T>(text: string, details: T) {
   return { content: [{ type: "text" as const, text }], details };
+}
+
+export type RepPattern = "aligned" | "mixed" | "concerning" | "insufficient_data";
+
+/**
+ * Deterministic 3-band accountability pattern for a rep, plus an
+ * `insufficient_data` fallback. Below-floor issues are never considered —
+ * they cannot push a rep into `concerning` and they cannot keep a rep out
+ * of `aligned`. If every issue is below the floor, returns
+ * `insufficient_data` so callers can suppress the pattern label entirely.
+ */
+export function computeRepPattern(perIssue: readonly RepIssueAlignment[]): RepPattern {
+  const above = perIssue.filter((issue) => !issue.belowConfidenceFloor);
+  if (above.length === 0) return "insufficient_data";
+
+  const concerningIssue = above.some(
+    (issue) =>
+      issue.alignmentScore < PATTERN_CONCERNING_MAX &&
+      issue.stanceWeight >= PATTERN_CONCERNING_MIN_WEIGHT,
+  );
+  if (concerningIssue) return "concerning";
+
+  const allAligned = above.every((issue) => issue.alignmentScore >= PATTERN_ALIGNED_MIN);
+  if (allAligned) return "aligned";
+
+  return "mixed";
 }
 
 /**
@@ -64,9 +93,10 @@ export function renderScoreRepresentativeOutput(
   } = result;
 
   const officeLabel = describeOffice(rep);
-  const header = `Representative ${rep.name} (${officeLabel}) — alignment vs. your stances`;
+  const baseHeader = `Representative ${rep.name} (${officeLabel}) — did they represent your stances?`;
   const provenance = `Source: ${rep.sourceAdapterId} (tier ${rep.sourceTier}).`;
 
+  const pattern = computeRepPattern(perIssue);
   const allBelowFloor = perIssue.every((issue) => issue.belowConfidenceFloor);
   const summaryLine = buildSummaryLine({
     consideredVoteCount,
@@ -76,11 +106,11 @@ export function renderScoreRepresentativeOutput(
     proceduralExcluded,
   });
 
-  if (perIssue.length === 0 || allBelowFloor) {
+  if (perIssue.length === 0 || allBelowFloor || pattern === "insufficient_data") {
     return [
-      header,
+      baseHeader,
       provenance,
-      "Alignment: insufficient data (confidence below floor for every declared issue).",
+      "Pattern: insufficient data (confidence below floor for every declared issue).",
       summaryLine,
       ...buildCoverageHints({
         consideredVoteCount,
@@ -91,6 +121,8 @@ export function renderScoreRepresentativeOutput(
       ALIGNMENT_DISCLAIMER,
     ].join("\n");
   }
+
+  const header = `${baseHeader} — pattern: ${pattern}`;
 
   const issueLines: string[] = [];
   for (const issue of perIssue) {
@@ -112,7 +144,7 @@ export function renderScoreRepresentativeOutput(
     provenance,
     summaryLine,
     "",
-    "Per-issue alignment:",
+    "Your priorities this rep acted on:",
     ...issueLines,
     "",
     ALIGNMENT_DISCLAIMER,
@@ -197,10 +229,13 @@ function describeOffice(rep: StoredRep): string {
 
 export const scoreRepresentativeTool: AnyAgentTool = {
   name: "politiclaw_score_representative",
-  label: "Score a representative against your declared stances",
+  label: "Did this representative represent the stances you declared?",
   description:
-    "Compute per-issue alignment for a stored representative based on their House roll-call votes, " +
-    "your declared issue stances, and your recorded stance signals on specific bills. " +
+    "Answers the accountability question for one stored representative: did they represent the " +
+    "stances you declared? Computes per-issue alignment from their House roll-call votes, your " +
+    "declared issue stances, and your recorded stance signals on specific bills, and attaches a " +
+    "deterministic 3-band pattern label (aligned / mixed / concerning), or 'insufficient data' " +
+    "when confidence is too low to classify. " +
     "Deterministic (no LLM) — direction for rep scoring comes exclusively from your explicit " +
     "stance signals on bills, so the rep's record is counted, not narrated. Confidence below the " +
     `${CONFIDENCE_FLOOR} floor renders as "insufficient data". ` +

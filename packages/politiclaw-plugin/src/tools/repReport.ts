@@ -3,8 +3,8 @@ import type { AnyAgentTool } from "openclaw/plugin-sdk";
 import { z } from "zod";
 
 import { generateRepReport } from "../domain/reports/repReport.js";
-import type { GenerateRepReportResult } from "../domain/reports/repReport.js";
-import { renderScoreRepresentativeOutput } from "./repScoring.js";
+import type { GenerateRepReportResult, RepReportRow } from "../domain/reports/repReport.js";
+import { computeRepPattern, renderScoreRepresentativeOutput, type RepPattern } from "./repScoring.js";
 import { getStorage } from "../storage/context.js";
 
 const RepReportParams = Type.Object({
@@ -33,8 +33,9 @@ export function renderRepReportDocument(result: GenerateRepReportResult): string
   }
 
   const blocks: string[] = [
-    "PolitiClaw representative alignment report",
+    "PolitiClaw representative accountability report",
     `Stance snapshot hash: ${result.stanceSnapshotHash}`,
+    formatPatternTally(result.rows),
     "",
     "Federal bill links resolve to congress.gov (tier 1 government source).",
     "",
@@ -50,13 +51,37 @@ export function renderRepReportDocument(result: GenerateRepReportResult): string
   return blocks.join("\n");
 }
 
+function formatPatternTally(rows: readonly RepReportRow[]): string {
+  const counts: Record<RepPattern, number> = {
+    aligned: 0,
+    mixed: 0,
+    concerning: 0,
+    insufficient_data: 0,
+  };
+  for (const row of rows) {
+    const res = row.result;
+    if (res.status !== "ok") {
+      counts.insufficient_data += 1;
+      continue;
+    }
+    counts[computeRepPattern(res.perIssue)] += 1;
+  }
+  return (
+    `Patterns: ${counts.aligned} aligned · ${counts.mixed} mixed · ` +
+    `${counts.concerning} concerning · ${counts.insufficient_data} insufficient data.`
+  );
+}
+
 export const repReportTool: AnyAgentTool = {
   name: "politiclaw_rep_report",
-  label: "Monthly-style representative alignment report for all stored reps",
+  label: "Did your delegation represent the stances you declared?",
   description:
-    "Recomputes alignment for every representative in the reps table (same logic as politiclaw_score_representative) " +
-    "and returns one combined report with per-rep sections, congress.gov links for cited bills, and source-tier labels. " +
-    "Requires declared issue stances and stored reps. Intended for periodic digests (see politiclaw.rep_report cron template).",
+    "Canonical accountability surface across your full stored delegation. Recomputes per-issue " +
+    "alignment for every rep (same deterministic logic as politiclaw_score_representative), tags " +
+    "each rep with a 3-band accountability pattern (aligned / mixed / concerning / insufficient " +
+    "data), and returns one combined document with a pattern tally, per-rep sections, " +
+    "congress.gov links for cited bills, and source-tier labels. Requires declared issue stances " +
+    "and stored reps. Intended for periodic digests (see politiclaw.rep_report cron template).",
   parameters: RepReportParams,
   async execute(_toolCallId, rawParams) {
     const parsed = RepReportInputSchema.safeParse(rawParams);

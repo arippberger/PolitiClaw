@@ -1,6 +1,6 @@
 # PolitiClaw Plugin
 
-A local-first OpenClaw plugin that turns your agent into a personal political co-pilot. It monitors legislation you care about, tracks how your representatives vote, prepares you for upcoming elections, and drafts outreach — all on your own machine, with no send path and no prescriptive voting recommendations.
+A local-first OpenClaw plugin built around one question: *did my representatives represent the stances I declared?* PolitiClaw scores your federal House delegation against your declared issue stances deterministically from their public roll-call votes, cites every bill it counted, and surfaces "insufficient data" where coverage is thin — never a false percentage. Bill tracking, ballot prep, recurring monitoring, candidate finance research, and draft-only outreach are the supporting evidence base, not the headline.
 
 Political data stays in a plugin-private SQLite database under the gateway's state directory. It does not write to shared agent memory.
 
@@ -20,7 +20,7 @@ Run these tool calls through your agent in order. None require hand-editing file
 
 1. **Run configuration once.** Call `politiclaw_configure` with your street address. It saves your address, resolves your federal reps, returns the issue-setup flow when stances are missing, and applies your saved monitoring cadence once setup is complete.
 
-2. **Declare at least one issue stance.** Use the `issueStances` input on `politiclaw_configure` during setup, or add/edit one later with `politiclaw_set_issue_stance`. This is what alignment scoring compares bills against.
+2. **Declare the stances you want to measure your reps against.** Use the `issueStances` input on `politiclaw_configure` during setup, or add/edit one later with `politiclaw_set_issue_stance`. These are the baseline PolitiClaw uses for every accountability score — no score exists without them.
 
 3. **Re-run configuration whenever something changes.** `politiclaw_configure` is also the front door for refreshing reps, changing monitoring cadence, or updating the saved address.
 

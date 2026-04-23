@@ -9,6 +9,9 @@ import { listReps, type StoredRep } from "../reps/index.js";
 import {
   ALIGNMENT_DISCLAIMER,
   CONFIDENCE_FLOOR,
+  PATTERN_ALIGNED_MIN,
+  PATTERN_CONCERNING_MAX,
+  PATTERN_CONCERNING_MIN_WEIGHT,
   computeBillAlignment,
   type AlignmentResult,
   type StanceMatch,
@@ -24,7 +27,13 @@ import {
   type RepIssueAlignment,
 } from "./repAlignment.js";
 
-export { ALIGNMENT_DISCLAIMER, CONFIDENCE_FLOOR };
+export {
+  ALIGNMENT_DISCLAIMER,
+  CONFIDENCE_FLOOR,
+  PATTERN_ALIGNED_MIN,
+  PATTERN_CONCERNING_MAX,
+  PATTERN_CONCERNING_MIN_WEIGHT,
+};
 export type { AlignmentResult, StanceMatch };
 export type { RepIssueAlignment };
 export type { DirectionForStance, LlmClient };

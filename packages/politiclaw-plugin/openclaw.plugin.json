@@ -1,7 +1,7 @@
 {
   "id": "politiclaw",
   "name": "PolitiClaw",
-  "description": "Local-first personal political co-pilot: monitors legislation, tracks representatives, prepares you for elections, and drafts outreach.",
+  "description": "Local-first rep-accountability co-pilot: scores your federal House delegation against the stances you declared, with supporting bills, ballots, monitoring, and draft outreach.",
   "version": "0.0.1",
   "skills": ["skills"],
   "configSchema": {

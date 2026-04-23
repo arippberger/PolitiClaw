@@ -21,12 +21,12 @@ import { withBase } from "vitepress";
   </h1>
 
   <div class="pc-tagline">
-    <span class="quote">Living docs for a local-first political workflow.</span>
-    Generated reference where accuracy matters. Short guides where judgment matters.
+    <span class="quote">Hold your representatives accountable to the stances you declared.</span>
+    PolitiClaw scores your federal delegation against the priorities you set — then gives you the bills, votes, and outreach drafts to act on what you learn.
   </div>
 
   <p class="pc-lede">
-    PolitiClaw is an <strong>OpenClaw plugin</strong> for federal bills and House votes, federal representative lookup, ballot and election prep, recurring monitoring, candidate finance research, and draft-only outreach. The docs split into a narrative <strong>guide</strong> you read end-to-end and a <strong>reference</strong> generated from the current implementation.
+    PolitiClaw is a local-first <strong>OpenClaw plugin</strong> built around one question: <em>did my representatives represent the values I declared?</em> It measures federal House roll-call votes against your declared issue stances, and backs that up with bill tracking, ballot prep, recurring monitoring, candidate finance research, and draft-only outreach. The docs split into a narrative <strong>guide</strong> you read end-to-end and a <strong>reference</strong> generated from the current implementation.
   </p>
 
   <div class="pc-cta">
@@ -43,16 +43,16 @@ import { withBase } from "vitepress";
 </section>
 
 <div class="pc-card-grid cols-3">
-  <a class="pc-card" href="/guide/getting-started">
-    <div class="idx">01 · start</div>
-    <div class="ttl">getting started</div>
-    <div class="desc">Read the two-pass layout of the site and the shortest path from a fresh install to a real answer.</div>
+  <a class="pc-card" href="/guide/see-how-my-reps-align">
+    <div class="idx">01 · task</div>
+    <div class="ttl">see how my reps align</div>
+    <div class="desc">The accountability spine — measure your federal delegation against the stances you declared, with cited votes and honest coverage gaps.</div>
     <span class="arrow">→</span>
   </a>
-  <a class="pc-card" href="/guide/understand-my-ballot">
-    <div class="idx">02 · task</div>
-    <div class="ttl">understand my ballot</div>
-    <div class="desc">Start with the highest-value ballot workflow instead of piecing together the lower-level tools yourself.</div>
+  <a class="pc-card" href="/guide/getting-started">
+    <div class="idx">02 · start</div>
+    <div class="ttl">getting started</div>
+    <div class="desc">Read the two-pass layout of the site and the shortest path from a fresh install to a real answer.</div>
     <span class="arrow">→</span>
   </a>
   <a class="pc-card" href="/guide/track-bills-and-votes">
@@ -67,7 +67,7 @@ import { withBase } from "vitepress";
 <h2 class="pc-h2">what is politiclaw?</h2>
 
 <p>
-  PolitiClaw is a <strong>local-first OpenClaw plugin</strong> that teaches your gateway about bills, representatives, ballots, and public-comment windows — then gives the agent the tools to answer questions, monitor changes, and draft outreach without sending your queries to a third-party political platform.
+  PolitiClaw is a <strong>local-first OpenClaw plugin</strong> that turns representative accountability into a deterministic, auditable workflow. You declare what you care about; PolitiClaw scores your federal House delegation against those stances using their public roll-call votes, cites every bill it counted, and is honest about what it couldn't measure. Bills, ballots, monitoring, and draft-only outreach are the supporting evidence base — not the headline.
 </p>
 
 <p>
@@ -119,31 +119,36 @@ import { withBase } from "vitepress";
 <div class="pc-card-grid cols-2">
   <div class="pc-card">
     <div class="idx">01</div>
-    <div class="ttl">federal bills &amp; house votes</div>
-    <div class="desc">Bills, House roll-call votes, and committee schedules through the shared <code>api.data.gov</code> key against api.congress.gov.</div>
+    <div class="ttl">representative accountability</div>
+    <div class="desc">Per-rep and per-issue alignment scoring against your declared stances, driven by deterministic matching of House roll-call votes to the bills you have signal on. Confidence floor preserves "insufficient data" honesty; Senate and state/local accountability are not claimed.</div>
   </div>
   <div class="pc-card">
     <div class="idx">02</div>
-    <div class="ttl">rep finder</div>
-    <div class="desc">Reps-by-address with a zero-key local shapefile path, or the Geocodio API path when you configure that key.</div>
+    <div class="ttl">federal bills &amp; house votes</div>
+    <div class="desc">The evidence base. Bills, House roll-call votes, and committee schedules through the shared <code>api.data.gov</code> key against api.congress.gov.</div>
   </div>
   <div class="pc-card">
     <div class="idx">03</div>
+    <div class="ttl">rep finder</div>
+    <div class="desc">Reps-by-address with a zero-key local shapefile path, or the Geocodio API path when you configure that key. Needed before any accountability score can be computed.</div>
+  </div>
+  <div class="pc-card">
+    <div class="idx">04</div>
     <div class="ttl">ballot &amp; election prep</div>
     <div class="desc">Contest-by-contest prep for upcoming elections via Google Civic — the only wired ballot source today.</div>
   </div>
   <div class="pc-card">
-    <div class="idx">04</div>
+    <div class="idx">05</div>
     <div class="ttl">recurring monitoring</div>
-    <div class="desc">Plugin-owned cron templates plus a saved cadence that controls which default jobs stay enabled. See <a href="/guide/set-it-and-forget-it">set it and forget it</a> for what the jobs actually do over time.</div>
+    <div class="desc">Plugin-owned cron templates plus a saved cadence that controls which default jobs stay enabled. Feeds the weekly digest and monthly rep report — see <a href="/guide/set-it-and-forget-it">set it and forget it</a> for what the jobs do over time.</div>
   </div>
   <div class="pc-card">
-    <div class="idx">05</div>
+    <div class="idx">06</div>
     <div class="ttl">candidate finance research</div>
     <div class="desc">FEC OpenFEC lookups through the same <code>api.data.gov</code> key, scoped for candidate and committee research.</div>
   </div>
   <div class="pc-card">
-    <div class="idx">06</div>
+    <div class="idx">07</div>
     <div class="ttl">draft-only outreach</div>
     <div class="desc">Drafts letters, public comments, and testimony grounded in the bill text and your own saved stance — you send them yourself.</div>
   </div>
@@ -220,21 +225,27 @@ import { withBase } from "vitepress";
 
 <div class="pc-card-grid cols-3">
   <a class="pc-card" href="/guide/see-how-my-reps-align">
-    <div class="idx">04 · task</div>
+    <div class="idx">01 · task</div>
     <div class="ttl">see how my reps align</div>
-    <div class="desc">Find the representative workflow first, then drop into reports or outreach only when needed.</div>
+    <div class="desc">The accountability spine — find your delegation, score each rep against your declared stances, and read the per-issue breakdown with cited votes.</div>
+    <span class="arrow">→</span>
+  </a>
+  <a class="pc-card" href="/guide/understand-my-ballot">
+    <div class="idx">02 · task</div>
+    <div class="ttl">understand my ballot</div>
+    <div class="desc">Fold accountability context into the next ballot. Start with the highest-value ballot workflow instead of piecing it together yourself.</div>
     <span class="arrow">→</span>
   </a>
   <a class="pc-card" href="/guide/research-candidates">
-    <div class="idx">05 · task</div>
+    <div class="idx">03 · task</div>
     <div class="ttl">research candidates</div>
     <div class="desc">Start from the single-candidate workflow before opening the more detailed race-comparison path.</div>
     <span class="arrow">→</span>
   </a>
   <a class="pc-card" href="/guide/draft-outreach">
-    <div class="idx">06 · task</div>
+    <div class="idx">04 · task</div>
     <div class="ttl">draft outreach</div>
-    <div class="desc">Turn bill research, rep scoring, or ballot prep into a draft the user can send themselves.</div>
+    <div class="desc">Turn accountability findings, bill research, or ballot prep into a draft the user can send themselves.</div>
     <span class="arrow">→</span>
   </a>
   <a class="pc-card" href="/guide/set-it-and-forget-it">
@@ -258,7 +269,7 @@ import { withBase } from "vitepress";
   <a class="pc-card" href="/guide/monitoring">
     <div class="idx">10 · task</div>
     <div class="ttl">manage monitoring</div>
-    <div class="desc">Use cadence as the main control, with lower-level monitoring tools available when you need them.</div>
+    <div class="desc">Use cadence as the main control for the weekly digest and the monthly rep accountability report.</div>
     <span class="arrow">→</span>
   </a>
   <a class="pc-card" href="/guide/configuration">

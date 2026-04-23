@@ -1,10 +1,11 @@
 ---
 name: politiclaw-monitoring
 description: >-
-  How to run the PolitiClaw monitoring loop. Decides when to alert, when to
-  summarize, and when to stay silent. Enforces the anti-echo-chamber rule
-  that every substantial summary must include a dissenting or complicating
-  view when one exists.
+  How to run the PolitiClaw monitoring loop. Frames every monitoring
+  output around whether representatives acted consistently with the user's
+  declared stances. Decides when to alert, when to summarize, and when to
+  stay silent. Enforces the anti-echo-chamber rule that every substantial
+  summary must include a dissenting or complicating view when one exists.
 read_when:
   - A PolitiClaw cron template fires (weekly_summary, rep_vote_watch,
     tracked_hearings, rep_report).
@@ -156,7 +157,10 @@ the cadence are paused (kept, not deleted) so flipping back is instant.
 
 ## Rep report (periodic digest)
 
-When `politiclaw_rep_report` runs (manually or via `politiclaw.rep_report` cron):
+This is the canonical accountability surface. Frame it as an answer to
+"did my reps represent the stances I declared?" — not as a generic
+"monthly summary." When `politiclaw_rep_report` runs (manually or via
+`politiclaw.rep_report` cron):
 
 1. Call the tool exactly once unless the user asks for a refresh. It re-scores
    every stored representative deterministically from the SQLite DB (House

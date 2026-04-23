@@ -17,8 +17,12 @@ words. Longer only if the week was genuinely eventful.
 
 ### 1. Headline — one sentence
 
-What changed this week that matters most to the user. If nothing did, say
-that: "Quiet week. No bills touching your declared stances moved."
+What changed this week that matters most to the user. When any counted
+rep vote crossed the confidence floor this week, lead the headline with
+how the user's top-weight issue was represented (e.g. "Your highest-
+weight issue, climate, saw 2 aligned and 1 conflicted rep votes this
+week."). If nothing moved, say that plainly: "Quiet week. No bills
+touching your declared stances moved."
 
 ### 2. Bills touching your declared stances
 

@@ -121,11 +121,22 @@ describe("politiclaw_rep_report tool", () => {
     const result = await repReportTool.execute!("call-1", {}, undefined, undefined);
     const text = (result.content[0] as { type: "text"; text: string }).text;
 
-    expect(text).toContain("PolitiClaw representative alignment report");
+    expect(text).toContain("PolitiClaw representative accountability report");
     expect(text).toContain("Stance snapshot hash:");
     expect(text).toContain("Representative Rep Monthly");
     expect(text).toContain("[119-hr-97]");
     expect(text).toContain("https://www.congress.gov/bill/119/house-bill/97");
     expect(text).toContain("informational, not independent journalism");
+  });
+
+  it("includes a pattern tally header that counts each band", async () => {
+    seedAlignedRep(db);
+    const result = await repReportTool.execute!("call-1", {}, undefined, undefined);
+    const text = (result.content[0] as { type: "text"; text: string }).text;
+
+    expect(text).toMatch(
+      /Patterns: \d+ aligned · \d+ mixed · \d+ concerning · \d+ insufficient data\./,
+    );
+    expect(text).toContain("1 aligned");
   });
 });

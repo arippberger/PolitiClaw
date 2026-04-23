@@ -22,10 +22,10 @@ export default defineConfig({
         text: "Guide",
         items: [
           { text: "Getting Started", link: "/guide/getting-started" },
+          { text: "See How My Reps Align", link: "/guide/see-how-my-reps-align" },
           { text: "Entry Points by Goal", link: "/guide/entry-points-by-goal" },
           { text: "Understand My Ballot", link: "/guide/understand-my-ballot" },
           { text: "Track Bills and Votes", link: "/guide/track-bills-and-votes" },
-          { text: "See How My Reps Align", link: "/guide/see-how-my-reps-align" },
           { text: "Research Candidates", link: "/guide/research-candidates" },
           { text: "Draft Outreach", link: "/guide/draft-outreach" },
           { text: "Set It and Forget It", link: "/guide/set-it-and-forget-it" },

@@ -135,7 +135,9 @@ describe("handleDashboardRequest", () => {
     const state = resState(res);
     expect(state.statusCode).toBe(200);
     expect(state.headers["Content-Type"]).toMatch(/text\/html/);
-    expect(bodyText(res)).toContain("<title>PolitiClaw Status</title>");
+    expect(bodyText(res)).toContain(
+      "<title>PolitiClaw — Representative Accountability</title>",
+    );
   });
 
   it("serves index.html at /politiclaw/ (trailing slash)", async () => {
@@ -145,7 +147,7 @@ describe("handleDashboardRequest", () => {
       deps: { db },
     });
     expect(resState(res).statusCode).toBe(200);
-    expect(bodyText(res)).toContain("PolitiClaw Status");
+    expect(bodyText(res)).toContain("Representative Accountability");
   });
 
   it("serves app.js with a JS content-type", async () => {

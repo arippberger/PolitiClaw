@@ -9,6 +9,27 @@ import type { IssueStance } from "../preferences/types.js";
  */
 export const CONFIDENCE_FLOOR = 0.4;
 
+/**
+ * Thresholds that classify a rep's per-issue alignment into the 3-band
+ * accountability pattern shown on rep reports. All pattern logic gates on
+ * `!belowConfidenceFloor` first; below-floor issues never contribute.
+ *
+ * - `PATTERN_CONCERNING_MAX` — alignment below this, on a high-weight issue,
+ *   flags the rep's pattern as `concerning`.
+ * - `PATTERN_ALIGNED_MIN` — alignment at or above this counts as aligned on
+ *   an issue; a rep with every above-floor issue at this level is `aligned`.
+ */
+export const PATTERN_CONCERNING_MAX = 0.4;
+export const PATTERN_ALIGNED_MIN = 0.7;
+
+/**
+ * Minimum stance weight (1–5 scale) at which a below-threshold alignment on
+ * a single issue is enough to tip the rep's whole pattern into `concerning`.
+ * Below this weight, the issue still shows its numbers but won't by itself
+ * dominate the rep-level band.
+ */
+export const PATTERN_CONCERNING_MIN_WEIGHT = 4;
+
 export const ALIGNMENT_DISCLAIMER =
   "This is informational, not independent journalism. Directional framing compares bill text to your declared stances; verify against neutral sources before voting or contacting officials.";
 

@@ -8,7 +8,26 @@ import {
   setStorageForTests,
 } from "../storage/context.js";
 import { recordStanceSignal, upsertIssueStance } from "../domain/preferences/index.js";
-import { scoreRepresentativeTool } from "./repScoring.js";
+import type { RepIssueAlignment } from "../domain/scoring/repAlignment.js";
+import { computeRepPattern, scoreRepresentativeTool } from "./repScoring.js";
+
+function makeIssue(overrides: Partial<RepIssueAlignment> = {}): RepIssueAlignment {
+  return {
+    issue: "housing",
+    stance: "support",
+    stanceWeight: 4,
+    alignmentScore: 0.8,
+    confidence: 0.7,
+    relevance: 0.8,
+    consideredCount: 3,
+    alignedCount: 2,
+    conflictedCount: 1,
+    belowConfidenceFloor: false,
+    rationale: "seed",
+    citedBills: [],
+    ...overrides,
+  };
+}
 
 function stanceHash(
   stances: Array<{ issue: string; stance: "support" | "oppose" | "neutral"; weight: number }>,
@@ -259,5 +278,110 @@ describe("politiclaw_score_representative tool", () => {
     );
     const text = (result.content[0] as { type: "text"; text: string }).text;
     expect(text).toContain("Invalid input");
+  });
+
+  it("renders the 3-band pattern tail when above-floor data exists", async () => {
+    seedScenario(db, {
+      bioguide: "B000010",
+      repName: "Rep Pattern",
+      stance: { issue: "housing", stance: "support", weight: 4 },
+      bills: [
+        { billId: "119-hr-20", signalDirection: "agree", repPosition: "Yea" },
+        { billId: "119-hr-21", signalDirection: "agree", repPosition: "Yea" },
+        { billId: "119-hr-22", signalDirection: "agree", repPosition: "Yea" },
+      ],
+    });
+
+    const result = await scoreRepresentativeTool.execute!(
+      "call-1",
+      { repId: "B000010" },
+      undefined,
+      undefined,
+    );
+    const text = (result.content[0] as { type: "text"; text: string }).text;
+
+    expect(text).toContain("pattern: aligned");
+    expect(text).toContain("Your priorities this rep acted on:");
+    expect(text).toContain("did they represent your stances?");
+  });
+
+  it("omits the pattern tail entirely when every issue is below the confidence floor", async () => {
+    upsertIssueStance(db, { issue: "defense", stance: "oppose", weight: 2 });
+    db.prepare(
+      `INSERT INTO reps
+         (id, name, office, party, jurisdiction, district, state, contact,
+          last_synced, source_adapter_id, source_tier, raw)
+       VALUES ('B000011', 'Rep Floor', 'US House', 'D', 'US-CA-12', '12', 'CA', NULL,
+               @synced, 'congressLegislators', 1, '{}')`,
+    ).run({ synced: Date.now() });
+
+    const result = await scoreRepresentativeTool.execute!(
+      "call-1",
+      { repId: "B000011" },
+      undefined,
+      undefined,
+    );
+    const text = (result.content[0] as { type: "text"; text: string }).text;
+
+    expect(text).not.toContain("pattern: aligned");
+    expect(text).not.toContain("pattern: mixed");
+    expect(text).not.toContain("pattern: concerning");
+    expect(text).toContain("Pattern: insufficient data");
+    expect(text).toContain("informational, not independent journalism");
+  });
+});
+
+describe("computeRepPattern", () => {
+  it("returns 'aligned' when every above-floor issue is at or above the aligned threshold", () => {
+    const perIssue = [
+      makeIssue({ issue: "a", alignmentScore: 0.85 }),
+      makeIssue({ issue: "b", alignmentScore: 0.9 }),
+    ];
+    expect(computeRepPattern(perIssue)).toBe("aligned");
+  });
+
+  it("returns 'mixed' when above-floor issues sit between the two thresholds", () => {
+    const perIssue = [
+      makeIssue({ issue: "a", alignmentScore: 0.8, stanceWeight: 3 }),
+      makeIssue({ issue: "b", alignmentScore: 0.55, stanceWeight: 3 }),
+    ];
+    expect(computeRepPattern(perIssue)).toBe("mixed");
+  });
+
+  it("returns 'concerning' when a high-weight issue falls below the concerning threshold", () => {
+    const perIssue = [
+      makeIssue({ issue: "a", alignmentScore: 0.9, stanceWeight: 3 }),
+      makeIssue({ issue: "b", alignmentScore: 0.2, stanceWeight: 5 }),
+    ];
+    expect(computeRepPattern(perIssue)).toBe("concerning");
+  });
+
+  it("returns 'insufficient_data' when every issue is below the confidence floor", () => {
+    const perIssue = [
+      makeIssue({ issue: "a", belowConfidenceFloor: true }),
+      makeIssue({ issue: "b", belowConfidenceFloor: true }),
+    ];
+    expect(computeRepPattern(perIssue)).toBe("insufficient_data");
+  });
+
+  it("ignores below-floor issues when classifying — a low below-floor score cannot force 'concerning'", () => {
+    const perIssue = [
+      makeIssue({ issue: "a", alignmentScore: 0.85, stanceWeight: 4 }),
+      makeIssue({
+        issue: "b",
+        alignmentScore: 0.1,
+        stanceWeight: 5,
+        belowConfidenceFloor: true,
+      }),
+    ];
+    expect(computeRepPattern(perIssue)).toBe("aligned");
+  });
+
+  it("does not tip into 'concerning' for a low-weight issue, even below the concerning threshold", () => {
+    const perIssue = [
+      makeIssue({ issue: "a", alignmentScore: 0.8, stanceWeight: 2 }),
+      makeIssue({ issue: "b", alignmentScore: 0.2, stanceWeight: 2 }),
+    ];
+    expect(computeRepPattern(perIssue)).toBe("mixed");
   });
 });
