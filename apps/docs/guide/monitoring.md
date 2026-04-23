@@ -1,5 +1,7 @@
 # Manage Monitoring
 
+This page is the controls reference — cadence values, the one-off snapshot tool, and the mute commands. For the narrative version of what proactive monitoring feels like, read [Set It and Forget It](./set-it-and-forget-it).
+
 ## Core Idea
 
 PolitiClaw monitoring is built around a small set of plugin-owned cron templates plus a saved user cadence. The exact job names, schedules, and payloads live in the generated reference:

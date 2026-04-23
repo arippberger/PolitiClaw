@@ -135,7 +135,7 @@ import { withBase } from "vitepress";
   <div class="pc-card">
     <div class="idx">04</div>
     <div class="ttl">recurring monitoring</div>
-    <div class="desc">Plugin-owned cron templates plus a saved cadence that controls which default jobs stay enabled.</div>
+    <div class="desc">Plugin-owned cron templates plus a saved cadence that controls which default jobs stay enabled. See <a href="/guide/set-it-and-forget-it">set it and forget it</a> for what the jobs actually do over time.</div>
   </div>
   <div class="pc-card">
     <div class="idx">05</div>
@@ -237,20 +237,38 @@ import { withBase } from "vitepress";
     <div class="desc">Turn bill research, rep scoring, or ballot prep into a draft the user can send themselves.</div>
     <span class="arrow">→</span>
   </a>
+  <a class="pc-card" href="/guide/set-it-and-forget-it">
+    <div class="idx">07 · experience</div>
+    <div class="ttl">set it and forget it</div>
+    <div class="desc">What the recurring monitoring jobs actually produce — when they speak, when they stay silent, what each one watches.</div>
+    <span class="arrow">→</span>
+  </a>
+  <a class="pc-card" href="/guide/rep-accountability">
+    <div class="idx">08 · experience</div>
+    <div class="ttl">how accountability works</div>
+    <div class="desc">The loop from declared stances through scored reps to a draft letter you send yourself. Includes the dissenting-view rule.</div>
+    <span class="arrow">→</span>
+  </a>
+  <a class="pc-card" href="/guide/example-alerts">
+    <div class="idx">09 · experience</div>
+    <div class="ttl">example alerts</div>
+    <div class="desc">What a well-formed rep-vote hit, weekly digest, and quiet-window silence look like — and what a bad alert would look like.</div>
+    <span class="arrow">→</span>
+  </a>
   <a class="pc-card" href="/guide/monitoring">
-    <div class="idx">07 · task</div>
+    <div class="idx">10 · task</div>
     <div class="ttl">manage monitoring</div>
     <div class="desc">Use cadence as the main control, with lower-level monitoring tools available when you need them.</div>
     <span class="arrow">→</span>
   </a>
   <a class="pc-card" href="/guide/configuration">
-    <div class="idx">08 · config</div>
+    <div class="idx">11 · config</div>
     <div class="ttl">configuration</div>
     <div class="desc">Live keys (<code>apiDataGov</code>, <code>googleCivic</code>, <code>geocodio</code>) separated from schema-only placeholders.</div>
     <span class="arrow">→</span>
   </a>
   <a class="pc-card" href="/reference/tools">
-    <div class="idx">09 · reference</div>
+    <div class="idx">12 · reference</div>
     <div class="ttl">runtime reference</div>
     <div class="desc">Drop to the generated reference when you need exact tool schemas, config keys, or source coverage facts.</div>
     <span class="arrow">→</span>
