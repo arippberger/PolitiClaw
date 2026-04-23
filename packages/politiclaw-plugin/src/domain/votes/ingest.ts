@@ -1,5 +1,5 @@
 import type { PolitiClawDb } from "../../storage/sqlite.js";
-import type { HouseVotesResolver } from "../../sources/votes/index.js";
+import type { VotesResolver } from "../../sources/votes/index.js";
 import type {
   MemberVote,
   RollCallVote,
@@ -35,7 +35,7 @@ export type IngestedVote = {
   reason?: string;
 };
 
-export type IngestHouseVotesResult =
+export type IngestVotesResult =
   | {
       status: "ok";
       ingested: IngestedVote[];
@@ -43,38 +43,40 @@ export type IngestHouseVotesResult =
     }
   | { status: "unavailable"; reason: string; actionable?: string };
 
-export type IngestHouseVotesOptions = {
+export type IngestVotesOptions = {
   filters: RollCallVoteListFilters;
   /** When true, re-fetch detail+members for every listed vote even if its update_date is unchanged. */
   force?: boolean;
 };
 
 /**
- * Ingest recent House roll-call votes into the plugin-private DB.
+ * Ingest recent roll-call votes for the chamber in `filters.chamber` into the
+ * plugin-private DB. House votes come from api.congress.gov (tier 1); Senate
+ * votes from voteview.com (tier 2). The resolver picks the adapter.
  *
- * Strategy (no `snapshots`-table involvement — vote rows are tier-1 authoritative
+ * Strategy (no `snapshots`-table involvement — vote rows are authoritative
  * data, not user-facing alerts):
  *
- *  1. Pull the list slice for (congress, session) via the resolver.
+ *  1. Pull the list slice for (congress, session, chamber) via the resolver.
  *  2. For every listed vote, look up the existing row. If the list-level
  *     `updateDate` matches what we already have persisted AND we already
- *     have at least one member row for it, skip detail fetch — the Clerk
- *     has not touched the record since our last ingest.
- *  3. Otherwise, fetch `getWithMembers()` in sequence (api.data.gov 5000/hr
- *     limit is comfortable for batched single-user loads, but parallelizing
- *     this would need a rate-limit shield that the current ingest path does
- *     not implement).
+ *     have at least one member row for it, skip detail fetch — the source
+ *     has not touched the record since our last ingest. Voteview does not
+ *     expose an update timestamp, so unchanged Senate rows with members
+ *     already present are always considered up-to-date; use `force: true`
+ *     for a full refetch.
+ *  3. Otherwise, fetch `getWithMembers()` in sequence.
  *  4. Upsert the vote row, replace the member rows atomically.
  *
  * There is no LLM-search fallback at any layer here; a missing primary
  * surfaces as `status: "unavailable"` and representative scoring treats that
  * as "insufficient data" for any rep whose positions we cannot resolve.
  */
-export async function ingestHouseVotes(
+export async function ingestVotes(
   db: PolitiClawDb,
-  resolver: HouseVotesResolver,
-  options: IngestHouseVotesOptions,
-): Promise<IngestHouseVotesResult> {
+  resolver: VotesResolver,
+  options: IngestVotesOptions,
+): Promise<IngestVotesResult> {
   const listResult = await resolver.list(options.filters);
   if (listResult.status !== "ok") {
     return {

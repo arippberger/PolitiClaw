@@ -1,10 +1,11 @@
+import { SENATE_PROCEDURAL_VOTE_QUESTIONS } from "./senateProcedural.js";
+
 /**
  * Adapter-agnostic shape for a recorded congressional roll-call vote.
  *
- * Normalized across api.congress.gov `/house-vote` (the only primary-source
- * roll-call endpoint shipped by the Library of Congress as of 2026-04-19) and
- * any future adapter. Senate roll-call votes are not yet exposed by
- * api.congress.gov, but any future Senate adapter can fit this shape.
+ * Normalized across api.congress.gov `/house-vote` (House) and voteview.com's
+ * `/api/download` (Senate). Both adapters populate the same `RollCallVote`
+ * shape so downstream scoring never has to branch on chamber.
  */
 export type VoteChamber = "House" | "Senate";
 
@@ -18,10 +19,15 @@ export type VoteChamber = "House" | "Senate";
 export type MemberVotePosition = "Yea" | "Nay" | "Present" | "Not Voting";
 
 /**
- * True when the recorded question is one of the well-known procedural
- * motions. Procedural votes are excluded from representative alignment unless
- * the user explicitly opts in; keeping the flag on the adapter-agnostic shape
- * means scoring never has to re-parse `voteQuestion`.
+ * House-specific procedural-question list. Matched against api.congress.gov's
+ * `voteQuestion` phrasing. Procedural votes are excluded from representative
+ * alignment unless the user explicitly opts in; keeping the flag on the
+ * adapter-agnostic shape means scoring never has to re-parse `voteQuestion`.
+ *
+ * Senate procedural questions live in `./senateProcedural.ts` because the
+ * Senate clerk phrases motions differently ("On the Cloture Motion", "On the
+ * Motion to Proceed", etc.). The chamber-aware {@link isProceduralQuestion}
+ * below picks the right list per vote.
  */
 export const PROCEDURAL_VOTE_QUESTIONS: readonly string[] = [
   "On Motion to Recommit",
@@ -94,6 +100,11 @@ export type RollCallVoteWithMembers = {
 
 export type RollCallVoteListFilters = {
   congress: number;
+  /**
+   * Which chamber to enumerate. Routes to the correct adapter in the votes
+   * resolver (House → api.congress.gov, Senate → voteview).
+   */
+  chamber: VoteChamber;
   /** 1 or 2. If omitted, caller gets whatever session the API default returns. */
   session?: number;
   limit?: number;
@@ -146,11 +157,21 @@ export function normalizeVotePosition(raw: string | undefined): MemberVotePositi
  * procedural exclusion is a narrow enumerated list, not a catch-all;
  * substantive vote questions (e.g., "On Passage", "On Agreeing to the
  * Amendment") do not match.
+ *
+ * When `chamber` is omitted (list-level House records that have not been
+ * hydrated yet), the House list is used — this preserves the pre-Senate-adapter
+ * behavior. Senate votes always pass `chamber: "Senate"` so cloture motions
+ * and motion-to-proceed questions route to the Senate list.
  */
-export function isProceduralQuestion(voteQuestion: string | undefined): boolean {
+export function isProceduralQuestion(
+  voteQuestion: string | undefined,
+  chamber?: VoteChamber,
+): boolean {
   if (!voteQuestion) return false;
-  const needle = voteQuestion.trim();
-  return PROCEDURAL_VOTE_QUESTIONS.some(
-    (q) => q.toLowerCase() === needle.toLowerCase(),
-  );
+  const needle = voteQuestion.trim().toLowerCase();
+  const list =
+    chamber === "Senate"
+      ? SENATE_PROCEDURAL_VOTE_QUESTIONS
+      : PROCEDURAL_VOTE_QUESTIONS;
+  return list.some((q) => q.toLowerCase() === needle);
 }

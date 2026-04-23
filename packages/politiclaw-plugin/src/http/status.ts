@@ -268,7 +268,7 @@ function buildRecentVotesSection(db: PolitiClawDb): StatusRecentVotes {
     return {
       status: "none",
       reason:
-        "no roll-call votes ingested yet — call politiclaw_ingest_house_votes to populate",
+        "no roll-call votes ingested yet — call politiclaw_ingest_votes to populate",
     };
   }
   return {

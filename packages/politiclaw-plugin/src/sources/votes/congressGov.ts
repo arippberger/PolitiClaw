@@ -25,7 +25,7 @@ export type CongressGovHouseVotesAdapterOptions = {
   baseUrl?: string;
 };
 
-export interface HouseVotesAdapter {
+export interface RollCallVoteAdapter {
   id: string;
   tier: SourceTier;
   health(): Promise<AdapterHealth>;
@@ -115,7 +115,7 @@ type CongressHouseVoteMembersResponse = {
  */
 export function createCongressGovHouseVotesAdapter(
   opts: CongressGovHouseVotesAdapterOptions,
-): HouseVotesAdapter {
+): RollCallVoteAdapter {
   const fetcher = opts.fetcher ?? fetch;
   const now = opts.now ?? Date.now;
   const baseUrl = opts.baseUrl ?? CONGRESS_API_BASE;

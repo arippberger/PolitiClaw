@@ -157,7 +157,14 @@ describe("identifyMyReps", () => {
   it("returns unavailable when no resolver adapter succeeds", async () => {
     const db = openMemoryDb();
     upsertPreferences(db, { address: "123 Main St", state: "ca" });
-    const resolver = createRepsResolver({});
+    const resolver = createRepsResolver({
+      localShapefiles: {
+        cacheDir: "/tmp/not-used",
+        cacheLoader: () => {
+          throw new Error("test: shapefile cache unavailable");
+        },
+      },
+    });
     const result = await identifyMyReps(db, resolver);
     expect(result.status).toBe("unavailable");
     if (result.status !== "unavailable") return;

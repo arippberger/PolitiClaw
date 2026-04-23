@@ -2,51 +2,67 @@ import type { AdapterResult } from "../common/types.js";
 import { unavailable } from "../common/types.js";
 import {
   createCongressGovHouseVotesAdapter,
-  type HouseVotesAdapter,
+  type RollCallVoteAdapter,
 } from "./congressGov.js";
+import { createVoteviewSenateVotesAdapter } from "./voteview.js";
 import type {
   RollCallVote,
   RollCallVoteListFilters,
   RollCallVoteRef,
   RollCallVoteWithMembers,
+  VoteChamber,
 } from "./types.js";
 
-export type HouseVotesResolverOptions = {
+export type VotesResolverOptions = {
   apiDataGovKey?: string;
   fetcher?: typeof fetch;
   now?: () => number;
-  baseUrl?: string;
+  /** Override api.congress.gov base URL. */
+  congressGovBaseUrl?: string;
+  /** Override voteview.com base URL. */
+  voteviewBaseUrl?: string;
 };
 
 /**
- * Resolver for House roll-call votes. Mirrors `createBillsResolver`:
- * api.congress.gov (tier 1) is the only primary-source adapter; without the
- * `apiDataGov` key we return a structured "unavailable". There is no
- * LLM-search fallback — a missing primary surfaces as "insufficient data" to
- * the scoring layer, never as paraphrased vote positions.
+ * Resolver for roll-call votes across both chambers. Routes by chamber:
  *
- * A `unitedstates/congress` scraper adapter will be able to slot in here as
- * a zero-key fallback for both chambers; Senate support depends on that work
- * landing.
+ *   House  → api.congress.gov `/house-vote` (tier 1). Requires
+ *            `plugins.politiclaw.apiKeys.apiDataGov`.
+ *   Senate → voteview.com `/api/search` + `/api/download` (tier 2).
+ *            No API key required.
+ *
+ * Missing primary sources surface as a structured "unavailable" result;
+ * there is no LLM-search fallback, so the scoring layer treats a missing
+ * primary as "insufficient data" rather than paraphrased positions.
  */
-export function createHouseVotesResolver(opts: HouseVotesResolverOptions = {}) {
-  const adapters: HouseVotesAdapter[] = [];
+export function createVotesResolver(opts: VotesResolverOptions = {}) {
+  const byChamber = new Map<VoteChamber, RollCallVoteAdapter[]>();
+
   if (opts.apiDataGovKey) {
-    adapters.push(
+    byChamber.set("House", [
       createCongressGovHouseVotesAdapter({
         apiKey: opts.apiDataGovKey,
         fetcher: opts.fetcher,
         now: opts.now,
-        baseUrl: opts.baseUrl,
+        baseUrl: opts.congressGovBaseUrl,
       }),
-    );
+    ]);
   }
+
+  byChamber.set("Senate", [
+    createVoteviewSenateVotesAdapter({
+      fetcher: opts.fetcher,
+      now: opts.now,
+      baseUrl: opts.voteviewBaseUrl,
+    }),
+  ]);
 
   return {
     async list(
       filters: RollCallVoteListFilters,
     ): Promise<AdapterResult<RollCallVote[]>> {
-      if (adapters.length === 0) return zeroKeyUnavailable();
+      const adapters = byChamber.get(filters.chamber) ?? [];
+      if (adapters.length === 0) return zeroKeyUnavailable(filters.chamber);
       const reasons: string[] = [];
       for (const adapter of adapters) {
         const result = await adapter.list(filters);
@@ -54,15 +70,16 @@ export function createHouseVotesResolver(opts: HouseVotesResolverOptions = {}) {
         reasons.push(`${adapter.id}: ${result.reason}`);
       }
       return unavailable(
-        "houseVotes",
-        `no house-votes source available (${reasons.join("; ")})`,
-        "configure plugins.politiclaw.apiKeys.apiDataGov",
+        "votes",
+        `no ${filters.chamber.toLowerCase()}-votes source available (${reasons.join("; ")})`,
+        hintFor(filters.chamber),
       );
     },
     async getWithMembers(
       ref: RollCallVoteRef,
     ): Promise<AdapterResult<RollCallVoteWithMembers>> {
-      if (adapters.length === 0) return zeroKeyUnavailable();
+      const adapters = byChamber.get(ref.chamber) ?? [];
+      if (adapters.length === 0) return zeroKeyUnavailable(ref.chamber);
       const reasons: string[] = [];
       for (const adapter of adapters) {
         const result = await adapter.getWithMembers(ref);
@@ -70,23 +87,34 @@ export function createHouseVotesResolver(opts: HouseVotesResolverOptions = {}) {
         reasons.push(`${adapter.id}: ${result.reason}`);
       }
       return unavailable(
-        "houseVotes",
-        `no house-votes source available (${reasons.join("; ")})`,
-        "configure plugins.politiclaw.apiKeys.apiDataGov",
+        "votes",
+        `no ${ref.chamber.toLowerCase()}-votes source available (${reasons.join("; ")})`,
+        hintFor(ref.chamber),
       );
     },
     adapterIds(): string[] {
-      return adapters.map((adapter) => adapter.id);
+      const ids: string[] = [];
+      for (const adapters of byChamber.values()) {
+        for (const adapter of adapters) ids.push(adapter.id);
+      }
+      return ids;
     },
   };
 }
 
-export type HouseVotesResolver = ReturnType<typeof createHouseVotesResolver>;
+export type VotesResolver = ReturnType<typeof createVotesResolver>;
 
-function zeroKeyUnavailable<T>(): AdapterResult<T> {
+function zeroKeyUnavailable<T>(chamber: VoteChamber): AdapterResult<T> {
   return unavailable(
-    "houseVotes",
-    "no house-votes source configured",
-    "set plugins.politiclaw.apiKeys.apiDataGov (free, https://api.data.gov/signup/)",
+    "votes",
+    `no ${chamber.toLowerCase()}-votes source configured`,
+    hintFor(chamber),
   );
+}
+
+function hintFor(chamber: VoteChamber): string {
+  if (chamber === "House") {
+    return "set plugins.politiclaw.apiKeys.apiDataGov (free, https://api.data.gov/signup/)";
+  }
+  return "voteview.com is zero-key; network access to voteview.com required";
 }

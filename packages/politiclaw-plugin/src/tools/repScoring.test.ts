@@ -200,7 +200,7 @@ describe("politiclaw_score_representative tool", () => {
 
     expect(text).toContain("insufficient data");
     expect(text).toContain("informational, not independent journalism");
-    expect(text).toContain("politiclaw_ingest_house_votes");
+    expect(text).toContain("politiclaw_ingest_votes");
   });
 
   it("mentions procedural exclusion by default and coverage hints", async () => {

@@ -27,7 +27,7 @@ Search federal bills, inspect bill details, score bill alignment, and ingest Hou
 - [`politiclaw_search_bills`](./politiclaw_search_bills.md) — Search recent federal bills
 - [`politiclaw_get_bill_details`](./politiclaw_get_bill_details.md) — Fetch a single federal bill
 - [`politiclaw_score_bill`](./politiclaw_score_bill.md) — Score a bill against your declared stances
-- [`politiclaw_ingest_house_votes`](./politiclaw_ingest_house_votes.md) — Ingest recent House roll-call votes
+- [`politiclaw_ingest_votes`](./politiclaw_ingest_votes.md) — Ingest recent congressional roll-call votes
 
 ## Ballot and election prep
 

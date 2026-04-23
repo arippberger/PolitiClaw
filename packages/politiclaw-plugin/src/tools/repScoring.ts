@@ -178,12 +178,12 @@ function buildCoverageHints(inputs: {
     hints.push(
       `  • ${inputs.billsWithoutRepVotes} bill${
         inputs.billsWithoutRepVotes === 1 ? "" : "s"
-      } had a recorded stance signal but no matching House roll-call for this rep (Senate ingest is not available yet).`,
+      } had a recorded stance signal but no matching roll-call for this rep.`,
     );
   }
   if (inputs.consideredVoteCount === 0) {
     hints.push(
-      "  • Call politiclaw_ingest_house_votes first to populate roll-call data, then politiclaw_score_bill on bills you have signals for.",
+      "  • Call politiclaw_ingest_votes first to populate roll-call data, then politiclaw_score_bill on bills you have signals for.",
     );
   }
   return hints;

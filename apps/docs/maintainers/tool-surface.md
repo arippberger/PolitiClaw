@@ -74,7 +74,7 @@ Examples:
 
 - `politiclaw_record_stance_signal`
 - `politiclaw_download_shapefiles`
-- `politiclaw_ingest_house_votes`
+- `politiclaw_ingest_votes`
 - `politiclaw_setup_monitoring`
 - `politiclaw_pause_monitoring`
 - `politiclaw_resume_monitoring`

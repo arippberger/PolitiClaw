@@ -81,7 +81,7 @@ export const TOOL_AUDIT_ENTRIES: readonly ToolAuditEntry[] = [
     rationale: "Turns raw bill lookup into a user-relevant answer by mapping it to declared issues.",
   },
   {
-    name: "politiclaw_ingest_house_votes",
+    name: "politiclaw_ingest_votes",
     tier: "internal",
     docsAction: "generated-reference-only",
     rationale: "Data-ingestion plumbing that supports rep scoring but is not a user-facing civic task.",

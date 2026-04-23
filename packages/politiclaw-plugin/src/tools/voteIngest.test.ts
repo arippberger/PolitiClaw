@@ -11,8 +11,8 @@ import {
   setStorageForTests,
 } from "../storage/context.js";
 import {
-  ingestHouseVotesTool,
-  renderIngestHouseVotesOutput,
+  ingestVotesTool,
+  renderIngestVotesOutput,
 } from "./voteIngest.js";
 
 const FIXTURES_DIR = join(
@@ -66,30 +66,37 @@ afterEach(() => {
   vi.unstubAllGlobals();
 });
 
-describe("renderIngestHouseVotesOutput", () => {
-  it("renders a header + per-vote status lines for a first ingest", () => {
-    const text = renderIngestHouseVotesOutput({
-      status: "ok",
-      source: { adapterId: "congressGov.houseVotes", tier: 1 },
-      ingested: [
+describe("renderIngestVotesOutput", () => {
+  it("renders a per-chamber header + per-vote status lines for a first ingest", () => {
+    const text = renderIngestVotesOutput({
+      byChamber: [
         {
-          id: "house-119-1-17",
-          status: "new",
-          rollCallNumber: 17,
-          billId: "119-hr-30",
-          memberCount: 5,
-        },
-        {
-          id: "house-119-1-42",
-          status: "new",
-          rollCallNumber: 42,
-          billId: "119-hr-1234",
-          memberCount: 2,
+          chamber: "House",
+          result: {
+            status: "ok",
+            source: { adapterId: "congressGov.houseVotes", tier: 1 },
+            ingested: [
+              {
+                id: "house-119-1-17",
+                status: "new",
+                rollCallNumber: 17,
+                billId: "119-hr-30",
+                memberCount: 5,
+              },
+              {
+                id: "house-119-1-42",
+                status: "new",
+                rollCallNumber: 42,
+                billId: "119-hr-1234",
+                memberCount: 2,
+              },
+            ],
+          },
         },
       ],
     });
 
-    expect(text).toContain("congressGov.houseVotes, tier 1");
+    expect(text).toContain("House vote ingest (congressGov.houseVotes, tier 1)");
     expect(text).toContain("2 new");
     expect(text).toContain("0 updated");
     expect(text).toContain("0 unchanged");
@@ -98,17 +105,24 @@ describe("renderIngestHouseVotesOutput", () => {
   });
 
   it("surfaces skipped_unavailable rows with their reason + footer", () => {
-    const text = renderIngestHouseVotesOutput({
-      status: "ok",
-      source: { adapterId: "congressGov.houseVotes", tier: 1 },
-      ingested: [
+    const text = renderIngestVotesOutput({
+      byChamber: [
         {
-          id: "house-119-1-88",
-          status: "skipped_unavailable",
-          rollCallNumber: 88,
-          billId: "119-hr-1234",
-          memberCount: 0,
-          reason: "api.congress.gov http 503",
+          chamber: "House",
+          result: {
+            status: "ok",
+            source: { adapterId: "congressGov.houseVotes", tier: 1 },
+            ingested: [
+              {
+                id: "house-119-1-88",
+                status: "skipped_unavailable",
+                rollCallNumber: 88,
+                billId: "119-hr-1234",
+                memberCount: 0,
+                reason: "api.congress.gov http 503",
+              },
+            ],
+          },
         },
       ],
     });
@@ -120,19 +134,57 @@ describe("renderIngestHouseVotesOutput", () => {
   });
 
   it("surfaces missing-apiDataGov unavailable with the actionable hint", () => {
-    const text = renderIngestHouseVotesOutput({
-      status: "unavailable",
-      reason: "no house-votes source configured",
-      actionable: "set plugins.politiclaw.apiKeys.apiDataGov",
+    const text = renderIngestVotesOutput({
+      byChamber: [
+        {
+          chamber: "House",
+          result: {
+            status: "unavailable",
+            reason: "no house-votes source configured",
+            actionable: "set plugins.politiclaw.apiKeys.apiDataGov",
+          },
+        },
+      ],
     });
 
     expect(text).toContain("unavailable");
     expect(text).toContain("apiDataGov");
   });
+
+  it("concatenates per-chamber blocks when both chambers run", () => {
+    const text = renderIngestVotesOutput({
+      byChamber: [
+        {
+          chamber: "House",
+          result: {
+            status: "ok",
+            source: { adapterId: "congressGov.houseVotes", tier: 1 },
+            ingested: [
+              { id: "house-119-1-17", status: "new", rollCallNumber: 17, memberCount: 1 },
+            ],
+          },
+        },
+        {
+          chamber: "Senate",
+          result: {
+            status: "ok",
+            source: { adapterId: "voteview.senateVotes", tier: 2 },
+            ingested: [
+              { id: "senate-119-1-1", status: "new", rollCallNumber: 1, memberCount: 1 },
+            ],
+          },
+        },
+      ],
+    });
+
+    expect(text).toContain("House vote ingest");
+    expect(text).toContain("Senate vote ingest");
+    expect(text).toContain("voteview.senateVotes, tier 2");
+  });
 });
 
-describe("politiclaw_ingest_house_votes tool", () => {
-  it("returns the rendered ingest summary and persists rows when apiDataGov is set", async () => {
+describe("politiclaw_ingest_votes tool", () => {
+  it("ingests the House chamber when chamber='House' is requested", async () => {
     vi.stubGlobal(
       "fetch",
       routeFetch([
@@ -170,9 +222,9 @@ describe("politiclaw_ingest_house_votes tool", () => {
     );
     setPluginConfigForTests({ apiKeys: { apiDataGov: "k" } });
 
-    const result = await ingestHouseVotesTool.execute!(
+    const result = await ingestVotesTool.execute!(
       "call-1",
-      { congress: 119, session: 1, limit: 10 },
+      { chamber: "House", congress: 119, session: 1, limit: 10 },
       undefined,
       undefined,
     );
@@ -185,20 +237,83 @@ describe("politiclaw_ingest_house_votes tool", () => {
     expect(text).toContain("house-119-1-88");
   });
 
-  it("returns actionable unavailable when apiDataGov is missing", async () => {
+  it("ingests the Senate chamber via voteview when chamber='Senate' is requested", async () => {
+    vi.stubGlobal(
+      "fetch",
+      routeFetch([
+        {
+          match: (url) => url.includes("/api/search"),
+          body: fixture("voteview_search_119_senate_2026-04-22.json"),
+        },
+        {
+          match: (url) => url.includes("rollcall_id=RS1190001"),
+          body: fixture("voteview_download_RS1190001_2026-04-22.json"),
+        },
+        {
+          match: (url) => url.includes("rollcall_id=RS1190003"),
+          body: fixture("voteview_download_RS1190003_2026-04-22.json"),
+        },
+        {
+          match: (url) => url.includes("rollcall_id=RS1190007"),
+          body: fixture("voteview_download_RS1190007_2026-04-22.json"),
+        },
+        {
+          match: (url) => url.includes("rollcall_id=RS1190008"),
+          body: fixture("voteview_download_RS1190008_2026-04-22.json"),
+        },
+        {
+          match: (url) => url.includes("rollcall_id=RS1190663"),
+          body: fixture("voteview_download_RS1190663_2026-04-22.json"),
+        },
+      ]),
+    );
     setPluginConfigForTests({ apiKeys: {} });
 
-    const result = await ingestHouseVotesTool.execute!("call-1", {}, undefined, undefined);
+    const result = await ingestVotesTool.execute!(
+      "call-1",
+      { chamber: "Senate", congress: 119, limit: 20 },
+      undefined,
+      undefined,
+    );
     const text = (result.content[0] as { type: "text"; text: string }).text;
 
-    expect(text).toContain("unavailable");
+    expect(text).toContain("Senate vote ingest (voteview.senateVotes, tier 2)");
+    // Search fixture has 5 rollcalls — all should ingest as new.
+    expect(text).toContain("5 new");
+    expect(text).toContain("senate-119-1-1");
+    expect(text).toContain("senate-119-1-7"); // passage of S.5
+    expect(text).toContain("senate-119-2-663"); // session-2 MTP (2026)
+  });
+
+  it("returns actionable House unavailable when apiDataGov is missing but Senate still runs", async () => {
+    vi.stubGlobal(
+      "fetch",
+      routeFetch([
+        {
+          match: (url) => url.includes("/api/search"),
+          body: { recordcount: 0, recordcountTotal: 0, rollcalls: [] },
+        },
+      ]),
+    );
+    setPluginConfigForTests({ apiKeys: {} });
+
+    const result = await ingestVotesTool.execute!(
+      "call-1",
+      { chamber: "Both" },
+      undefined,
+      undefined,
+    );
+    const text = (result.content[0] as { type: "text"; text: string }).text;
+
+    expect(text).toContain("House vote ingest unavailable");
     expect(text).toContain("apiDataGov");
+    expect(text).toContain("No Senate roll-call votes returned");
   });
 
   it("rejects invalid session numbers", async () => {
     setPluginConfigForTests({ apiKeys: { apiDataGov: "k" } });
 
-    const result = await ingestHouseVotesTool.execute!(
+    const result = await ingestVotesTool.execute!(
       "call-1",
       { session: 3 },
       undefined,

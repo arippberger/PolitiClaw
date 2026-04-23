@@ -14,6 +14,7 @@ This page is generated from the explicit source coverage catalog.
 | api.data.gov | `implemented` | `apiKeys.apiDataGov` | yes | Required for the current federal bill, House vote, committee schedule, and FEC finance integrations. |
 | Local shapefile pipeline | `implemented` | n/a | no | Zero-key default for federal reps-by-address resolution after the cache is primed locally. |
 | Geocodio | `optional_upgrade` | `apiKeys.geocodio` | no | Optional API-backed upgrade for faster reps-by-address lookup. |
+| Voteview (voteview.com) | `implemented` | n/a | no | Zero-key tier-2 source for Senate roll-call votes. api.congress.gov has no /senate-vote endpoint, so this fills the gap. |
 | Google Civic voterInfoQuery | `optional_upgrade` | `apiKeys.googleCivic` | no | Key-gated ballot and election-logistics provider — the only ballot source the plugin wires today. |
 | Candidate and measure bio web search | `transport_pending` | n/a | no | The guarded adapter shape exists, but the production transport is not wired, so live calls return unavailable. |
 | Open States | `schema_only` | `apiKeys.openStates` | no | Declared in the plugin config schema but not wired into the current runtime. |
@@ -33,8 +34,8 @@ This page is generated from the explicit source coverage catalog.
 - Required: yes
 - Config key: `apiKeys.apiDataGov`
 - Summary: Required for the current federal bill, House vote, committee schedule, and FEC finance integrations.
-- Notes: One key powers api.congress.gov-backed sources and FEC OpenFEC. Senate vote ingest is not wired yet.
-- Tools: `politiclaw_search_bills`, `politiclaw_get_bill_details`, `politiclaw_score_bill`, `politiclaw_check_upcoming_votes`, `politiclaw_ingest_house_votes`, `politiclaw_research_candidate`, `politiclaw_research_challengers`
+- Notes: One key powers api.congress.gov-backed sources and FEC OpenFEC. Senate roll-call ingest runs through a separate zero-key source (voteview.com).
+- Tools: `politiclaw_search_bills`, `politiclaw_get_bill_details`, `politiclaw_score_bill`, `politiclaw_check_upcoming_votes`, `politiclaw_ingest_votes`, `politiclaw_research_candidate`, `politiclaw_research_challengers`
 - Runtime files: `packages/politiclaw-plugin/src/sources/bills/index.ts`, `packages/politiclaw-plugin/src/sources/votes/index.ts`, `packages/politiclaw-plugin/src/sources/upcomingVotes/index.ts`, `packages/politiclaw-plugin/src/sources/finance/index.ts`
 
 ### Local shapefile pipeline
@@ -55,6 +56,15 @@ This page is generated from the explicit source coverage catalog.
 - Notes: Used ahead of the local shapefile resolver when a key is configured.
 - Tools: `politiclaw_get_my_reps`
 - Runtime files: `packages/politiclaw-plugin/src/sources/reps/index.ts`, `packages/politiclaw-plugin/src/sources/reps/geocodio.ts`
+
+### Voteview (voteview.com)
+
+- Status: `implemented`
+- Required: no
+- Summary: Zero-key tier-2 source for Senate roll-call votes. api.congress.gov has no /senate-vote endpoint, so this fills the gap.
+- Notes: Undocumented web-app API. The adapter tolerates a small error-envelope rate on /api/download, derives session from vote date, and rejects presidential-nomination ids (PN*) from bill linkage so confirmation votes drop out of bill-keyed scoring.
+- Tools: `politiclaw_ingest_votes`, `politiclaw_score_representative`
+- Runtime files: `packages/politiclaw-plugin/src/sources/votes/voteview.ts`, `packages/politiclaw-plugin/src/sources/votes/voteviewClient.ts`, `packages/politiclaw-plugin/src/sources/votes/billNumberParser.ts`, `packages/politiclaw-plugin/src/sources/votes/senateProcedural.ts`
 
 ### Google Civic voterInfoQuery
 

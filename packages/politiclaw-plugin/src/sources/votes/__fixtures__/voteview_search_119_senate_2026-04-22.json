@@ -1,0 +1,112 @@
+{
+  "recordcount": 5,
+  "recordcountTotal": 5,
+  "apiversion": "Q3 2017-01-08",
+  "elapsedTime": 0.042,
+  "rollcalls": [
+    {
+      "vote_title": "Motion to Invoke Cloture: Motion to Proceed to S. 5",
+      "congress": 119,
+      "chamber": "Senate",
+      "vote_document_text": "A bill to require the Secretary of Homeland Security to take into custody aliens who have been charged in the United States with theft, and for other purposes.",
+      "question": "On the Cloture Motion",
+      "vote_counts": {
+        "1": 84,
+        "9": 6,
+        "6": 9
+      },
+      "vote_question_text": "On the Cloture Motion S. 5",
+      "yea_count": 84,
+      "rollnumber": 1,
+      "date": "2025-01-09",
+      "bill_number": "S5",
+      "vote_result": "Cloture Motion Agreed to",
+      "percent_support": 90.32,
+      "id": "RS1190001",
+      "nay_count": 9
+    },
+    {
+      "vote_title": "Cornyn Amdt. No. 14",
+      "congress": 119,
+      "chamber": "Senate",
+      "vote_document_text": "To expand the list of criminal offenses that subject inadmissible aliens to mandatory detention.",
+      "question": "On the Amendment",
+      "vote_counts": {
+        "1": 70,
+        "9": 4,
+        "6": 25
+      },
+      "vote_question_text": "On the Amendment S.Amdt. 14 to S.Amdt. 8 to S. 5 (No short title on file)",
+      "yea_count": 70,
+      "rollnumber": 3,
+      "date": "2025-01-15",
+      "bill_number": "S5",
+      "vote_result": "Amendment Agreed to",
+      "percent_support": 73.68,
+      "id": "RS1190003",
+      "nay_count": 25
+    },
+    {
+      "vote_title": "S. 5, As Amended",
+      "congress": 119,
+      "chamber": "Senate",
+      "vote_document_text": "A bill to require the Secretary of Homeland Security to take into custody aliens who have been charged in the United States with theft, and for other purposes.",
+      "question": "On Passage of the Bill",
+      "vote_counts": {
+        "1": 64,
+        "6": 35
+      },
+      "vote_question_text": "On Passage of the Bill S. 5",
+      "yea_count": 64,
+      "rollnumber": 7,
+      "date": "2025-01-20",
+      "bill_number": "S5",
+      "vote_result": "Bill Passed",
+      "percent_support": 64.65,
+      "id": "RS1190007",
+      "nay_count": 35
+    },
+    {
+      "vote_title": "Confirmation: Marco Rubio, of Florida, to be Secretary of State",
+      "congress": 119,
+      "chamber": "Senate",
+      "vote_document_text": "Marco Rubio, of Florida, to be Secretary of State",
+      "question": "On the Nomination",
+      "vote_counts": {
+        "1": 99
+      },
+      "vote_question_text": "On the Nomination PN11-13",
+      "yea_count": 99,
+      "rollnumber": 8,
+      "date": "2025-01-20",
+      "bill_number": "PN1113",
+      "vote_result": "Nomination Confirmed",
+      "percent_support": 100.0,
+      "id": "RS1190008",
+      "nay_count": 0
+    },
+    {
+      "vote_title": "Motion to Proceed to S.J.Res. 86",
+      "congress": 119,
+      "chamber": "Senate",
+      "vote_document_text": "A joint resolution providing for congressional disapproval under chapter 8 of title 5, United States Code, of the rule submitted by the Environmental Protection Agency relating to \"Air Plan Approval; South Dakota; Regional Haze Plan for the Second Implementation Period\".",
+      "question": "On the Motion to Proceed",
+      "vote_counts": {
+        "1": 43,
+        "9": 7,
+        "6": 50
+      },
+      "vote_question_text": "On the Motion to Proceed S.J.Res. 86",
+      "yea_count": 43,
+      "rollnumber": 663,
+      "date": "2026-01-07",
+      "bill_number": "SJRES86",
+      "vote_result": "Motion to Proceed Rejected",
+      "percent_support": 46.24,
+      "id": "RS1190663",
+      "nay_count": 50
+    }
+  ],
+  "needScore": 0,
+  "nextId": 0
+}

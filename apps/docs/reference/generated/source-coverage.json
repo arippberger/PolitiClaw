@@ -7,7 +7,7 @@
       "configKey": "apiDataGov",
       "required": true,
       "summary": "Required for the current federal bill, House vote, committee schedule, and FEC finance integrations.",
-      "notes": "One key powers api.congress.gov-backed sources and FEC OpenFEC. Senate vote ingest is not wired yet.",
+      "notes": "One key powers api.congress.gov-backed sources and FEC OpenFEC. Senate roll-call ingest runs through a separate zero-key source (voteview.com).",
       "sourcePaths": [
         "packages/politiclaw-plugin/src/sources/bills/index.ts",
         "packages/politiclaw-plugin/src/sources/votes/index.ts",
@@ -19,7 +19,7 @@
         "politiclaw_get_bill_details",
         "politiclaw_score_bill",
         "politiclaw_check_upcoming_votes",
-        "politiclaw_ingest_house_votes",
+        "politiclaw_ingest_votes",
         "politiclaw_research_candidate",
         "politiclaw_research_challengers"
       ]
@@ -55,6 +55,24 @@
       ],
       "unlockedByTools": [
         "politiclaw_get_my_reps"
+      ]
+    },
+    {
+      "id": "voteview",
+      "label": "Voteview (voteview.com)",
+      "status": "implemented",
+      "required": false,
+      "summary": "Zero-key tier-2 source for Senate roll-call votes. api.congress.gov has no /senate-vote endpoint, so this fills the gap.",
+      "notes": "Undocumented web-app API. The adapter tolerates a small error-envelope rate on /api/download, derives session from vote date, and rejects presidential-nomination ids (PN*) from bill linkage so confirmation votes drop out of bill-keyed scoring.",
+      "sourcePaths": [
+        "packages/politiclaw-plugin/src/sources/votes/voteview.ts",
+        "packages/politiclaw-plugin/src/sources/votes/voteviewClient.ts",
+        "packages/politiclaw-plugin/src/sources/votes/billNumberParser.ts",
+        "packages/politiclaw-plugin/src/sources/votes/senateProcedural.ts"
+      ],
+      "unlockedByTools": [
+        "politiclaw_ingest_votes",
+        "politiclaw_score_representative"
       ]
     },
     {

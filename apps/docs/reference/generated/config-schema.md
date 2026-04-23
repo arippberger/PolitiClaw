@@ -23,9 +23,9 @@ REQUIRED. Shared api.data.gov key used by both api.congress.gov and FEC OpenFEC.
 - Runtime status: `implemented`
 - Required: yes
 - Wired today: yes
-- Unlocks: `politiclaw_search_bills`, `politiclaw_get_bill_details`, `politiclaw_score_bill`, `politiclaw_check_upcoming_votes`, `politiclaw_ingest_house_votes`, `politiclaw_research_candidate`, `politiclaw_research_challengers`
+- Unlocks: `politiclaw_search_bills`, `politiclaw_get_bill_details`, `politiclaw_score_bill`, `politiclaw_check_upcoming_votes`, `politiclaw_ingest_votes`, `politiclaw_research_candidate`, `politiclaw_research_challengers`
 - Runtime files: `packages/politiclaw-plugin/src/sources/bills/index.ts`, `packages/politiclaw-plugin/src/sources/votes/index.ts`, `packages/politiclaw-plugin/src/sources/upcomingVotes/index.ts`, `packages/politiclaw-plugin/src/sources/finance/index.ts`
-- Notes: One key powers api.congress.gov-backed sources and FEC OpenFEC. Senate vote ingest is not wired yet.
+- Notes: One key powers api.congress.gov-backed sources and FEC OpenFEC. Senate roll-call ingest runs through a separate zero-key source (voteview.com).
 
 ## apiKeys.geocodio
 

@@ -3,18 +3,34 @@ import type { AnyAgentTool } from "openclaw/plugin-sdk";
 import { z } from "zod";
 
 import {
-  ingestHouseVotes,
+  ingestVotes,
   type IngestedVote,
-  type IngestHouseVotesResult,
+  type IngestVotesResult,
 } from "../domain/votes/ingest.js";
-import { createHouseVotesResolver } from "../sources/votes/index.js";
+import { createVotesResolver } from "../sources/votes/index.js";
+import type { VoteChamber } from "../sources/votes/types.js";
 import { getPluginConfig, getStorage } from "../storage/context.js";
 
 const DEFAULT_CONGRESS = 119;
-const DEFAULT_SESSION = 1;
 const DEFAULT_LIMIT = 20;
+const DEFAULT_CHAMBER: ChamberArg = "Both";
 
-const IngestHouseVotesParams = Type.Object({
+type ChamberArg = "House" | "Senate" | "Both";
+
+const IngestVotesParams = Type.Object({
+  chamber: Type.Optional(
+    Type.Union(
+      [
+        Type.Literal("House"),
+        Type.Literal("Senate"),
+        Type.Literal("Both"),
+      ],
+      {
+        description:
+          "Which chamber to sweep. Defaults to 'Both'. House uses api.congress.gov (tier 1); Senate uses voteview.com (tier 2).",
+      },
+    ),
+  ),
   congress: Type.Optional(
     Type.Integer({
       minimum: 1,
@@ -25,7 +41,7 @@ const IngestHouseVotesParams = Type.Object({
     Type.Integer({
       minimum: 1,
       maximum: 2,
-      description: "Session within the congress (1 or 2). Defaults to 1.",
+      description: "Session within the congress (1 or 2). If omitted, no session filter is applied — the most recent votes across both sessions are returned.",
     }),
   ),
   limit: Type.Optional(
@@ -33,22 +49,20 @@ const IngestHouseVotesParams = Type.Object({
       minimum: 1,
       maximum: 100,
       description:
-        "Max list-level roll-call entries to sweep (1-100). Each listed vote " +
-        "may trigger an extra detail+members fetch, so 100 entries can mean " +
-        "up to ~200 api.data.gov calls against the 5000/hr quota.",
+        "Max list-level roll-call entries to sweep per chamber (1-100). House ingest may trigger an extra detail+members fetch per vote against the api.data.gov 5000/hr quota. Senate ingest fetches the full /api/search response once then issues one /api/download per vote.",
     }),
   ),
   offset: Type.Optional(Type.Integer({ minimum: 0 })),
   force: Type.Optional(
     Type.Boolean({
       description:
-        "When true, re-fetch detail+members for every listed vote even when " +
-        "its update_date is unchanged. Use for schema backfills.",
+        "When true, re-fetch detail+members for every listed vote even when its update_date is unchanged. Use for schema backfills or to pick up Voteview corrections (Voteview does not expose an update timestamp).",
     }),
   ),
 });
 
-const IngestHouseVotesInputSchema = z.object({
+const IngestVotesInputSchema = z.object({
+  chamber: z.enum(["House", "Senate", "Both"]).optional(),
   congress: z.number().int().positive().optional(),
   session: z.number().int().min(1).max(2).optional(),
   limit: z.number().int().min(1).max(100).optional(),
@@ -60,24 +74,40 @@ function textResult<T>(text: string, details: T) {
   return { content: [{ type: "text" as const, text }], details };
 }
 
-export function renderIngestHouseVotesOutput(
-  result: IngestHouseVotesResult,
+export type CombinedIngestResult = {
+  byChamber: Array<{
+    chamber: VoteChamber;
+    result: IngestVotesResult;
+  }>;
+};
+
+export function renderIngestVotesOutput(combined: CombinedIngestResult): string {
+  const blocks: string[] = [];
+  for (const entry of combined.byChamber) {
+    blocks.push(renderChamberBlock(entry.chamber, entry.result));
+  }
+  return blocks.join("\n\n");
+}
+
+function renderChamberBlock(
+  chamber: VoteChamber,
+  result: IngestVotesResult,
 ): string {
   if (result.status === "unavailable") {
     const hint = result.actionable ? ` (${result.actionable})` : "";
-    return `House vote ingest unavailable: ${result.reason}.${hint}`;
+    return `${chamber} vote ingest unavailable: ${result.reason}.${hint}`;
   }
 
   if (result.ingested.length === 0) {
     return (
-      `No House roll-call votes returned by ${result.source.adapterId} (tier ${result.source.tier}). ` +
+      `No ${chamber} roll-call votes returned by ${result.source.adapterId} (tier ${result.source.tier}). ` +
       `Try widening the limit or confirming the congress+session are in the endpoint's coverage range.`
     );
   }
 
   const counts = tallyStatuses(result.ingested);
   const header =
-    `House vote ingest (${result.source.adapterId}, tier ${result.source.tier}): ` +
+    `${chamber} vote ingest (${result.source.adapterId}, tier ${result.source.tier}): ` +
     `${counts.new} new · ${counts.updated} updated · ${counts.unchanged} unchanged` +
     (counts.skipped > 0 ? ` · ${counts.skipped} skipped (detail unavailable)` : "");
 
@@ -113,18 +143,20 @@ function tallyStatuses(ingested: readonly IngestedVote[]) {
   return counts;
 }
 
-export const ingestHouseVotesTool: AnyAgentTool = {
-  name: "politiclaw_ingest_house_votes",
-  label: "Ingest recent House roll-call votes",
+function chambersFor(input: ChamberArg): VoteChamber[] {
+  if (input === "House") return ["House"];
+  if (input === "Senate") return ["Senate"];
+  return ["House", "Senate"];
+}
+
+export const ingestVotesTool: AnyAgentTool = {
+  name: "politiclaw_ingest_votes",
+  label: "Ingest recent congressional roll-call votes",
   description:
-    "Sweep api.congress.gov's `/house-vote` endpoint and persist recent House roll-call " +
-    "votes (plus per-member positions keyed by bioguide id) into the plugin-private DB. " +
-    "Idempotent: unchanged entries (by Clerk update_date) skip the detail fetch. " +
-    "Requires plugins.politiclaw.apiKeys.apiDataGov. Senate roll-call votes are not yet " +
-    "served by api.congress.gov, so this tool currently ingests House only.",
-  parameters: IngestHouseVotesParams,
+    "Sweep primary roll-call sources and persist recent votes (plus per-member positions keyed by bioguide id) into the plugin-private DB. House: api.congress.gov `/house-vote` (tier 1, requires plugins.politiclaw.apiKeys.apiDataGov). Senate: voteview.com `/api/search` + `/api/download` (tier 2, zero-key). Idempotent: unchanged entries (by update_date when available, by memberCount>0 otherwise) skip the detail fetch. Use chamber='Both' (default) to ingest both chambers in one call.",
+  parameters: IngestVotesParams,
   async execute(_toolCallId, rawParams) {
-    const parsed = IngestHouseVotesInputSchema.safeParse(rawParams);
+    const parsed = IngestVotesInputSchema.safeParse(rawParams);
     if (!parsed.success) {
       return textResult(
         `Invalid input: ${parsed.error.issues.map((i) => i.message).join("; ")}`,
@@ -135,22 +167,29 @@ export const ingestHouseVotesTool: AnyAgentTool = {
 
     const { db } = getStorage();
     const cfg = getPluginConfig();
-    const resolver = createHouseVotesResolver({
+    const resolver = createVotesResolver({
       apiDataGovKey: cfg.apiKeys?.apiDataGov,
     });
 
-    const result = await ingestHouseVotes(db, resolver, {
-      filters: {
-        congress: input.congress ?? DEFAULT_CONGRESS,
-        session: input.session ?? DEFAULT_SESSION,
-        limit: input.limit ?? DEFAULT_LIMIT,
-        offset: input.offset,
-      },
-      force: input.force,
-    });
+    const chambers = chambersFor(input.chamber ?? DEFAULT_CHAMBER);
+    const byChamber: CombinedIngestResult["byChamber"] = [];
+    for (const chamber of chambers) {
+      const result = await ingestVotes(db, resolver, {
+        filters: {
+          congress: input.congress ?? DEFAULT_CONGRESS,
+          chamber,
+          session: input.session,
+          limit: input.limit ?? DEFAULT_LIMIT,
+          offset: input.offset,
+        },
+        force: input.force,
+      });
+      byChamber.push({ chamber, result });
+    }
 
-    return textResult(renderIngestHouseVotesOutput(result), result);
+    const combined: CombinedIngestResult = { byChamber };
+    return textResult(renderIngestVotesOutput(combined), combined);
   },
 };
 
-export const voteIngestTools: AnyAgentTool[] = [ingestHouseVotesTool];
+export const voteIngestTools: AnyAgentTool[] = [ingestVotesTool];

@@ -28,7 +28,7 @@ Run the PolitiClaw weekly summary. Read the politiclaw-summary skill and follow 
 
 ## politiclaw.rep_vote_watch
 
-- Description: Every 6h: checks for new or materially changed federal bills and committee events affecting tracked issues (change-detection-gated, so quiet windows produce no output). Pair with politiclaw_ingest_house_votes for tier-1 House roll calls; senators remain limited until Senate ingest lands.
+- Description: Every 6h: checks for new or materially changed federal bills and committee events affecting tracked issues (change-detection-gated, so quiet windows produce no output). Pair with politiclaw_ingest_votes for tier-1 House and tier-2 Senate roll calls.
 - Schedule: every 6 hour(s)
 - Session target: `isolated`
 - Wake mode: `next-heartbeat`
@@ -37,7 +37,7 @@ Run the PolitiClaw weekly summary. Read the politiclaw-summary skill and follow 
 ### Payload
 
 ```text
-Run the PolitiClaw rep-vote watch. Read the politiclaw-monitoring skill. Call politiclaw_check_upcoming_votes with the default (recent) window. Only surface bills flagged as [new] or [changed] whose alignment crosses the confidence floor. If the delta is empty, post the one-line silent-ok message per the skill — do not pad. Senate roll-call ingest is not available yet; prioritize bill-status deltas and committee activity unless politiclaw_ingest_house_votes has populated House votes.
+Run the PolitiClaw rep-vote watch. Read the politiclaw-monitoring skill. Call politiclaw_check_upcoming_votes with the default (recent) window. Only surface bills flagged as [new] or [changed] whose alignment crosses the confidence floor. If the delta is empty, post the one-line silent-ok message per the skill — do not pad. Prioritize bill-status deltas and committee activity unless politiclaw_ingest_votes has populated House and Senate roll calls.
 ```
 
 ## politiclaw.tracked_hearings

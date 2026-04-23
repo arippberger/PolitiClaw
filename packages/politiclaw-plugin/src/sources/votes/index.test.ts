@@ -1,11 +1,15 @@
 import { describe, expect, it, vi } from "vitest";
-import { createHouseVotesResolver } from "./index.js";
+import { createVotesResolver } from "./index.js";
 
-describe("createHouseVotesResolver", () => {
-  it("surfaces zero-key unavailable when no apiDataGov key is configured", async () => {
-    const resolver = createHouseVotesResolver();
+describe("createVotesResolver", () => {
+  it("surfaces zero-key unavailable for House when no apiDataGov key is configured", async () => {
+    const resolver = createVotesResolver();
 
-    const listResult = await resolver.list({ congress: 119, session: 1 });
+    const listResult = await resolver.list({
+      chamber: "House",
+      congress: 119,
+      session: 1,
+    });
     const detailResult = await resolver.getWithMembers({
       chamber: "House",
       congress: 119,
@@ -19,10 +23,11 @@ describe("createHouseVotesResolver", () => {
     expect(listResult.actionable).toContain("apiDataGov");
 
     expect(detailResult.status).toBe("unavailable");
-    expect(resolver.adapterIds()).toEqual([]);
+    // Senate adapter is configured zero-key; House is missing without apiDataGov.
+    expect(resolver.adapterIds()).toEqual(["voteview.senateVotes"]);
   });
 
-  it("routes calls through the congressGov adapter when the key is present", async () => {
+  it("routes House calls through the congressGov adapter when the key is present", async () => {
     const fetcher = vi.fn(async () =>
       ({
         ok: true,
@@ -30,16 +35,43 @@ describe("createHouseVotesResolver", () => {
         json: async () => ({ houseRollCallVotes: [] }),
       }) as unknown as Response,
     );
-    const resolver = createHouseVotesResolver({ apiDataGovKey: "k", fetcher });
+    const resolver = createVotesResolver({ apiDataGovKey: "k", fetcher });
 
-    const result = await resolver.list({ congress: 119, session: 1, limit: 5 });
+    const result = await resolver.list({
+      chamber: "House",
+      congress: 119,
+      session: 1,
+      limit: 5,
+    });
 
     expect(result.status).toBe("ok");
-    expect(resolver.adapterIds()).toEqual(["congressGov.houseVotes"]);
+    expect(resolver.adapterIds()).toContain("congressGov.houseVotes");
+    expect(resolver.adapterIds()).toContain("voteview.senateVotes");
     expect(fetcher).toHaveBeenCalledTimes(1);
   });
 
-  it("aggregates adapter failures into a single actionable unavailable", async () => {
+  it("routes Senate calls through the voteview adapter without requiring a key", async () => {
+    const fetcher = vi.fn(async () =>
+      ({
+        ok: true,
+        status: 200,
+        json: async () => ({ recordcount: 0, recordcountTotal: 0, rollcalls: [] }),
+      }) as unknown as Response,
+    );
+    const resolver = createVotesResolver({ fetcher });
+
+    const result = await resolver.list({
+      chamber: "Senate",
+      congress: 119,
+    });
+
+    expect(result.status).toBe("ok");
+    if (result.status !== "ok") return;
+    expect(result.adapterId).toBe("voteview.senateVotes");
+    expect(fetcher).toHaveBeenCalledTimes(1);
+  });
+
+  it("aggregates House adapter failures into a single actionable unavailable", async () => {
     const fetcher = vi.fn(async () =>
       ({
         ok: false,
@@ -47,9 +79,13 @@ describe("createHouseVotesResolver", () => {
         json: async () => ({}),
       }) as unknown as Response,
     );
-    const resolver = createHouseVotesResolver({ apiDataGovKey: "k", fetcher });
+    const resolver = createVotesResolver({ apiDataGovKey: "k", fetcher });
 
-    const result = await resolver.list({ congress: 119, session: 1 });
+    const result = await resolver.list({
+      chamber: "House",
+      congress: 119,
+      session: 1,
+    });
 
     expect(result.status).toBe("unavailable");
     if (result.status !== "unavailable") return;

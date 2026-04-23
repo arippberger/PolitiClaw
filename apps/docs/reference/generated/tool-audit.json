@@ -110,11 +110,11 @@
     "sourcePath": "packages/politiclaw-plugin/src/tools/scoring.ts"
   },
   {
-    "name": "politiclaw_ingest_house_votes",
+    "name": "politiclaw_ingest_votes",
     "tier": "internal",
     "docsAction": "generated-reference-only",
     "rationale": "Data-ingestion plumbing that supports rep scoring but is not a user-facing civic task.",
-    "label": "Ingest recent House roll-call votes",
+    "label": "Ingest recent congressional roll-call votes",
     "groupId": "bills",
     "groupLabel": "Bills and votes",
     "sourcePath": "packages/politiclaw-plugin/src/tools/voteIngest.ts"

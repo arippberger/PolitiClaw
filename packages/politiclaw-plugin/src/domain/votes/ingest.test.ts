@@ -3,9 +3,9 @@ import { readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { openMemoryDb } from "../../storage/sqlite.js";
-import { createHouseVotesResolver } from "../../sources/votes/index.js";
+import { createVotesResolver } from "../../sources/votes/index.js";
 import {
-  ingestHouseVotes,
+  ingestVotes,
   listMemberVotes,
   listRecentBillVotes,
   listStoredVotes,
@@ -65,7 +65,7 @@ afterEach(() => {
   vi.restoreAllMocks();
 });
 
-describe("ingestHouseVotes", () => {
+describe("ingestVotes (House)", () => {
   it("persists vote + member rows on a first run", async () => {
     const db = openMemoryDb();
     const { fetcher } = routeFetch([
@@ -100,10 +100,10 @@ describe("ingestHouseVotes", () => {
         status: 503,
       },
     ]);
-    const resolver = createHouseVotesResolver({ apiDataGovKey: "k", fetcher });
+    const resolver = createVotesResolver({ apiDataGovKey: "k", fetcher });
 
-    const result = await ingestHouseVotes(db, resolver, {
-      filters: { congress: 119, session: 1, limit: 10 },
+    const result = await ingestVotes(db, resolver, {
+      filters: { chamber: "House", congress: 119, session: 1, limit: 10 },
     });
 
     expect(result.status).toBe("ok");
@@ -180,10 +180,10 @@ describe("ingestHouseVotes", () => {
       return jsonResponse(listBody);
     });
 
-    const resolver = createHouseVotesResolver({ apiDataGovKey: "k", fetcher });
+    const resolver = createVotesResolver({ apiDataGovKey: "k", fetcher });
 
-    const first = await ingestHouseVotes(db, resolver, {
-      filters: { congress: 119, session: 1 },
+    const first = await ingestVotes(db, resolver, {
+      filters: { chamber: "House", congress: 119, session: 1 },
     });
     expect(first.status).toBe("ok");
     if (first.status !== "ok") return;
@@ -192,8 +192,8 @@ describe("ingestHouseVotes", () => {
     const detailCallsAfterFirst = detailCalls;
     expect(detailCallsAfterFirst).toBe(2);
 
-    const second = await ingestHouseVotes(db, resolver, {
-      filters: { congress: 119, session: 1 },
+    const second = await ingestVotes(db, resolver, {
+      filters: { chamber: "House", congress: 119, session: 1 },
     });
     expect(second.status).toBe("ok");
     if (second.status !== "ok") return;
@@ -238,17 +238,17 @@ describe("ingestHouseVotes", () => {
         ],
       });
     });
-    const resolver = createHouseVotesResolver({ apiDataGovKey: "k", fetcher });
+    const resolver = createVotesResolver({ apiDataGovKey: "k", fetcher });
 
-    const first = await ingestHouseVotes(db, resolver, {
-      filters: { congress: 119, session: 1 },
+    const first = await ingestVotes(db, resolver, {
+      filters: { chamber: "House", congress: 119, session: 1 },
     });
     if (first.status !== "ok") throw new Error("expected ok");
     expect(first.ingested[0]!.status).toBe("new");
 
     update = "2025-05-01T00:00:00Z";
-    const second = await ingestHouseVotes(db, resolver, {
-      filters: { congress: 119, session: 1 },
+    const second = await ingestVotes(db, resolver, {
+      filters: { chamber: "House", congress: 119, session: 1 },
     });
     if (second.status !== "ok") throw new Error("expected ok");
     expect(second.ingested[0]!.status).toBe("updated");
@@ -264,10 +264,10 @@ describe("ingestHouseVotes", () => {
         status: 503,
       },
     ]);
-    const resolver = createHouseVotesResolver({ apiDataGovKey: "k", fetcher });
+    const resolver = createVotesResolver({ apiDataGovKey: "k", fetcher });
 
-    const result = await ingestHouseVotes(db, resolver, {
-      filters: { congress: 119, session: 1 },
+    const result = await ingestVotes(db, resolver, {
+      filters: { chamber: "House", congress: 119, session: 1 },
     });
 
     expect(result.status).toBe("unavailable");
@@ -309,9 +309,9 @@ describe("ingestHouseVotes", () => {
         status: 503,
       },
     ]);
-    const resolver = createHouseVotesResolver({ apiDataGovKey: "k", fetcher });
-    await ingestHouseVotes(db, resolver, {
-      filters: { congress: 119, session: 1 },
+    const resolver = createVotesResolver({ apiDataGovKey: "k", fetcher });
+    await ingestVotes(db, resolver, {
+      filters: { chamber: "House", congress: 119, session: 1 },
     });
 
     const all = listStoredVotes(db);
@@ -328,6 +328,63 @@ describe("ingestHouseVotes", () => {
       excludeProcedural: true,
     });
     expect(substantive.map((v) => v.id)).toEqual(["house-119-1-17"]);
+  });
+});
+
+describe("ingestVotes (Senate)", () => {
+  it("is idempotent when updateDate is absent and members are already stored", async () => {
+    const db = openMemoryDb();
+
+    let detailCalls = 0;
+    const fetcher = vi.fn(async (input: URL | string | Request) => {
+      const url =
+        typeof input === "string"
+          ? input
+          : input instanceof URL
+            ? input.toString()
+            : (input as Request).url;
+
+      if (url.includes("/api/search")) {
+        return jsonResponse(fixture("voteview_search_119_senate_2026-04-22.json"));
+      }
+      if (url.includes("/api/download")) {
+        detailCalls += 1;
+        if (url.includes("rollcall_id=RS1190001")) {
+          return jsonResponse(fixture("voteview_download_RS1190001_2026-04-22.json"));
+        }
+        if (url.includes("rollcall_id=RS1190003")) {
+          return jsonResponse(fixture("voteview_download_RS1190003_2026-04-22.json"));
+        }
+        if (url.includes("rollcall_id=RS1190007")) {
+          return jsonResponse(fixture("voteview_download_RS1190007_2026-04-22.json"));
+        }
+        if (url.includes("rollcall_id=RS1190008")) {
+          return jsonResponse(fixture("voteview_download_RS1190008_2026-04-22.json"));
+        }
+        if (url.includes("rollcall_id=RS1190663")) {
+          return jsonResponse(fixture("voteview_download_RS1190663_2026-04-22.json"));
+        }
+      }
+      throw new Error(`unexpected fetch: ${url}`);
+    });
+
+    const resolver = createVotesResolver({ fetcher });
+
+    const first = await ingestVotes(db, resolver, {
+      filters: { chamber: "Senate", congress: 119, limit: 20 },
+    });
+    expect(first.status).toBe("ok");
+    if (first.status !== "ok") return;
+    expect(first.ingested.every((v) => v.status === "new")).toBe(true);
+    expect(detailCalls).toBe(5);
+
+    const second = await ingestVotes(db, resolver, {
+      filters: { chamber: "Senate", congress: 119, limit: 20 },
+    });
+    expect(second.status).toBe("ok");
+    if (second.status !== "ok") return;
+    expect(second.ingested.every((v) => v.status === "unchanged")).toBe(true);
+    expect(detailCalls).toBe(5);
   });
 });
 

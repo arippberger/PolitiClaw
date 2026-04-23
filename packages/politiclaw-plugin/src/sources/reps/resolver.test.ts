@@ -87,6 +87,12 @@ describe("reps resolver", () => {
     const resolver = createRepsResolver({
       geocodioApiKey: "k",
       fetcher: fixtureFetch({}, false),
+      localShapefiles: {
+        cacheDir: "/tmp/not-used",
+        cacheLoader: () => {
+          throw new Error("test: shapefile cache unavailable");
+        },
+      },
     });
     const result = await resolver.resolve({ address: "123 Main St" });
     expect(result.status).toBe("unavailable");

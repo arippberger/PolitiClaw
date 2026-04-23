@@ -17,11 +17,11 @@
         "politiclaw_get_bill_details",
         "politiclaw_score_bill",
         "politiclaw_check_upcoming_votes",
-        "politiclaw_ingest_house_votes",
+        "politiclaw_ingest_votes",
         "politiclaw_research_candidate",
         "politiclaw_research_challengers"
       ],
-      "notes": "One key powers api.congress.gov-backed sources and FEC OpenFEC. Senate vote ingest is not wired yet."
+      "notes": "One key powers api.congress.gov-backed sources and FEC OpenFEC. Senate roll-call ingest runs through a separate zero-key source (voteview.com)."
     },
     {
       "key": "geocodio",
