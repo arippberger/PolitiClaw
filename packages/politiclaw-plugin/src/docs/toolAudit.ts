@@ -152,4 +152,28 @@ export const TOOL_AUDIT_ENTRIES: readonly ToolAuditEntry[] = [
     docsAction: "lead-in-guides",
     rationale: "Best recovery entry point when anything about setup, data, or monitoring looks broken.",
   },
+  {
+    name: "politiclaw_draft_call_script",
+    tier: "advanced",
+    docsAction: "follow-up-or-advanced-docs",
+    rationale: "Phone sibling of the letter drafter — valuable when a faster channel fits but secondary to letters in the default flow.",
+  },
+  {
+    name: "politiclaw_create_reminder",
+    tier: "advanced",
+    docsAction: "follow-up-or-advanced-docs",
+    rationale: "Proactive bookmark tool used alongside monitoring; helpful for power users tracking a specific vote or election.",
+  },
+  {
+    name: "politiclaw_list_action_moments",
+    tier: "advanced",
+    docsAction: "follow-up-or-advanced-docs",
+    rationale: "Surfaces open offer packages the classifier queued — an audit view for the action-moment pipeline.",
+  },
+  {
+    name: "politiclaw_dismiss_action_package",
+    tier: "advanced",
+    docsAction: "follow-up-or-advanced-docs",
+    rationale: "Per-offer feedback control (not_now / stop / useful) so users can tune action suggestions without muting entire targets.",
+  },
 ] as const;

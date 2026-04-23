@@ -190,6 +190,36 @@
     "sourcePath": "packages/politiclaw-plugin/src/tools/mutes.ts"
   },
   {
+    "name": "politiclaw_create_reminder",
+    "tier": "advanced",
+    "docsAction": "follow-up-or-advanced-docs",
+    "rationale": "Proactive bookmark tool used alongside monitoring; helpful for power users tracking a specific vote or election.",
+    "label": "Create a reminder anchored to a bill, event, or election",
+    "groupId": "monitoring",
+    "groupLabel": "Monitoring and cadence",
+    "sourcePath": "packages/politiclaw-plugin/src/tools/reminder.ts"
+  },
+  {
+    "name": "politiclaw_list_action_moments",
+    "tier": "advanced",
+    "docsAction": "follow-up-or-advanced-docs",
+    "rationale": "Surfaces open offer packages the classifier queued — an audit view for the action-moment pipeline.",
+    "label": "List open action-package offers",
+    "groupId": "monitoring",
+    "groupLabel": "Monitoring and cadence",
+    "sourcePath": "packages/politiclaw-plugin/src/tools/actionMoments.ts"
+  },
+  {
+    "name": "politiclaw_dismiss_action_package",
+    "tier": "advanced",
+    "docsAction": "follow-up-or-advanced-docs",
+    "rationale": "Per-offer feedback control (not_now / stop / useful) so users can tune action suggestions without muting entire targets.",
+    "label": "Dismiss or flag an action package",
+    "groupId": "monitoring",
+    "groupLabel": "Monitoring and cadence",
+    "sourcePath": "packages/politiclaw-plugin/src/tools/actionMoments.ts"
+  },
+  {
     "name": "politiclaw_research_candidate",
     "tier": "core",
     "docsAction": "lead-in-guides",
@@ -218,6 +248,16 @@
     "groupId": "research",
     "groupLabel": "Candidate research and outreach",
     "sourcePath": "packages/politiclaw-plugin/src/tools/draftLetter.ts"
+  },
+  {
+    "name": "politiclaw_draft_call_script",
+    "tier": "advanced",
+    "docsAction": "follow-up-or-advanced-docs",
+    "rationale": "Phone sibling of the letter drafter — valuable when a faster channel fits but secondary to letters in the default flow.",
+    "label": "Draft a short call script for a rep's office",
+    "groupId": "research",
+    "groupLabel": "Candidate research and outreach",
+    "sourcePath": "packages/politiclaw-plugin/src/tools/callScript.ts"
   },
   {
     "name": "politiclaw_doctor",

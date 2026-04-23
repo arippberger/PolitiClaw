@@ -6,6 +6,11 @@ import type {
   UpcomingEventsFilters,
 } from "../../sources/upcomingVotes/types.js";
 import type { BillListFilters } from "../../sources/bills/types.js";
+import {
+  proposeActionMoments,
+  sweepExpired,
+  type ActionPackageRow,
+} from "../actionMoments/index.js";
 import { recordAlert } from "../alerts/index.js";
 import { searchBills, type StoredBill } from "../bills/index.js";
 import { listMutedRefs } from "../mutes/index.js";
@@ -77,6 +82,7 @@ export type CheckUpcomingVotesResult = {
   changedEvents: ChangedEvent[];
   unchangedEventCount: number;
   mutedEventCount: number;
+  actionPackages: ActionPackageRow[];
   source: {
     bills?: { adapterId: string; tier: number };
     events?: { adapterId: string; tier: number };
@@ -126,6 +132,9 @@ export async function checkUpcomingVotes(
 
   const mutedBillIds = listMutedRefs(db, "bill");
 
+  const now = Date.now();
+  sweepExpired(db, now);
+
   const result: CheckUpcomingVotesResult = {
     status: "ok",
     changedBills: [],
@@ -134,6 +143,7 @@ export async function checkUpcomingVotes(
     changedEvents: [],
     unchangedEventCount: 0,
     mutedEventCount: 0,
+    actionPackages: [],
     source: {},
     reasons: {},
   };
@@ -232,6 +242,8 @@ export async function checkUpcomingVotes(
   promoteEventTiers(result);
 
   persistAlertHistory(db, result);
+
+  result.actionPackages = proposeActionMoments(db, result, { now });
 
   const billsOk = billsResult.status === "ok";
   const eventsOk = eventsResult.status === "ok";

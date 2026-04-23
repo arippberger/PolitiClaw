@@ -18,6 +18,11 @@
 import type { PolitiClawDb } from "../../storage/sqlite.js";
 import type { BallotResolver } from "../../sources/ballot/index.js";
 import type { WebSearchResolver } from "../../sources/webSearch/index.js";
+import {
+  createActionPackage,
+  electionDaysBucket,
+  hashDecisionInputs,
+} from "../actionMoments/index.js";
 import { getPreferences } from "../preferences/index.js";
 import type { PreferencesRow } from "../preferences/types.js";
 import { listReps, type StoredRep } from "../reps/index.js";
@@ -27,6 +32,8 @@ import {
   type ScoreRepresentativeResult,
 } from "../scoring/index.js";
 import { explainMyBallot, type ExplainMyBallotResult } from "./explain.js";
+
+const MS_PER_DAY = 24 * 60 * 60 * 1000;
 
 export type PrepareForElectionOptions = {
   refresh?: boolean;
@@ -132,6 +139,8 @@ export async function prepareForElection(
     result: scoreRepresentative(db, rep.id),
   }));
 
+  recordElectionPrepPackage(db, ballot);
+
   return {
     status: "ok",
     preferences: preferences!,
@@ -139,4 +148,41 @@ export async function prepareForElection(
     reps,
     repScores,
   };
+}
+
+function recordElectionPrepPackage(
+  db: PolitiClawDb,
+  ballot: Extract<ExplainMyBallotResult, { status: "ok" }>,
+): void {
+  const electionDay = ballot.election?.electionDay;
+  if (!electionDay) return;
+  const toMs = Date.parse(electionDay);
+  if (Number.isNaN(toMs)) return;
+  const now = Date.now();
+  const daysToElection = Math.ceil((toMs - now) / MS_PER_DAY);
+  const bucket = electionDaysBucket(daysToElection);
+  if (bucket === null) return;
+
+  const decisionHash = hashDecisionInputs({
+    triggerClass: "election_proximity",
+    electionDate: electionDay,
+    daysBucket: bucket,
+  });
+
+  createActionPackage(db, {
+    triggerClass: "election_proximity",
+    packageKind: "election_prep_prompt",
+    outreachMode: null,
+    billId: null,
+    repId: null,
+    issue: null,
+    electionDate: electionDay,
+    decisionHash,
+    summary: `Your election is ${bucket === 1 ? "tomorrow" : `${bucket} days out`}${
+      ballot.election?.name ? ` — ${ballot.election.name}` : ""
+    }.`,
+    sourceAdapterId: ballot.ballotSource.adapterId,
+    sourceTier: ballot.ballotSource.tier,
+    now,
+  });
 }

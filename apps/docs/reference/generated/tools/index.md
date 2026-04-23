@@ -1,6 +1,6 @@
 # Generated Tool Reference
 
-This section is generated from the registered runtime tool objects. Current count: 23.
+This section is generated from the registered runtime tool objects. Current count: 27.
 
 ## Configuration and preferences
 
@@ -45,6 +45,9 @@ Check upcoming federal activity and manage alert suppression once configuration 
 - [`politiclaw_mute`](./politiclaw_mute.md) — Mute a bill, rep, or issue
 - [`politiclaw_unmute`](./politiclaw_unmute.md) — Unmute a bill, rep, or issue
 - [`politiclaw_list_mutes`](./politiclaw_list_mutes.md) — List current mutes
+- [`politiclaw_create_reminder`](./politiclaw_create_reminder.md) — Create a reminder anchored to a bill, event, or election
+- [`politiclaw_list_action_moments`](./politiclaw_list_action_moments.md) — List open action-package offers
+- [`politiclaw_dismiss_action_package`](./politiclaw_dismiss_action_package.md) — Dismiss or flag an action package
 
 ## Candidate research and outreach
 
@@ -53,6 +56,7 @@ Compare candidate finance data, research challengers, and draft constituent outr
 - [`politiclaw_research_candidate`](./politiclaw_research_candidate.md) — Look up FEC candidate finance totals + tier-5 bio
 - [`politiclaw_research_challengers`](./politiclaw_research_challengers.md) — Compare incumbents and challengers by FEC finance totals
 - [`politiclaw_draft_letter`](./politiclaw_draft_letter.md) — Draft a letter to a representative
+- [`politiclaw_draft_call_script`](./politiclaw_draft_call_script.md) — Draft a short call script for a rep's office
 
 ## Operations and diagnostics
 

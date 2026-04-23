@@ -2,7 +2,7 @@
 
 This page is generated from a real in-memory SQLite database after migrations run.
 
-Migration count: 15.
+Migration count: 17.
 
 ## Migrations
 
@@ -21,8 +21,87 @@ Migration count: 15.
 - `packages/politiclaw-plugin/src/storage/migrations/0013_letter_redraft.sql`
 - `packages/politiclaw-plugin/src/storage/migrations/0014_monitoring_mode.sql`
 - `packages/politiclaw-plugin/src/storage/migrations/0015_accountability.sql`
+- `packages/politiclaw-plugin/src/storage/migrations/0016_action_moments.sql`
+- `packages/politiclaw-plugin/src/storage/migrations/0017_preferences_action_prompting.sql`
 
 ## Tables
+
+### action_package_feedback
+
+| Column | Type | Not Null | Primary Key | Default |
+| --- | --- | --- | --- | --- |
+| `id` | `INTEGER` | no | yes | n/a |
+| `package_id` | `INTEGER` | yes | no | n/a |
+| `created_at` | `INTEGER` | yes | no | n/a |
+| `verdict` | `TEXT` | yes | no | n/a |
+| `note` | `TEXT` | no | no | n/a |
+
+```sql
+CREATE TABLE action_package_feedback (
+  id           INTEGER PRIMARY KEY AUTOINCREMENT,
+  package_id   INTEGER NOT NULL REFERENCES action_packages(id),
+  created_at   INTEGER NOT NULL,
+  verdict      TEXT NOT NULL CHECK(verdict IN ('useful','not_now','stop')),
+  note         TEXT
+)
+```
+
+### action_packages
+
+| Column | Type | Not Null | Primary Key | Default |
+| --- | --- | --- | --- | --- |
+| `id` | `INTEGER` | no | yes | n/a |
+| `created_at` | `INTEGER` | yes | no | n/a |
+| `trigger_class` | `TEXT` | yes | no | n/a |
+| `package_kind` | `TEXT` | yes | no | n/a |
+| `outreach_mode` | `TEXT` | no | no | n/a |
+| `bill_id` | `TEXT` | no | no | n/a |
+| `rep_id` | `TEXT` | no | no | n/a |
+| `issue` | `TEXT` | no | no | n/a |
+| `election_date` | `TEXT` | no | no | n/a |
+| `decision_hash` | `TEXT` | yes | no | n/a |
+| `summary` | `TEXT` | yes | no | n/a |
+| `status` | `TEXT` | yes | no | `'open'` |
+| `status_at` | `INTEGER` | yes | no | n/a |
+| `generated_letter_id` | `INTEGER` | no | no | n/a |
+| `generated_call_script_id` | `INTEGER` | no | no | n/a |
+| `generated_reminder_id` | `INTEGER` | no | no | n/a |
+| `source_adapter_id` | `TEXT` | yes | no | n/a |
+| `source_tier` | `INTEGER` | yes | no | n/a |
+
+```sql
+CREATE TABLE action_packages (
+  id                        INTEGER PRIMARY KEY AUTOINCREMENT,
+  created_at                INTEGER NOT NULL,
+  trigger_class             TEXT NOT NULL CHECK(trigger_class IN (
+                              'bill_nearing_vote',
+                              'tracked_event_scheduled',
+                              'repeated_misalignment',
+                              'election_proximity',
+                              'new_bill_high_relevance'
+                            )),
+  package_kind              TEXT NOT NULL CHECK(package_kind IN (
+                              'outreach',
+                              'reminder',
+                              'election_prep_prompt'
+                            )),
+  outreach_mode             TEXT CHECK(outreach_mode IN ('letter','call')),
+  bill_id                   TEXT,
+  rep_id                    TEXT,
+  issue                     TEXT,
+  election_date             TEXT,
+  decision_hash             TEXT NOT NULL,
+  summary                   TEXT NOT NULL,
+  status                    TEXT NOT NULL DEFAULT 'open'
+                            CHECK(status IN ('open','used','dismissed','stopped','expired')),
+  status_at                 INTEGER NOT NULL,
+  generated_letter_id       INTEGER,
+  generated_call_script_id  INTEGER,
+  generated_reminder_id     INTEGER,
+  source_adapter_id         TEXT NOT NULL,
+  source_tier               INTEGER NOT NULL CHECK(source_tier BETWEEN 1 AND 5)
+)
+```
 
 ### alert_history
 
@@ -198,6 +277,44 @@ CREATE TABLE bills (
 )
 ```
 
+### call_scripts
+
+| Column | Type | Not Null | Primary Key | Default |
+| --- | --- | --- | --- | --- |
+| `id` | `INTEGER` | no | yes | n/a |
+| `rep_id` | `TEXT` | yes | no | n/a |
+| `rep_name` | `TEXT` | yes | no | n/a |
+| `rep_office` | `TEXT` | yes | no | n/a |
+| `issue` | `TEXT` | yes | no | n/a |
+| `bill_id` | `TEXT` | no | no | n/a |
+| `opening_line` | `TEXT` | yes | no | n/a |
+| `ask_line` | `TEXT` | yes | no | n/a |
+| `one_specific_line` | `TEXT` | no | no | n/a |
+| `closing_line` | `TEXT` | yes | no | n/a |
+| `phone_number` | `TEXT` | no | no | n/a |
+| `stance_snapshot_hash` | `TEXT` | yes | no | n/a |
+| `word_count` | `INTEGER` | yes | no | n/a |
+| `created_at` | `INTEGER` | yes | no | n/a |
+
+```sql
+CREATE TABLE call_scripts (
+  id                    INTEGER PRIMARY KEY AUTOINCREMENT,
+  rep_id                TEXT NOT NULL,
+  rep_name              TEXT NOT NULL,
+  rep_office            TEXT NOT NULL,
+  issue                 TEXT NOT NULL,
+  bill_id               TEXT,
+  opening_line          TEXT NOT NULL,
+  ask_line              TEXT NOT NULL,
+  one_specific_line     TEXT,
+  closing_line          TEXT NOT NULL,
+  phone_number          TEXT,
+  stance_snapshot_hash  TEXT NOT NULL,
+  word_count            INTEGER NOT NULL,
+  created_at            INTEGER NOT NULL
+)
+```
+
 ### issue_stances
 
 | Column | Type | Not Null | Primary Key | Default |
@@ -324,6 +441,7 @@ CREATE TABLE mute_list (
 | `monitoring_mode` | `TEXT` | yes | no | `'action_only'` |
 | `updated_at` | `INTEGER` | yes | no | n/a |
 | `accountability` | `TEXT` | yes | no | `'self_serve'` |
+| `action_prompting` | `TEXT` | yes | no | `'on'` |
 
 ```sql
 CREATE TABLE "preferences" (
@@ -336,7 +454,34 @@ CREATE TABLE "preferences" (
     CHECK (monitoring_mode IN ('off','quiet_watch','weekly_digest','action_only','full_copilot')),
   updated_at         INTEGER NOT NULL
 , accountability TEXT NOT NULL DEFAULT 'self_serve'
-  CHECK (accountability IN ('self_serve','nudge_me','draft_for_me')))
+  CHECK (accountability IN ('self_serve','nudge_me','draft_for_me')), action_prompting TEXT NOT NULL DEFAULT 'on'
+  CHECK (action_prompting IN ('off','on')))
+```
+
+### reminders
+
+| Column | Type | Not Null | Primary Key | Default |
+| --- | --- | --- | --- | --- |
+| `id` | `INTEGER` | no | yes | n/a |
+| `title` | `TEXT` | yes | no | n/a |
+| `deadline` | `TEXT` | no | no | n/a |
+| `anchor_bill_id` | `TEXT` | no | no | n/a |
+| `anchor_event_id` | `TEXT` | no | no | n/a |
+| `anchor_election_date` | `TEXT` | no | no | n/a |
+| `steps_json` | `TEXT` | yes | no | n/a |
+| `created_at` | `INTEGER` | yes | no | n/a |
+
+```sql
+CREATE TABLE reminders (
+  id                    INTEGER PRIMARY KEY AUTOINCREMENT,
+  title                 TEXT NOT NULL,
+  deadline              TEXT,
+  anchor_bill_id        TEXT,
+  anchor_event_id       TEXT,
+  anchor_election_date  TEXT,
+  steps_json            TEXT NOT NULL,
+  created_at            INTEGER NOT NULL
+)
 ```
 
 ### rep_scores
@@ -533,6 +678,10 @@ CREATE TABLE stance_signals (
 
 | Index | Table | Definition |
 | --- | --- | --- |
+| `action_package_feedback_package` | `action_package_feedback` | `CREATE INDEX action_package_feedback_package   ON action_package_feedback(package_id, created_at DESC)` |
+| `action_packages_decision_hash` | `action_packages` | `CREATE UNIQUE INDEX action_packages_decision_hash   ON action_packages(trigger_class, bill_id, rep_id, issue, election_date, decision_hash)` |
+| `action_packages_open` | `action_packages` | `CREATE INDEX action_packages_open   ON action_packages(status, created_at DESC) WHERE status = 'open'` |
+| `action_packages_target` | `action_packages` | `CREATE INDEX action_packages_target   ON action_packages(trigger_class, bill_id, rep_id, issue)` |
 | `alert_history_created` | `alert_history` | `CREATE INDEX alert_history_created ON alert_history(created_at DESC)` |
 | `alert_history_ref` | `alert_history` | `CREATE INDEX alert_history_ref     ON alert_history(ref_id)` |
 | `ballot_explanations_computed` | `ballot_explanations` | `CREATE INDEX ballot_explanations_computed ON ballot_explanations(computed_at DESC)` |
@@ -542,12 +691,17 @@ CREATE TABLE stance_signals (
 | `bill_alignment_stance_snapshot` | `bill_alignment` | `CREATE INDEX bill_alignment_stance_snapshot   ON bill_alignment(stance_snapshot_hash)` |
 | `bills_congress_type` | `bills` | `CREATE INDEX bills_congress_type ON bills(congress, bill_type)` |
 | `bills_latest_action` | `bills` | `CREATE INDEX bills_latest_action ON bills(latest_action_date)` |
+| `call_scripts_created` | `call_scripts` | `CREATE INDEX call_scripts_created ON call_scripts(created_at DESC)` |
+| `call_scripts_issue` | `call_scripts` | `CREATE INDEX call_scripts_issue   ON call_scripts(issue)` |
+| `call_scripts_rep` | `call_scripts` | `CREATE INDEX call_scripts_rep     ON call_scripts(rep_id)` |
 | `letters_created` | `letters` | `CREATE INDEX letters_created ON letters(created_at DESC)` |
 | `letters_issue` | `letters` | `CREATE INDEX letters_issue   ON letters(issue)` |
 | `letters_redraft_requested` | `letters` | `CREATE INDEX letters_redraft_requested   ON letters(redraft_requested_at)   WHERE redraft_requested_at IS NOT NULL` |
 | `letters_rep` | `letters` | `CREATE INDEX letters_rep     ON letters(rep_id)` |
 | `member_votes_bioguide` | `member_votes` | `CREATE INDEX member_votes_bioguide ON member_votes(bioguide_id)` |
 | `member_votes_position` | `member_votes` | `CREATE INDEX member_votes_position ON member_votes(position)` |
+| `reminders_created` | `reminders` | `CREATE INDEX reminders_created  ON reminders(created_at DESC)` |
+| `reminders_deadline` | `reminders` | `CREATE INDEX reminders_deadline ON reminders(deadline)` |
 | `rep_scores_computed` | `rep_scores` | `CREATE INDEX rep_scores_computed  ON rep_scores(computed_at)` |
 | `rep_scores_issue` | `rep_scores` | `CREATE INDEX rep_scores_issue     ON rep_scores(issue)` |
 | `rep_scores_rep` | `rep_scores` | `CREATE INDEX rep_scores_rep       ON rep_scores(rep_id)` |

@@ -1124,6 +1124,209 @@
     }
   },
   {
+    "name": "politiclaw_create_reminder",
+    "label": "Create a reminder anchored to a bill, event, or election",
+    "groupId": "monitoring",
+    "groupLabel": "Monitoring and cadence",
+    "sourcePath": "packages/politiclaw-plugin/src/tools/reminder.ts",
+    "description": "Persist a reminder with a slot-filled checklist anchored to a bill, upcoming committee event, or election date. Reminders do not self-notify; the existing monitoring crons re-read them and surface ones whose deadline is within 48 hours. Use this when the user says 'remind me' rather than 'draft' — letters/call scripts are separate flows.",
+    "parameters": [
+      {
+        "name": "title",
+        "required": true,
+        "type": "string",
+        "description": "Short user-facing label for the reminder."
+      },
+      {
+        "name": "deadline",
+        "required": false,
+        "type": "string",
+        "description": "Optional ISO-8601 date or datetime. When set, the monitoring crons surface the reminder as it comes due."
+      },
+      {
+        "name": "anchor",
+        "required": true,
+        "type": "object | object | object",
+        "description": ""
+      },
+      {
+        "name": "extraSteps",
+        "required": false,
+        "type": "string[]",
+        "description": "Optional user-supplied checklist items appended verbatim in order."
+      }
+    ],
+    "rawSchema": {
+      "type": "object",
+      "required": [
+        "title",
+        "anchor"
+      ],
+      "properties": {
+        "title": {
+          "description": "Short user-facing label for the reminder.",
+          "type": "string"
+        },
+        "deadline": {
+          "description": "Optional ISO-8601 date or datetime. When set, the monitoring crons surface the reminder as it comes due.",
+          "type": "string"
+        },
+        "anchor": {
+          "anyOf": [
+            {
+              "type": "object",
+              "required": [
+                "kind",
+                "billId"
+              ],
+              "properties": {
+                "kind": {
+                  "const": "bill",
+                  "type": "string"
+                },
+                "billId": {
+                  "description": "Canonical bill id ('119-hr-1234').",
+                  "type": "string"
+                }
+              }
+            },
+            {
+              "type": "object",
+              "required": [
+                "kind",
+                "eventId"
+              ],
+              "properties": {
+                "kind": {
+                  "const": "event",
+                  "type": "string"
+                },
+                "eventId": {
+                  "description": "Canonical event id from politiclaw_check_upcoming_votes.",
+                  "type": "string"
+                }
+              }
+            },
+            {
+              "type": "object",
+              "required": [
+                "kind",
+                "electionDate"
+              ],
+              "properties": {
+                "kind": {
+                  "const": "election",
+                  "type": "string"
+                },
+                "electionDate": {
+                  "description": "ISO election date (YYYY-MM-DD).",
+                  "type": "string"
+                }
+              }
+            }
+          ]
+        },
+        "extraSteps": {
+          "description": "Optional user-supplied checklist items appended verbatim in order.",
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  },
+  {
+    "name": "politiclaw_list_action_moments",
+    "label": "List open action-package offers",
+    "groupId": "monitoring",
+    "groupLabel": "Monitoring and cadence",
+    "sourcePath": "packages/politiclaw-plugin/src/tools/actionMoments.ts",
+    "description": "Return the set of open action packages — outreach drafts (letter/call), reminders, and election-prep prompts — that the classifier has queued as optional offers. The list is offer-not-push: nothing here has been sent, and the user can dismiss each with politiclaw_dismiss_action_package.",
+    "parameters": [
+      {
+        "name": "limit",
+        "required": false,
+        "type": "integer",
+        "description": "Max packages to return. Defaults to 25."
+      }
+    ],
+    "rawSchema": {
+      "type": "object",
+      "properties": {
+        "limit": {
+          "minimum": 1,
+          "maximum": 100,
+          "description": "Max packages to return. Defaults to 25.",
+          "type": "integer"
+        }
+      }
+    }
+  },
+  {
+    "name": "politiclaw_dismiss_action_package",
+    "label": "Dismiss or flag an action package",
+    "groupId": "monitoring",
+    "groupLabel": "Monitoring and cadence",
+    "sourcePath": "packages/politiclaw-plugin/src/tools/actionMoments.ts",
+    "description": "Record user feedback on an action package. verdict='useful' marks it used, 'not_now' suppresses the same target for 7 days, 'stop' permanently stops offering packages for the same (trigger, target tuple). Prefer this over politiclaw_mute unless the user explicitly wants to silence the bill/rep/issue.",
+    "parameters": [
+      {
+        "name": "packageId",
+        "required": true,
+        "type": "integer",
+        "description": "Action package id to dismiss."
+      },
+      {
+        "name": "verdict",
+        "required": true,
+        "type": "\"useful\" | \"not_now\" | \"stop\"",
+        "description": "useful = used it. not_now = hide for 7 days. stop = never offer this target again."
+      },
+      {
+        "name": "note",
+        "required": false,
+        "type": "string",
+        "description": "Optional free-text reason — stored verbatim for later review."
+      }
+    ],
+    "rawSchema": {
+      "type": "object",
+      "required": [
+        "packageId",
+        "verdict"
+      ],
+      "properties": {
+        "packageId": {
+          "minimum": 1,
+          "description": "Action package id to dismiss.",
+          "type": "integer"
+        },
+        "verdict": {
+          "description": "useful = used it. not_now = hide for 7 days. stop = never offer this target again.",
+          "anyOf": [
+            {
+              "const": "useful",
+              "type": "string"
+            },
+            {
+              "const": "not_now",
+              "type": "string"
+            },
+            {
+              "const": "stop",
+              "type": "string"
+            }
+          ]
+        },
+        "note": {
+          "description": "Optional free-text reason — stored verbatim for later review.",
+          "type": "string"
+        }
+      }
+    }
+  },
+  {
     "name": "politiclaw_research_candidate",
     "label": "Look up FEC candidate finance totals + tier-5 bio",
     "groupId": "research",
@@ -1290,6 +1493,65 @@
         },
         "customNote": {
           "description": "Optional one-sentence personal hook appended verbatim above the closing. Keep short — the draft is already near its word ceiling.",
+          "type": "string"
+        }
+      }
+    }
+  },
+  {
+    "name": "politiclaw_draft_call_script",
+    "label": "Draft a short call script for a rep's office",
+    "groupId": "research",
+    "groupLabel": "Candidate research and outreach",
+    "sourcePath": "packages/politiclaw-plugin/src/tools/callScript.ts",
+    "description": "Draft a ≤150-word call script the user can read to their rep's office on a declared issue, optionally citing a specific federal bill. Deterministic slot-fill (no LLM). Phone numbers come from the stored rep contact record — never invented. PolitiClaw never dials; the output is copy-paste ready for the user. Requires a declared stance (politiclaw_set_issue_stance) and, when citing a bill, plugins.politiclaw.apiKeys.apiDataGov.",
+    "parameters": [
+      {
+        "name": "repId",
+        "required": true,
+        "type": "string",
+        "description": "Stable rep id (bioguide when available). Call politiclaw_get_my_reps first to look it up."
+      },
+      {
+        "name": "issue",
+        "required": true,
+        "type": "string",
+        "description": "Issue slug from your declared stances (e.g. 'affordable-housing'). Must already be set via politiclaw_set_issue_stance."
+      },
+      {
+        "name": "billId",
+        "required": false,
+        "type": "string",
+        "description": "Optional canonical bill id ('119-hr-1234'). When present the script cites the specific bill."
+      },
+      {
+        "name": "oneSpecificSentence",
+        "required": false,
+        "type": "string",
+        "description": "Optional single sentence the user wants to say in their own words. Appended verbatim after the ask line. Keep it short — the script is capped at 150 words."
+      }
+    ],
+    "rawSchema": {
+      "type": "object",
+      "required": [
+        "repId",
+        "issue"
+      ],
+      "properties": {
+        "repId": {
+          "description": "Stable rep id (bioguide when available). Call politiclaw_get_my_reps first to look it up.",
+          "type": "string"
+        },
+        "issue": {
+          "description": "Issue slug from your declared stances (e.g. 'affordable-housing'). Must already be set via politiclaw_set_issue_stance.",
+          "type": "string"
+        },
+        "billId": {
+          "description": "Optional canonical bill id ('119-hr-1234'). When present the script cites the specific bill.",
+          "type": "string"
+        },
+        "oneSpecificSentence": {
+          "description": "Optional single sentence the user wants to say in their own words. Appended verbatim after the ask line. Keep it short — the script is capped at 150 words.",
           "type": "string"
         }
       }

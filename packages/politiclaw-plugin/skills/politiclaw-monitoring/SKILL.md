@@ -151,7 +151,45 @@ Rules for the dissenting item:
 The user can override this skill by editing it. That is a conscious choice on
 their part. Shipping the discipline on by default is ours.
 
-## 6. Source tier in every claim
+## 6. Action moments (optional offers)
+
+`politiclaw_check_upcoming_votes` also returns `actionPackages`: a set of
+*optional* offers the classifier queued when a change qualifies as a decision
+point (bill nearing a committee vote, scheduled tracked event, repeated
+misalignment, election proximity). These are **offers, not pushes** — the
+user can dismiss any one.
+
+Rendering rules:
+
+- Surface them under a single `### You might want to act on` heading,
+  one bullet per open package, each ending with the exact tool call to run.
+- If the delta has 0 open packages, skip the section entirely — do not write
+  "no action moments."
+- Offer phrasing. Say things like:
+  - `"A draft letter is ready if you want one."`
+  - `"If you want to act on this, options are a draft letter or a short call script."`
+  - `"Your election is {N} days out — a prep guide is ready when you are."`
+- Never use "urgent", "critical", "act now", "don't miss", `!!`, emojis, or
+  "last chance". If you find yourself reaching for those, the classifier
+  already scored the moment; your job is to pass it along, not to amplify it.
+- On "stop suggesting this," call `politiclaw_dismiss_action_package` with
+  `verdict='stop'`, NOT `politiclaw_mute`. Escalate to mute only when the
+  user explicitly asks to silence the bill/rep/issue entirely.
+- On "not now," call `politiclaw_dismiss_action_package` with
+  `verdict='not_now'`. The offer for the same target is suppressed for 7
+  days and can re-surface after that if the trigger still holds.
+- Repeated-misalignment offers must carry the dissenting-view caveat inline:
+  `"Your rep has voted against your declared stance on {issue} {N} times in
+  the last {window}. A draft letter is one option; so is nothing. You
+  decide."`
+
+When `preferences.action_prompting = 'off'`, `actionPackages` will be empty
+even if changes qualified. Explicit tool calls
+(`politiclaw_draft_letter`, `politiclaw_draft_call_script`,
+`politiclaw_create_reminder`) still work — the off setting only suppresses
+auto-offers.
+
+## 7. Source tier in every claim
 
 Every factual claim in your output carries a source tag. Preferred format:
 

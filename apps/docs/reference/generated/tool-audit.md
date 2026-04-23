@@ -25,9 +25,13 @@ Review question: would a normal user knowingly reach for this tool by name, or i
 | [`politiclaw_mute`](./tools/politiclaw_mute.md) | Monitoring and cadence | `advanced` | `follow-up-or-advanced-docs` | Useful tuning control once monitoring is already in use. |
 | [`politiclaw_unmute`](./tools/politiclaw_unmute.md) | Monitoring and cadence | `advanced` | `follow-up-or-advanced-docs` | Complements mute management for returning users, but not part of onboarding or first-run paths. |
 | [`politiclaw_list_mutes`](./tools/politiclaw_list_mutes.md) | Monitoring and cadence | `advanced` | `follow-up-or-advanced-docs` | Audit view for monitoring suppressions, relevant mainly after custom tuning. |
+| [`politiclaw_create_reminder`](./tools/politiclaw_create_reminder.md) | Monitoring and cadence | `advanced` | `follow-up-or-advanced-docs` | Proactive bookmark tool used alongside monitoring; helpful for power users tracking a specific vote or election. |
+| [`politiclaw_list_action_moments`](./tools/politiclaw_list_action_moments.md) | Monitoring and cadence | `advanced` | `follow-up-or-advanced-docs` | Surfaces open offer packages the classifier queued — an audit view for the action-moment pipeline. |
+| [`politiclaw_dismiss_action_package`](./tools/politiclaw_dismiss_action_package.md) | Monitoring and cadence | `advanced` | `follow-up-or-advanced-docs` | Per-offer feedback control (not_now / stop / useful) so users can tune action suggestions without muting entire targets. |
 | [`politiclaw_research_candidate`](./tools/politiclaw_research_candidate.md) | Candidate research and outreach | `core` | `lead-in-guides` | Directly maps to a common election question and offers strong standalone value. |
 | [`politiclaw_research_challengers`](./tools/politiclaw_research_challengers.md) | Candidate research and outreach | `advanced` | `follow-up-or-advanced-docs` | Helpful side-by-side race view, but more specialized than single-candidate research. |
 | [`politiclaw_draft_letter`](./tools/politiclaw_draft_letter.md) | Candidate research and outreach | `core` | `lead-in-guides` | Clear outcome-oriented action that follows naturally from bills, reps, and issue stances. |
+| [`politiclaw_draft_call_script`](./tools/politiclaw_draft_call_script.md) | Candidate research and outreach | `advanced` | `follow-up-or-advanced-docs` | Phone sibling of the letter drafter — valuable when a faster channel fits but secondary to letters in the default flow. |
 | [`politiclaw_doctor`](./tools/politiclaw_doctor.md) | Operations and diagnostics | `core` | `lead-in-guides` | Best recovery entry point when anything about setup, data, or monitoring looks broken. |
 
 ## Tier meanings

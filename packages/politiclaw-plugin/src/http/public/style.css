@@ -147,7 +147,8 @@ body {
 .pc-stances,
 .pc-reps,
 .pc-jobs,
-.pc-alerts {
+.pc-alerts,
+.pc-actions {
   list-style: none;
   margin: 0.5rem 0 0;
   padding: 0;
@@ -159,7 +160,8 @@ body {
 .pc-reps > li,
 .pc-jobs > li,
 .pc-stances > li,
-.pc-alerts > li {
+.pc-alerts > li,
+.pc-actions > li {
   padding: 0.5rem 0.75rem;
   border: 1px solid var(--border);
   border-radius: 0.4rem;

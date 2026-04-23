@@ -1,12 +1,15 @@
 import type { PolitiClawDb } from "../../storage/sqlite.js";
 import {
+  ACTION_PROMPTING_VALUES,
   AccountabilityModeSchema,
+  ActionPromptingSchema,
   IssueStanceSchema,
   MONITORING_MODE_VALUES,
   MonitoringModeSchema,
   PreferencesSchema,
   StanceSignalSchema,
   type AccountabilityMode,
+  type ActionPrompting,
   type IssueStance,
   type IssueStanceRow,
   type MonitoringMode,
@@ -17,7 +20,9 @@ import {
 import { DEFAULT_ACCOUNTABILITY } from "./accountability.js";
 
 export {
+  ACTION_PROMPTING_VALUES,
   AccountabilityModeSchema,
+  ActionPromptingSchema,
   IssueStanceSchema,
   MONITORING_MODE_VALUES,
   MonitoringModeSchema,
@@ -26,6 +31,7 @@ export {
 };
 export type {
   AccountabilityMode,
+  ActionPrompting,
   IssueStance,
   IssueStanceRow,
   MonitoringMode,
@@ -41,22 +47,23 @@ export {
   DEFAULT_ACCOUNTABILITY,
 } from "./accountability.js";
 
+type PrefsColumnsRow = {
+  address: string;
+  zip: string | null;
+  state: string | null;
+  district: string | null;
+  monitoring_mode: MonitoringMode;
+  accountability: AccountabilityMode | null;
+  action_prompting: ActionPrompting;
+  updated_at: number;
+};
+
 export function getPreferences(db: PolitiClawDb): PreferencesRow | null {
   const row = db
     .prepare(
-      "SELECT address, zip, state, district, monitoring_mode, accountability, updated_at FROM preferences WHERE id = 1",
+      "SELECT address, zip, state, district, monitoring_mode, accountability, action_prompting, updated_at FROM preferences WHERE id = 1",
     )
-    .get() as
-    | {
-        address: string;
-        zip: string | null;
-        state: string | null;
-        district: string | null;
-        monitoring_mode: MonitoringMode;
-        accountability: AccountabilityMode | null;
-        updated_at: number;
-      }
-    | undefined;
+    .get() as PrefsColumnsRow | undefined;
   if (!row) return null;
   return {
     address: row.address,
@@ -65,6 +72,7 @@ export function getPreferences(db: PolitiClawDb): PreferencesRow | null {
     district: row.district ?? undefined,
     monitoringMode: row.monitoring_mode,
     accountability: row.accountability ?? DEFAULT_ACCOUNTABILITY,
+    actionPrompting: row.action_prompting,
     updatedAt: row.updated_at,
   };
 }
@@ -72,25 +80,34 @@ export function getPreferences(db: PolitiClawDb): PreferencesRow | null {
 export function upsertPreferences(db: PolitiClawDb, input: Preferences): PreferencesRow {
   const parsed = PreferencesSchema.parse(input);
   const existing = db
-    .prepare("SELECT monitoring_mode, accountability FROM preferences WHERE id = 1")
+    .prepare(
+      "SELECT monitoring_mode, accountability, action_prompting FROM preferences WHERE id = 1",
+    )
     .get() as
-    | { monitoring_mode: MonitoringMode; accountability: AccountabilityMode | null }
+    | {
+        monitoring_mode: MonitoringMode;
+        accountability: AccountabilityMode | null;
+        action_prompting: ActionPrompting;
+      }
     | undefined;
   const mode = parsed.monitoringMode ?? existing?.monitoring_mode ?? "action_only";
   const accountability =
     parsed.accountability ?? existing?.accountability ?? DEFAULT_ACCOUNTABILITY;
+  const actionPrompting =
+    parsed.actionPrompting ?? existing?.action_prompting ?? "on";
   const now = Date.now();
   db.prepare(
-    `INSERT INTO preferences (id, address, zip, state, district, monitoring_mode, accountability, updated_at)
-     VALUES (1, @address, @zip, @state, @district, @monitoring_mode, @accountability, @updated_at)
+    `INSERT INTO preferences (id, address, zip, state, district, monitoring_mode, accountability, action_prompting, updated_at)
+     VALUES (1, @address, @zip, @state, @district, @monitoring_mode, @accountability, @action_prompting, @updated_at)
      ON CONFLICT(id) DO UPDATE SET
-       address         = excluded.address,
-       zip             = excluded.zip,
-       state           = excluded.state,
-       district        = excluded.district,
-       monitoring_mode = excluded.monitoring_mode,
-       accountability  = excluded.accountability,
-       updated_at      = excluded.updated_at`,
+       address          = excluded.address,
+       zip              = excluded.zip,
+       state            = excluded.state,
+       district         = excluded.district,
+       monitoring_mode  = excluded.monitoring_mode,
+       accountability   = excluded.accountability,
+       action_prompting = excluded.action_prompting,
+       updated_at       = excluded.updated_at`,
   ).run({
     address: parsed.address,
     zip: parsed.zip ?? null,
@@ -98,14 +115,44 @@ export function upsertPreferences(db: PolitiClawDb, input: Preferences): Prefere
     district: parsed.district ?? null,
     monitoring_mode: mode,
     accountability,
+    action_prompting: actionPrompting,
     updated_at: now,
   });
   return {
     ...parsed,
     monitoringMode: mode,
     accountability,
+    actionPrompting,
     updatedAt: now,
   };
+}
+
+function requirePrefsRow(db: PolitiClawDb, label: string): PrefsColumnsRow {
+  const existing = db
+    .prepare(
+      "SELECT address, zip, state, district, monitoring_mode, accountability, action_prompting, updated_at FROM preferences WHERE id = 1",
+    )
+    .get() as PrefsColumnsRow | undefined;
+  if (!existing) {
+    throw new Error(
+      `Cannot set ${label} before address is saved. Call politiclaw_configure first.`,
+    );
+  }
+  return existing;
+}
+
+function rowFromColumns(row: PrefsColumnsRow, overrides: Partial<PreferencesRow>): PreferencesRow {
+  const base: PreferencesRow = {
+    address: row.address,
+    zip: row.zip ?? undefined,
+    state: row.state ?? undefined,
+    district: row.district ?? undefined,
+    monitoringMode: row.monitoring_mode,
+    accountability: row.accountability ?? DEFAULT_ACCOUNTABILITY,
+    actionPrompting: row.action_prompting,
+    updatedAt: row.updated_at,
+  };
+  return { ...base, ...overrides };
 }
 
 export function setMonitoringMode(
@@ -113,24 +160,7 @@ export function setMonitoringMode(
   mode: MonitoringMode,
 ): PreferencesRow {
   const parsed = MonitoringModeSchema.parse(mode);
-  const existing = db
-    .prepare(
-      "SELECT address, zip, state, district, accountability FROM preferences WHERE id = 1",
-    )
-    .get() as
-    | {
-        address: string;
-        zip: string | null;
-        state: string | null;
-        district: string | null;
-        accountability: AccountabilityMode | null;
-      }
-    | undefined;
-  if (!existing) {
-    throw new Error(
-      "Cannot set monitoring mode before address is saved. Call politiclaw_configure first.",
-    );
-  }
+  const existing = requirePrefsRow(db, "monitoring mode");
   const now = Date.now();
   db.prepare(
     `UPDATE preferences
@@ -138,15 +168,7 @@ export function setMonitoringMode(
            updated_at = @updated_at
      WHERE id = 1`,
   ).run({ mode: parsed, updated_at: now });
-  return {
-    address: existing.address,
-    zip: existing.zip ?? undefined,
-    state: existing.state ?? undefined,
-    district: existing.district ?? undefined,
-    monitoringMode: parsed,
-    accountability: existing.accountability ?? DEFAULT_ACCOUNTABILITY,
-    updatedAt: now,
-  };
+  return rowFromColumns(existing, { monitoringMode: parsed, updatedAt: now });
 }
 
 export function setAccountability(
@@ -154,24 +176,7 @@ export function setAccountability(
   mode: AccountabilityMode,
 ): PreferencesRow {
   const parsed = AccountabilityModeSchema.parse(mode);
-  const existing = db
-    .prepare(
-      "SELECT address, zip, state, district, monitoring_mode FROM preferences WHERE id = 1",
-    )
-    .get() as
-    | {
-        address: string;
-        zip: string | null;
-        state: string | null;
-        district: string | null;
-        monitoring_mode: MonitoringMode;
-      }
-    | undefined;
-  if (!existing) {
-    throw new Error(
-      "Cannot set accountability before address is saved. Call politiclaw_configure first.",
-    );
-  }
+  const existing = requirePrefsRow(db, "accountability");
   const now = Date.now();
   db.prepare(
     `UPDATE preferences
@@ -179,15 +184,23 @@ export function setAccountability(
            updated_at = @updated_at
      WHERE id = 1`,
   ).run({ accountability: parsed, updated_at: now });
-  return {
-    address: existing.address,
-    zip: existing.zip ?? undefined,
-    state: existing.state ?? undefined,
-    district: existing.district ?? undefined,
-    monitoringMode: existing.monitoring_mode,
-    accountability: parsed,
-    updatedAt: now,
-  };
+  return rowFromColumns(existing, { accountability: parsed, updatedAt: now });
+}
+
+export function setActionPrompting(
+  db: PolitiClawDb,
+  value: ActionPrompting,
+): PreferencesRow {
+  const parsed = ActionPromptingSchema.parse(value);
+  const existing = requirePrefsRow(db, "action prompting");
+  const now = Date.now();
+  db.prepare(
+    `UPDATE preferences
+       SET action_prompting = @value,
+           updated_at = @updated_at
+     WHERE id = 1`,
+  ).run({ value: parsed, updated_at: now });
+  return rowFromColumns(existing, { actionPrompting: parsed, updatedAt: now });
 }
 
 export function recordStanceSignal(db: PolitiClawDb, input: StanceSignal): number {

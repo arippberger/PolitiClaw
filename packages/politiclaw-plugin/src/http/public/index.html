@@ -62,6 +62,14 @@
                 <option value="draft_for_me">Draft for me &mdash; auto-draft letters on alignment hits.</option>
               </select>
             </label>
+            <label>
+              <span>Auto-suggest action moments</span>
+              <select name="actionPrompting">
+                <option value="">(unchanged)</option>
+                <option value="on">on — offer letters/calls/reminders when relevant</option>
+                <option value="off">off — still runs on explicit tool calls</option>
+              </select>
+            </label>
             <button type="submit">Save preferences</button>
           </form>
         </details>
@@ -92,6 +100,15 @@
       <section class="pc-section" id="pc-section-alerts">
         <h2>Recent alerts</h2>
         <div class="pc-section-body" id="pc-alerts-body">Loading…</div>
+      </section>
+
+      <section class="pc-section" id="pc-section-actions">
+        <h2>Open actions</h2>
+        <p class="pc-subtitle">
+          Offer-not-push: dismiss any of these if they aren't helpful. Generated
+          letters and call scripts come from explicit tool calls in the agent.
+        </p>
+        <div class="pc-section-body" id="pc-actions-body">Loading…</div>
       </section>
 
       <section class="pc-section" id="pc-section-letters">

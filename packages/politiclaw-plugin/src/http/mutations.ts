@@ -23,14 +23,23 @@ import {
   type MonitoringToggleResult,
 } from "../cron/setup.js";
 import {
+  getActionPackage,
+  recordPackageFeedback,
+  type ActionPackageRow,
+  type PackageFeedbackVerdict,
+} from "../domain/actionMoments/index.js";
+import {
   ACCOUNTABILITY_VALUES,
+  ACTION_PROMPTING_VALUES,
   MONITORING_MODE_VALUES,
   recordStanceSignal,
   setAccountability,
+  setActionPrompting,
   setMonitoringMode,
   upsertIssueStance,
   upsertPreferences,
   type AccountabilityMode,
+  type ActionPrompting,
   type IssueStanceRow,
   type MonitoringMode,
   type PreferencesRow,
@@ -52,6 +61,7 @@ const PreferencesUpdateSchema = z.object({
   district: z.string().trim().optional(),
   monitoringMode: z.enum(MONITORING_MODE_VALUES).optional(),
   accountability: z.enum(ACCOUNTABILITY_VALUES).optional(),
+  actionPrompting: z.enum(ACTION_PROMPTING_VALUES).optional(),
   issueStances: z
     .array(
       z.object({
@@ -69,6 +79,7 @@ export type PreferencesUpdateResult = {
   preferences: PreferencesRow | null;
   monitoringMode: MonitoringMode | null;
   accountability: AccountabilityMode | null;
+  actionPrompting: ActionPrompting | null;
   upsertedIssueStances: IssueStanceRow[];
 };
 
@@ -103,6 +114,7 @@ export function handlePreferencesUpdate(
     body.address === undefined &&
     body.monitoringMode === undefined &&
     body.accountability === undefined &&
+    body.actionPrompting === undefined &&
     (body.issueStances === undefined || body.issueStances.length === 0)
   ) {
     return {
@@ -111,7 +123,7 @@ export function handlePreferencesUpdate(
       body: {
         error: "empty_update",
         message:
-          "at least one of address, monitoringMode, accountability, or issueStances is required",
+          "at least one of address, monitoringMode, accountability, actionPrompting, or issueStances is required",
       },
     };
   }
@@ -119,6 +131,13 @@ export function handlePreferencesUpdate(
   let updatedPrefs: PreferencesRow | null = null;
   let monitoringMode: MonitoringMode | null = null;
   let accountabilityResult: AccountabilityMode | null = null;
+  let actionPromptingResult: ActionPrompting | null = null;
+
+  const captureFromPrefs = (prefs: PreferencesRow) => {
+    monitoringMode = prefs.monitoringMode;
+    accountabilityResult = prefs.accountability;
+    actionPromptingResult = prefs.actionPrompting;
+  };
 
   try {
     if (body.address !== undefined) {
@@ -129,15 +148,14 @@ export function handlePreferencesUpdate(
         district: body.district,
         monitoringMode: body.monitoringMode,
         accountability: body.accountability,
+        actionPrompting: body.actionPrompting,
       });
-      monitoringMode = updatedPrefs.monitoringMode;
-      accountabilityResult = updatedPrefs.accountability;
+      captureFromPrefs(updatedPrefs);
     } else {
       if (body.monitoringMode !== undefined) {
         try {
           updatedPrefs = setMonitoringMode(db, body.monitoringMode);
-          monitoringMode = updatedPrefs.monitoringMode;
-          accountabilityResult = updatedPrefs.accountability;
+          captureFromPrefs(updatedPrefs);
         } catch (err) {
           return {
             ok: false,
@@ -152,8 +170,22 @@ export function handlePreferencesUpdate(
       if (body.accountability !== undefined) {
         try {
           updatedPrefs = setAccountability(db, body.accountability);
-          monitoringMode = updatedPrefs.monitoringMode;
-          accountabilityResult = updatedPrefs.accountability;
+          captureFromPrefs(updatedPrefs);
+        } catch (err) {
+          return {
+            ok: false,
+            status: 409,
+            body: {
+              error: "no_address_on_file",
+              message: err instanceof Error ? err.message : String(err),
+            },
+          };
+        }
+      }
+      if (body.actionPrompting !== undefined) {
+        try {
+          updatedPrefs = setActionPrompting(db, body.actionPrompting);
+          captureFromPrefs(updatedPrefs);
         } catch (err) {
           return {
             ok: false,
@@ -206,6 +238,7 @@ export function handlePreferencesUpdate(
     preferences: updatedPrefs,
     monitoringMode,
     accountability: accountabilityResult,
+    actionPrompting: actionPromptingResult,
     upsertedIssueStances,
   };
   return { ok: true, status: 200, body: result };
@@ -359,4 +392,89 @@ export function handleLetterRedraft(
     };
   }
   return { ok: true, status: 200, body: result };
+}
+
+const PackageFeedbackSchema = z.object({
+  verdict: z.enum(["useful", "not_now", "stop"]),
+  note: z.string().trim().min(1).optional(),
+});
+
+export type PackageFeedbackBody = z.infer<typeof PackageFeedbackSchema>;
+
+export type PackageFeedbackResult = {
+  package: ActionPackageRow;
+  verdict: PackageFeedbackVerdict;
+};
+
+/**
+ * Dashboard feedback handler. Both `/feedback` (accepts any verdict) and
+ * `/dismiss` (forces `verdict='not_now'` when the body omits one) route
+ * through here so the dashboard's "Not now" button can be a minimal POST
+ * with no payload.
+ */
+export function handlePackageFeedback(
+  db: PolitiClawDb,
+  packageId: number,
+  raw: unknown,
+  defaultVerdict?: PackageFeedbackVerdict,
+): MutationResult {
+  if (!Number.isInteger(packageId) || packageId <= 0) {
+    return {
+      ok: false,
+      status: 400,
+      body: {
+        error: "invalid_package_id",
+        message: "package id must be a positive integer",
+      },
+    };
+  }
+  const body =
+    raw === undefined || raw === null
+      ? { verdict: defaultVerdict }
+      : typeof raw === "object" && !Array.isArray(raw)
+        ? { verdict: defaultVerdict, ...(raw as Record<string, unknown>) }
+        : raw;
+  const parsed = PackageFeedbackSchema.safeParse(body);
+  if (!parsed.success) {
+    return {
+      ok: false,
+      status: 400,
+      body: {
+        error: "invalid_body",
+        message: "package feedback body failed validation",
+        details: parsed.error.flatten(),
+      },
+    };
+  }
+  const existing = getActionPackage(db, packageId);
+  if (!existing) {
+    return {
+      ok: false,
+      status: 404,
+      body: {
+        error: "package_not_found",
+        message: `no action package with id ${packageId}`,
+      },
+    };
+  }
+  const result = recordPackageFeedback(db, {
+    packageId,
+    verdict: parsed.data.verdict,
+    note: parsed.data.note,
+  });
+  if (result.status === "not_found") {
+    return {
+      ok: false,
+      status: 404,
+      body: {
+        error: "package_not_found",
+        message: result.reason,
+      },
+    };
+  }
+  const body200: PackageFeedbackResult = {
+    package: result.package,
+    verdict: parsed.data.verdict,
+  };
+  return { ok: true, status: 200, body: body200 };
 }

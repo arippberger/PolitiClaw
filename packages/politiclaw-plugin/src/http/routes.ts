@@ -38,6 +38,7 @@ import { readJsonBody } from "./body.js";
 import {
   handleLetterRedraft,
   handleMonitoringToggle,
+  handlePackageFeedback,
   handlePreferencesUpdate,
   handleStanceSignalCreate,
   type MutationResult,
@@ -75,6 +76,8 @@ export function createDashboardRoute(
 }
 
 const LETTER_REDRAFT_PATTERN = /^\/api\/letters\/(\d+)\/redraft$/;
+const ACTION_PACKAGE_FEEDBACK_PATTERN = /^\/api\/action-packages\/(\d+)\/feedback$/;
+const ACTION_PACKAGE_DISMISS_PATTERN = /^\/api\/action-packages\/(\d+)\/dismiss$/;
 
 export async function handleDashboardRequest(
   req: IncomingMessage,
@@ -164,6 +167,38 @@ async function handlePost(
   if (redraftMatch) {
     const letterId = Number.parseInt(redraftMatch[1]!, 10);
     const result = handleLetterRedraft(options.deps.db, letterId);
+    sendMutation(res, result);
+    return true;
+  }
+
+  const feedbackMatch = ACTION_PACKAGE_FEEDBACK_PATTERN.exec(remainder);
+  if (feedbackMatch) {
+    const pkgId = Number.parseInt(feedbackMatch[1]!, 10);
+    const body = await readJsonBody(req);
+    if (!body.ok) {
+      sendJson(res, body.status, { error: "invalid_body", message: body.reason });
+      return true;
+    }
+    const result = handlePackageFeedback(options.deps.db, pkgId, body.value);
+    sendMutation(res, result);
+    return true;
+  }
+
+  const dismissMatch = ACTION_PACKAGE_DISMISS_PATTERN.exec(remainder);
+  if (dismissMatch) {
+    const pkgId = Number.parseInt(dismissMatch[1]!, 10);
+    const body = await readJsonBody(req);
+    if (!body.ok && body.status !== 400) {
+      sendJson(res, body.status, { error: "invalid_body", message: body.reason });
+      return true;
+    }
+    const rawValue = body.ok ? body.value : undefined;
+    const result = handlePackageFeedback(
+      options.deps.db,
+      pkgId,
+      rawValue,
+      "not_now",
+    );
     sendMutation(res, result);
     return true;
   }

@@ -1,7 +1,9 @@
 import type { AnyAgentTool } from "openclaw/plugin-sdk";
 
+import { actionMomentsTools } from "../tools/actionMoments.js";
 import { ballotTools } from "../tools/ballot.js";
 import { billsTools } from "../tools/bills.js";
+import { callScriptTools } from "../tools/callScript.js";
 import { configureTools } from "../tools/configure.js";
 import { doctorTools } from "../tools/doctor.js";
 import { explainBallotTools } from "../tools/explainBallot.js";
@@ -10,6 +12,7 @@ import { monitoringTools } from "../tools/monitoring.js";
 import { muteTools } from "../tools/mutes.js";
 import { politiclawTools as preferencesTools } from "../tools/preferences.js";
 import { prepareForElectionTools } from "../tools/prepareForElection.js";
+import { reminderTools } from "../tools/reminder.js";
 import { repReportTools } from "../tools/repReport.js";
 import { repScoringTools } from "../tools/repScoring.js";
 import { repsTools } from "../tools/reps.js";
@@ -172,6 +175,18 @@ export const POLITICLAW_TOOL_GROUPS: readonly DocsToolGroup[] = [
         "packages/politiclaw-plugin/src/tools/mutes.ts",
         muteTools,
       ),
+      ...makeEntries(
+        "monitoring",
+        "Monitoring and cadence",
+        "packages/politiclaw-plugin/src/tools/reminder.ts",
+        reminderTools,
+      ),
+      ...makeEntries(
+        "monitoring",
+        "Monitoring and cadence",
+        "packages/politiclaw-plugin/src/tools/actionMoments.ts",
+        actionMomentsTools,
+      ),
     ],
   },
   {
@@ -197,6 +212,12 @@ export const POLITICLAW_TOOL_GROUPS: readonly DocsToolGroup[] = [
         "Candidate research and outreach",
         "packages/politiclaw-plugin/src/tools/draftLetter.ts",
         letterTools,
+      ),
+      ...makeEntries(
+        "research",
+        "Candidate research and outreach",
+        "packages/politiclaw-plugin/src/tools/callScript.ts",
+        callScriptTools,
       ),
     ],
   },

@@ -25,11 +25,16 @@ import {
   type RepIssueAlignment,
 } from "../domain/scoring/index.js";
 import { POLITICLAW_CRON_NAMES } from "../cron/templates.js";
+import {
+  listOpenActionPackages,
+  type ActionPackageRow,
+} from "../domain/actionMoments/index.js";
 import { listRecentAlerts, type AlertKind } from "../domain/alerts/index.js";
 import { listLetters, type LetterListEntry } from "../domain/letters/index.js";
 import { listRecentBillVotes, type RecentBillVote } from "../domain/votes/ingest.js";
 
 export const STATUS_SCHEMA_VERSION = 4 as const;
+export const OPEN_ACTION_PACKAGES_LIMIT = 10;
 export const UPCOMING_ELECTION_WINDOW_DAYS = 60;
 export const RECENT_ALERTS_LIMIT = 10;
 export const RECENT_LETTERS_LIMIT = 10;
@@ -44,6 +49,7 @@ export type StatusPreferences =
       district: string | null;
       monitoringMode: string;
       accountability: string;
+      actionPrompting: "off" | "on";
       updatedAtMs: number;
       issueStances: {
         issue: string;
@@ -167,6 +173,28 @@ export type StatusRecentVotes =
   | { status: "ok"; votes: StatusRecentVote[] }
   | { status: "none"; reason: string };
 
+export type StatusActionPackage = {
+  id: number;
+  createdAtMs: number;
+  triggerClass: ActionPackageRow["triggerClass"];
+  packageKind: ActionPackageRow["packageKind"];
+  outreachMode: ActionPackageRow["outreachMode"];
+  billId: string | null;
+  repId: string | null;
+  issue: string | null;
+  electionDate: string | null;
+  summary: string;
+  generatedLetterId: number | null;
+  generatedCallScriptId: number | null;
+  generatedReminderId: number | null;
+  sourceAdapterId: string;
+  sourceTier: number;
+};
+
+export type StatusOpenActionPackages =
+  | { status: "ok"; packages: StatusActionPackage[] }
+  | { status: "none"; reason: string };
+
 export type StatusPayload = {
   schemaVersion: typeof STATUS_SCHEMA_VERSION;
   generatedAtMs: number;
@@ -177,6 +205,7 @@ export type StatusPayload = {
   recentAlerts: StatusRecentAlerts;
   recentLetters: StatusRecentLetters;
   recentVotes: StatusRecentVotes;
+  openActionPackages: StatusOpenActionPackages;
 };
 
 export type BuildStatusDeps = {
@@ -197,6 +226,7 @@ export async function buildStatusPayload(deps: BuildStatusDeps): Promise<StatusP
   const recentAlerts = buildRecentAlertsSection(deps.db);
   const recentLetters = buildRecentLettersSection(deps.db);
   const recentVotes = buildRecentVotesSection(deps.db);
+  const openActionPackages = buildOpenActionPackagesSection(deps.db);
 
   return {
     schemaVersion: STATUS_SCHEMA_VERSION,
@@ -208,6 +238,42 @@ export async function buildStatusPayload(deps: BuildStatusDeps): Promise<StatusP
     recentAlerts,
     recentLetters,
     recentVotes,
+    openActionPackages,
+  };
+}
+
+function buildOpenActionPackagesSection(db: PolitiClawDb): StatusOpenActionPackages {
+  const rows = listOpenActionPackages(db, { limit: OPEN_ACTION_PACKAGES_LIMIT });
+  if (rows.length === 0) {
+    return {
+      status: "none",
+      reason:
+        "no open action moments — monitoring surfaces them when a tracked change qualifies",
+    };
+  }
+  return {
+    status: "ok",
+    packages: rows.map(toStatusActionPackage),
+  };
+}
+
+function toStatusActionPackage(row: ActionPackageRow): StatusActionPackage {
+  return {
+    id: row.id,
+    createdAtMs: row.createdAt,
+    triggerClass: row.triggerClass,
+    packageKind: row.packageKind,
+    outreachMode: row.outreachMode,
+    billId: row.billId,
+    repId: row.repId,
+    issue: row.issue,
+    electionDate: row.electionDate,
+    summary: row.summary,
+    generatedLetterId: row.generatedLetterId,
+    generatedCallScriptId: row.generatedCallScriptId,
+    generatedReminderId: row.generatedReminderId,
+    sourceAdapterId: row.sourceAdapterId,
+    sourceTier: row.sourceTier,
   };
 }
 
@@ -315,6 +381,7 @@ function buildPreferencesSection(
     district: prefs.district ?? null,
     monitoringMode: prefs.monitoringMode ?? "action_only",
     accountability: prefs.accountability,
+    actionPrompting: prefs.actionPrompting ?? "on",
     updatedAtMs: prefs.updatedAt,
     issueStances: stances,
   };

@@ -134,3 +134,65 @@ The user sends the letter themselves. Suggest:
 
 Do not offer to open a mailto: link, spawn a send tool, or automate delivery.
 Drafts are starting points; the user owns the send.
+
+## 8. Call scripts
+
+`politiclaw_draft_call_script` is the phone-call sibling of `politiclaw_draft_letter`.
+Same posture: offer, don't push. The plugin slot-fills a ≤150-word script
+(opening, ask, optional one-specific sentence, closing) from the stored rep
+record and the user's declared stance. The user reads it; the plugin never
+dials.
+
+When to offer a call script:
+
+- The user already has a letter draft but wants a faster channel, OR
+- The user explicitly asks to call, OR
+- An `outreach` action package with `mode='call'` surfaced in the monitoring
+  digest and the user picked that mode.
+
+Rendering rules:
+
+- Show the script verbatim. Phone number comes from `rep.contact.phone`; surface
+  it next to the script, not inside the spoken text.
+- If the tool returns `no_phone_on_file`, say: *"We don't have a phone number
+  for this rep in the stored record — {rep.name}'s official site is in the
+  citations."* **Never invent or LLM-guess a number**, even if you "know" one
+  from training data.
+- If the tool returns `no_stance_for_issue`, route the user to
+  `politiclaw_set_issue_stance` first, same as with letters.
+- Include the footer: *"This is a draft call. Phone numbers route to the DC
+  office; district offices may answer faster — check the rep's site before
+  you call."*
+
+Do not offer to place the call, record it, or transcribe it. Like letters, the
+send path stays outside the tool.
+
+## 9. Reminders vs. mutes vs. stops
+
+Three different user actions, three different tools. Keep them distinct —
+conflating them confuses the user and corrupts the feedback signal.
+
+- **Reminder** (`politiclaw_create_reminder`) = a proactive bookmark. "Remind
+  me to check this again before the vote." Stored in the `reminders` table;
+  surfaced by the monitoring crons when the deadline is within 48 hours. Use
+  when the user wants a nudge later, not silence now.
+- **Stop on an action package** (`politiclaw_dismiss_action_package` with
+  `verdict='stop'`) = "don't offer this specific decision again." Scoped to
+  the `(trigger_class, bill, rep, issue, election_date)` tuple of one
+  package. Everything else about that bill/rep/issue still alerts. Use when
+  the user isn't interested in *this* offer but hasn't disowned the topic.
+- **Mute** (`politiclaw_mute`) = "silence the target entirely." Kind is
+  `bill`, `rep`, or `issue`. Every future alert and action package for that
+  target is suppressed until `politiclaw_unmute`. Use only when the user
+  explicitly asks to silence the topic — muting is the biggest hammer and
+  erodes the user's situational awareness if used reflexively.
+
+Routing rule: default to the narrowest tool. "Stop suggesting letters about
+this bill" → dismiss the package with `verdict='stop'`. "I never want to see
+this bill again" → mute. If the user says "stop" and it's ambiguous, ask
+which scope they meant.
+
+When an `action_package` already exists for a `(rep, bill, issue)` combo,
+surface that package instead of generating a parallel draft. The package is
+the canonical offer; drafting around it creates duplicate rows the user has
+no way to dismiss together.

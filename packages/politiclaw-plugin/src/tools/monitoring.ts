@@ -2,6 +2,7 @@ import { Type } from "@sinclair/typebox";
 import type { AnyAgentTool } from "openclaw/plugin-sdk";
 import { z } from "zod";
 
+import type { ActionPackageRow } from "../domain/actionMoments/index.js";
 import {
   checkUpcomingVotes,
   type CheckUpcomingVotesResult,
@@ -195,6 +196,11 @@ export function renderCheckUpcomingVotesOutput(
 
   if (result.status === "partial") sections.push(...renderPartialReasons(result));
 
+  if (result.actionPackages && result.actionPackages.length > 0) {
+    sections.push("");
+    sections.push(...renderActionPackages(result.actionPackages));
+  }
+
   const hasScored =
     bills.tier1.length > 0 || bills.tier2.length > 0 || bills.tier3.length > 0;
   if (hasScored) {
@@ -254,6 +260,29 @@ function renderPartialReasons(result: CheckUpcomingVotesResult): string[] {
   }
   return lines;
 }
+
+function renderActionPackages(packages: readonly ActionPackageRow[]): string[] {
+  const lines: string[] = ["### You might want to act on"];
+  for (const pkg of packages) {
+    lines.push(`- ${pkg.summary} ${offerTail(pkg)}`);
+  }
+  lines.push(
+    "",
+    "These are offers — dismiss any with politiclaw_dismiss_action_package.",
+  );
+  return lines;
+}
+
+function offerTail(pkg: ActionPackageRow): string {
+  if (pkg.packageKind === "outreach") {
+    return "A draft letter or short call script is ready if you want one — call politiclaw_draft_letter or politiclaw_draft_call_script.";
+  }
+  if (pkg.packageKind === "reminder") {
+    return "Create a reminder with politiclaw_create_reminder if you want a bookmark.";
+  }
+  return "Run politiclaw_prepare_me_for_my_next_election when you're ready.";
+}
+
 
 function renderMutedNote(result: CheckUpcomingVotesResult): string {
   const parts: string[] = [];

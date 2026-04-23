@@ -6,6 +6,7 @@
   const MONITORING_URL = "api/monitoring";
   const STANCE_URL = "api/stance-signals";
   const LETTERS_URL = "api/letters/";
+  const ACTION_PACKAGES_URL = "api/action-packages/";
   const CSRF_COOKIE = "pc_csrf";
   const CSRF_HEADER = "X-PolitiClaw-CSRF";
 
@@ -20,6 +21,7 @@
     monitoringResume: document.getElementById("pc-monitoring-resume"),
     election: document.getElementById("pc-election-body"),
     alerts: document.getElementById("pc-alerts-body"),
+    actions: document.getElementById("pc-actions-body"),
     letters: document.getElementById("pc-letters-body"),
     quickVote: document.getElementById("pc-quick-vote-body"),
   };
@@ -42,6 +44,7 @@
         "monitoring",
         "election",
         "alerts",
+        "actions",
         "letters",
         "quickVote",
       ].forEach(function (key) {
@@ -65,6 +68,7 @@
     renderMonitoring(payload.monitoring);
     renderElection(payload.upcomingElection);
     renderAlerts(payload.recentAlerts);
+    renderActionPackages(payload.openActionPackages);
     renderLetters(payload.recentLetters);
     renderQuickVote(payload.recentVotes);
     primePreferencesForm(payload.preferences);
@@ -86,6 +90,11 @@
     if (section.district) appendKv(kv, "District", section.district);
     appendKv(kv, "Mode", section.monitoringMode);
     if (section.accountability) appendKv(kv, "Accountability", section.accountability);
+    appendKv(
+      kv,
+      "Auto-suggest",
+      section.actionPrompting === "off" ? "off" : "on",
+    );
     appendKv(kv, "Updated", formatDate(section.updatedAtMs));
     container.appendChild(kv);
 
@@ -334,6 +343,87 @@
     container.appendChild(kv);
   }
 
+  function renderActionPackages(section) {
+    const container = elements.actions;
+    if (!container) return;
+    container.innerHTML = "";
+    if (!section || section.status === "none") {
+      container.appendChild(
+        mutedLine(section ? section.reason : "No open action moments."),
+      );
+      return;
+    }
+    const ul = document.createElement("ul");
+    ul.className = "pc-actions";
+    section.packages.forEach(function (pkg) {
+      ul.appendChild(renderActionPackage(pkg));
+    });
+    container.appendChild(ul);
+  }
+
+  function renderActionPackage(pkg) {
+    const li = document.createElement("li");
+    const head = document.createElement("div");
+    head.className = "pc-alert-head";
+    head.appendChild(pill("accent", pkg.packageKind));
+    if (pkg.outreachMode) head.appendChild(pill(null, pkg.outreachMode));
+    head.appendChild(pill(null, pkg.triggerClass));
+    head.appendChild(pill("accent", "tier " + pkg.sourceTier));
+    const summary = document.createElement("span");
+    summary.className = "pc-alert-summary";
+    summary.textContent = pkg.summary;
+    head.appendChild(summary);
+    li.appendChild(head);
+
+    const meta = document.createElement("div");
+    meta.className = "pc-alert-meta";
+    const metaBits = [formatDate(pkg.createdAtMs), pkg.sourceAdapterId];
+    if (pkg.billId) metaBits.push(pkg.billId);
+    if (pkg.repId) metaBits.push("rep " + pkg.repId);
+    if (pkg.issue) metaBits.push(pkg.issue);
+    if (pkg.electionDate) metaBits.push(pkg.electionDate);
+    meta.textContent = metaBits.join(" · ");
+    li.appendChild(meta);
+
+    const actions = document.createElement("div");
+    actions.className = "pc-edit-inline";
+    ["useful", "not_now", "stop"].forEach(function (verdict) {
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.textContent =
+        verdict === "useful"
+          ? "Use"
+          : verdict === "not_now"
+            ? "Not now"
+            : "Stop suggesting this";
+      btn.addEventListener("click", function () {
+        Array.from(actions.children).forEach(function (b) {
+          b.disabled = true;
+        });
+        postJson(ACTION_PACKAGES_URL + pkg.id + "/feedback", { verdict: verdict })
+          .then(function () {
+            toast(verdictToast(verdict, pkg.id));
+            return load();
+          })
+          .catch(function (err) {
+            toast("Feedback failed: " + err.message, true);
+            Array.from(actions.children).forEach(function (b) {
+              b.disabled = false;
+            });
+          });
+      });
+      actions.appendChild(btn);
+    });
+    li.appendChild(actions);
+    return li;
+  }
+
+  function verdictToast(verdict, id) {
+    if (verdict === "useful") return "Marked action #" + id + " as used.";
+    if (verdict === "stop") return "OK, won't offer this one again.";
+    return "OK, hiding action #" + id + " for now.";
+  }
+
   function renderLetters(section) {
     const container = elements.letters;
     container.innerHTML = "";
@@ -483,6 +573,8 @@
       if (monitoringMode) payload.monitoringMode = monitoringMode;
       const accountability = String(fd.get("accountability") || "").trim();
       if (accountability) payload.accountability = accountability;
+      const actionPrompting = String(fd.get("actionPrompting") || "").trim();
+      if (actionPrompting) payload.actionPrompting = actionPrompting;
 
       if (Object.keys(payload).length === 0) {
         toast("Nothing to save.", true);

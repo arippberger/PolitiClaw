@@ -3,6 +3,10 @@ import type { AnyAgentTool } from "openclaw/plugin-sdk";
 import { z } from "zod";
 
 import {
+  attachGeneratedLetter,
+  findOpenByTarget,
+} from "../domain/actionMoments/index.js";
+import {
   draftLetter,
   LETTER_DRAFT_DISCLAIMER,
   LETTER_MAX_WORDS,
@@ -122,6 +126,22 @@ export const draftLetterTool: AnyAgentTool = {
       },
       { resolver },
     );
+
+    if (result.status === "ok") {
+      for (const triggerClass of ["bill_nearing_vote", "repeated_misalignment"] as const) {
+        const matching = findOpenByTarget(
+          db,
+          triggerClass,
+          result.bill?.id ?? null,
+          result.rep.id,
+          result.issue,
+        );
+        for (const pkg of matching) {
+          attachGeneratedLetter(db, pkg.id, result.letterId);
+        }
+      }
+    }
+
     return textResult(renderDraftLetterOutput(result), result);
   },
 };
