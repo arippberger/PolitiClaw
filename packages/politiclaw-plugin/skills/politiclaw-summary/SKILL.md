@@ -103,7 +103,7 @@ Check the user's `accountability` mode (read it from
 - `draft_for_me`: same as `nudge_me`, plus call
   `politiclaw_draft_letter` proactively for the single highest-alignment
   bill from section 2 and surface "Drafted a letter for Rep. X — review
-  and send via `politiclaw_send_letter`." Cap at one auto-draft per
+  in the returned draft text so the user can send it themselves." Cap at one auto-draft per
   digest to avoid swamping the user.
 
 Each suggestion is one sentence. Do not pad. If the week is quiet enough

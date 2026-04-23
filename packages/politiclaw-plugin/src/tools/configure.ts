@@ -519,7 +519,7 @@ export function createConfigureTool(deps: ConfigureToolDeps = {}): AnyAgentTool 
       // 6. Complete — reconcile cron only if something cron-affecting changed
       //    this call (or first-time complete).
       const cronAffectingChange =
-        saved.address || saved.monitoringChanged || saved.stancesAdded > 0;
+        saved.address || saved.monitoringChanged;
       let monitoring: MonitoringSetupResult | null = null;
       let monitoringError: string | null = null;
       if (cronAffectingChange) {

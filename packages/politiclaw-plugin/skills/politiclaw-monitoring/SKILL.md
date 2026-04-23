@@ -265,7 +265,7 @@ action beyond reporting facts:
   `alignment.confidence ≥ 0.5` and the user has not yet sent a letter
   on it, call `politiclaw_draft_letter` proactively for the
   highest-alignment rep on that bill, and surface "Drafted a letter for
-  Rep. X — review and send via `politiclaw_send_letter`." Cap at one
+  Rep. X — review in the returned draft text and send it yourself." Cap at one
   proactive draft per monitoring run; the user can always ask for more.
 
 Do not escalate behavior beyond the saved mode. If the user wants more

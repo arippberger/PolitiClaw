@@ -35,7 +35,7 @@ const TOP_STANCE_LIMIT = 5;
 const MODE_EXPLAINERS: Record<MonitoringMode, string> = {
   off: "No automated alerts. You can still ask me anything on demand.",
   quiet_watch:
-    "Silent background change-detection only. No digests or alerts; I speak up only when you ask.",
+    "Silent background change-detection only. No digests. I only surface tracked-bill or hearing changes when something materially changes.",
   weekly_digest:
     "Weekly digest plus monthly rep report, with background change-detection on bills affecting your issues.",
   action_only:
@@ -222,9 +222,9 @@ export async function buildMonitoringContract(
     if (deps.cronAdapter && installedJob && !enabledOnGateway) {
       inactiveJobs.push({
         name: template.name,
-        reason: "mode_excludes",
+        reason: "feature_unavailable",
         explanation:
-          "Job is installed but disabled on the gateway. Re-run politiclaw_configure to reconcile.",
+          "Job is installed but currently disabled on the gateway. Re-run politiclaw_configure to reconcile or inspect gateway cron state directly.",
       });
       continue;
     }

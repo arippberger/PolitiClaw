@@ -237,3 +237,56 @@ describe("upsertPreferences mode handling", () => {
     expect(row.monitoringMode).toBe("weekly_digest");
   });
 });
+
+import { buildMonitoringContract } from "./contract.js";
+
+describe("buildMonitoringContract", () => {
+  it("labels gateway-disabled jobs as feature_unavailable", async () => {
+    const db = openMemoryDb();
+    upsertPreferences(db, {
+      address: "123 Main",
+      state: "CA",
+      monitoringMode: "weekly_digest",
+    });
+
+    const contract = await buildMonitoringContract({
+      db,
+      config: { apiKeys: { apiDataGov: "test-key" } },
+      cronAdapter: {
+        async list() {
+          return [
+            {
+              id: "1",
+              name: "politiclaw.weekly_summary",
+              description: "weekly",
+              enabled: false,
+              schedule: { kind: "every", everyMs: 604800000 },
+              sessionTarget: "isolated",
+              wakeMode: "next-heartbeat",
+              payload: { kind: "agentTurn", message: "x" },
+            },
+          ];
+        },
+      },
+    });
+
+    const inactive = contract.inactiveJobs.find((j) => j.name === "politiclaw.weekly_summary");
+    expect(inactive?.reason).toBe("feature_unavailable");
+  });
+
+  it("describes quiet_watch as material-change driven", async () => {
+    const db = openMemoryDb();
+    upsertPreferences(db, {
+      address: "123 Main",
+      state: "CA",
+      monitoringMode: "quiet_watch",
+    });
+
+    const contract = await buildMonitoringContract({
+      db,
+      config: { apiKeys: { apiDataGov: "test-key" } },
+    });
+
+    expect(contract.monitoring.plainEnglish.toLowerCase()).toContain("materially changes");
+  });
+});

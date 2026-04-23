@@ -285,6 +285,40 @@ describe("politiclaw_configure", () => {
   });
 
   describe("complete stage", () => {
+    it("does not reconcile cron when only issue stances change during completion", async () => {
+      const reconcileMonitoring = vi.fn(async () => ({ outcomes: [] }));
+      const tool = createConfigureTool({
+        identifyReps: vi.fn(async () => okReps()),
+        createResolver: vi.fn(() => ({}) as never),
+        reconcileMonitoring,
+      });
+
+      await tool.execute!(
+        "call-1",
+        {
+          address: "123 Main St",
+          state: "CA",
+          issueStances: [{ issue: "climate", stance: "support" }],
+          monitoringMode: "weekly_digest",
+          accountability: "self_serve",
+        },
+        undefined,
+        undefined,
+      );
+      expect(reconcileMonitoring).toHaveBeenCalledOnce();
+
+      const res = await tool.execute!(
+        "call-2",
+        { issueStances: [{ issue: "housing", stance: "support", weight: 4 }] },
+        undefined,
+        undefined,
+      );
+      const details = detailsFrom<ConfigureResult>(res as { details: ConfigureResult });
+      expect(details.stage).toBe("complete");
+      expect(details.savedThisCall.stancesAdded).toBe(1);
+      expect(reconcileMonitoring).toHaveBeenCalledOnce();
+    });
+
     it("does not reconcile cron when called with no args after setup is done", async () => {
       const reconcileMonitoring = vi.fn(async () => ({ outcomes: [] }));
       const tool = createConfigureTool({
