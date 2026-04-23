@@ -64,6 +64,8 @@ export const WEEKLY_SUMMARY_TEMPLATE: PolitiClawCronTemplate = {
       "Run the PolitiClaw weekly summary. Read the politiclaw-summary skill " +
       "and follow its section order exactly. Call politiclaw_check_upcoming_votes " +
       "with a 7-day window, then compose the digest per skills/politiclaw-summary/SKILL.md. " +
+      "Honor the tool's tier grouping: tier-1 items get the full Class-A render, " +
+      "tier-2 items get the one-line digest render, tier-3 is the tail count. " +
       "Required: include the 'Things you might be surprised by' dissenting-view " +
       "section. If the delta is empty, post the one-line quiet-week " +
       "message per the skill — do not pad.",
@@ -86,11 +88,12 @@ export const REP_VOTE_WATCH_TEMPLATE: PolitiClawCronTemplate = {
     message:
       "Run the PolitiClaw rep-vote watch. Read the politiclaw-monitoring skill. " +
       "Call politiclaw_check_upcoming_votes with the default (recent) window. " +
-      "Only surface bills flagged as [new] or [changed] whose alignment crosses " +
-      "the confidence floor. If the delta is empty, post the one-line silent-ok " +
-      "message per the skill — do not pad. Prioritize bill-status deltas and " +
-      "committee activity unless politiclaw_ingest_votes has populated House " +
-      "and Senate roll calls.",
+      "Surface only tier-1 interruptive items (Class A for bills, Class B for " +
+      "events) plus any Class C rep-vote misalignments. Tier-2 and tail items " +
+      "roll into the weekly digest — do not duplicate them here. If the tool " +
+      "returns no tier-1 items, post the one-line silent-ok message per the " +
+      "skill — do not pad. Prioritize bill-status deltas and committee activity " +
+      "unless politiclaw_ingest_votes has populated House and Senate roll calls.",
   },
   delivery: { mode: "announce", channel: "last" },
 };
@@ -108,10 +111,10 @@ export const TRACKED_HEARINGS_TEMPLATE: PolitiClawCronTemplate = {
     kind: "agentTurn",
     message:
       "Run the PolitiClaw tracked-hearings sweep. Read the politiclaw-monitoring " +
-      "skill. Call politiclaw_check_upcoming_votes and surface only upcoming " +
-      "committee events whose relatedBillIds overlap a tracked bill, or bills " +
-      "whose alignment crosses the confidence floor against declared stances. " +
-      "If the delta contains no tracked-issue matches, post the one-line " +
+      "skill. Call politiclaw_check_upcoming_votes. Surface only tier-1 " +
+      "interruptive events (Class B, near-term hearings on tier-1 bills). " +
+      "Tier-2 hearings roll into the weekly digest — do not duplicate them " +
+      "here. If the tool returns no tier-1 items, post the one-line " +
       "silent-ok message per the skill — do not pad.",
   },
   delivery: { mode: "announce", channel: "last" },
@@ -130,7 +133,14 @@ export const REP_REPORT_TEMPLATE: PolitiClawCronTemplate = {
   payload: {
     kind: "agentTurn",
     message:
-      "Run the PolitiClaw periodic representative alignment report. Read skills/politiclaw-monitoring/SKILL.md → Rep report (periodic digest). Call politiclaw_rep_report once. Include the dissenting-view requirement where applicable; never strip the alignment disclaimer footer from tool output when scores are shown. If the tool returns no_stances or no_reps, post only the actionable fix.",
+      "Run the PolitiClaw periodic representative alignment report. Read " +
+      "skills/politiclaw-monitoring/SKILL.md → Rep report (periodic digest). " +
+      "Call politiclaw_rep_report once. Render misaligned votes as Class C " +
+      "items (one per misalignment) and bundle aligned votes to a count per " +
+      "rep. Include the dissenting-view requirement where applicable; never " +
+      "strip the alignment disclaimer footer from tool output when scores are " +
+      "shown. If the tool returns no_stances or no_reps, post only the " +
+      "actionable fix.",
   },
   delivery: { mode: "announce", channel: "last" },
 };
@@ -148,7 +158,13 @@ export const ELECTION_PROXIMITY_ALERT_TEMPLATE: PolitiClawCronTemplate = {
   payload: {
     kind: "agentTurn",
     message:
-      "Run the PolitiClaw election-proximity check. Read skills/politiclaw-monitoring/SKILL.md → Election proximity alerts. Call politiclaw_get_my_ballot to read the next election date for the saved address. If the election is 30, 14, 7, or 1 day away, post one short line ('Election in N days at <polling place or address>') and recommend politiclaw_prepare_me_for_my_next_election. On other days post nothing.",
+      "Run the PolitiClaw election-proximity check. Read " +
+      "skills/politiclaw-monitoring/SKILL.md → Election proximity alerts. " +
+      "Call politiclaw_get_my_ballot to read the next election date for the " +
+      "saved address. If the election is 30, 14, 7, or 1 day away, post one " +
+      "Class-D line ('Election in N days at <polling place or address>') and " +
+      "recommend politiclaw_prepare_me_for_my_next_election. On other days " +
+      "post nothing.",
   },
   delivery: { mode: "announce", channel: "last" },
 };

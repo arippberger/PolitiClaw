@@ -7,13 +7,31 @@ import {
   type CheckUpcomingVotesResult,
   type ChangedEvent,
   type ScoredBillChange,
+  TIER1_MAX,
+  TIER2_MAX,
 } from "../domain/monitoring/upcomingVotes.js";
 import { ALIGNMENT_DISCLAIMER } from "../domain/scoring/index.js";
+import type { LlmClient } from "../domain/scoring/direction.js";
+import type { DirectionForStance } from "../domain/scoring/direction.js";
 import { createBillsResolver } from "../sources/bills/index.js";
 import { createUpcomingVotesResolver } from "../sources/upcomingVotes/index.js";
+import { congressGovPublicBillUrl } from "../sources/bills/types.js";
+import type { StanceMatch } from "../domain/scoring/alignment.js";
 import { getPluginConfig, getStorage } from "../storage/context.js";
 
 const DEFAULT_CONGRESS = 119;
+
+/**
+ * Test seam: production currently has no LLM transport wired for directional
+ * framing in the monitoring loop, so by default `checkUpcomingVotes` runs
+ * without direction classification. Tests inject a fake client to exercise
+ * the Class-A directional output without coupling to a real LLM SDK.
+ */
+let directionLlmOverride: LlmClient | null = null;
+
+export function setMonitoringDirectionLlmForTests(client: LlmClient | null): void {
+  directionLlmOverride = client;
+}
 
 const CheckUpcomingVotesParams = Type.Object({
   congress: Type.Optional(
@@ -65,12 +83,17 @@ function textResult<T>(text: string, details: T) {
 }
 
 /**
- * Render a check-upcoming-votes result as user-facing text. Enforces two
- * output rules:
- *   - any scored output includes ALIGNMENT_DISCLAIMER verbatim (the
- *     scored-bills section is position-adjacent reasoning)
- *   - the empty-delta case is a feature, not a failure; we say so explicitly
- *     rather than emitting silence that looks like a bug
+ * Render a check-upcoming-votes result as user-facing text. The agent uses
+ * this baseline to compose its cron-delivered message.
+ *
+ * Output contract (see plan-5):
+ *   - Empty delta: explicit one-liner. Silence looks like a bug.
+ *   - Schema-bump-only delta: single labeled footer line.
+ *   - Otherwise: bills and events grouped by triage tier (interruptive /
+ *     digest / tail). Tier 1 is capped at {@link TIER1_MAX}; tier 2 at
+ *     {@link TIER2_MAX}; overflow rolls into a terse tail count. Never
+ *     silently truncates.
+ *   - Every scored-bill section emits the `ALIGNMENT_DISCLAIMER` verbatim.
  */
 export function renderCheckUpcomingVotesOutput(
   result: CheckUpcomingVotesResult,
@@ -87,34 +110,78 @@ export function renderCheckUpcomingVotesOutput(
       .join("\n");
   }
 
+  const bills = groupBillsByTier(result.changedBills);
+  const events = groupEventsByTier(result.changedEvents);
+  const hasAnyItem =
+    result.changedBills.length > 0 || result.changedEvents.length > 0;
+
   const sections: string[] = [];
   sections.push(renderProvenance(result));
 
-  if (result.changedBills.length === 0 && result.changedEvents.length === 0) {
-    sections.push(
-      `No new or materially changed items since last check (checked ${result.unchangedBillCount} bills, ${result.unchangedEventCount} upcoming events).`,
-    );
+  if (!hasAnyItem) {
+    sections.push(renderEmptyDelta(result));
     if (result.mutedBillCount > 0 || result.mutedEventCount > 0) {
       sections.push(renderMutedNote(result));
     }
-    if (result.status === "partial") {
-      if (result.reasons.bills) sections.push(formatReason("bills", result.reasons.bills));
-      if (result.reasons.events) {
-        sections.push(formatReason("upcoming events", result.reasons.events));
-      }
-    }
+    if (result.status === "partial") sections.push(...renderPartialReasons(result));
     return sections.join("\n");
   }
 
-  if (result.changedBills.length > 0) {
-    sections.push("Bills — new or materially changed:");
-    for (const entry of result.changedBills) sections.push(renderBill(entry));
+  const hasRealChange =
+    bills.tier1.length > 0 ||
+    bills.tier2.length > 0 ||
+    bills.tier3.length > 0 ||
+    events.tier1.length > 0 ||
+    events.tier2.length > 0;
+
+  if (!hasRealChange && bills.schemaBump.length > 0) {
+    sections.push(renderSchemaBumpOnly(bills.schemaBump.length));
+    if (result.mutedBillCount > 0 || result.mutedEventCount > 0) {
+      sections.push(renderMutedNote(result));
+    }
+    if (result.status === "partial") sections.push(...renderPartialReasons(result));
+    return sections.join("\n");
   }
 
-  if (result.changedEvents.length > 0) {
+  if (bills.tier1.length > 0 || events.tier1.length > 0) {
     sections.push("");
-    sections.push("Upcoming committee events — new or materially changed:");
-    for (const entry of result.changedEvents) sections.push(renderEvent(entry));
+    sections.push("Interruptive — high-relevance changes:");
+    for (const entry of bills.tier1.slice(0, TIER1_MAX)) {
+      sections.push(renderBillClassA(entry));
+    }
+    for (const entry of events.tier1) {
+      sections.push(renderEventClassB(entry));
+    }
+  }
+
+  const tier1BillOverflow = Math.max(0, bills.tier1.length - TIER1_MAX);
+  const tier2Bills = bills.tier2.slice(0, TIER2_MAX);
+  const tier2BillOverflow = Math.max(0, bills.tier2.length - TIER2_MAX);
+
+  if (tier2Bills.length > 0 || events.tier2.length > 0) {
+    sections.push("");
+    sections.push("Digest — other tracked-issue movement:");
+    for (const entry of tier2Bills) {
+      sections.push(renderBillDigestLine(entry));
+    }
+    for (const entry of events.tier2) {
+      sections.push(renderEventDigestLine(entry));
+    }
+  }
+
+  const tailCount = bills.tier3.length + tier1BillOverflow + tier2BillOverflow;
+  if (tailCount > 0) {
+    sections.push("");
+    sections.push(renderTailLine(bills.tier3, tier1BillOverflow + tier2BillOverflow));
+  }
+
+  if (bills.schemaBump.length > 0) {
+    sections.push("");
+    sections.push(
+      `Baseline updated for ${bills.schemaBump.length} ${
+        bills.schemaBump.length === 1 ? "bill" : "bills"
+      } — no real change, will re-alert on the next material movement.`,
+    );
   }
 
   sections.push("");
@@ -126,20 +193,66 @@ export function renderCheckUpcomingVotesOutput(
     sections.push(renderMutedNote(result));
   }
 
-  if (result.status === "partial") {
-    if (result.reasons.bills) sections.push(formatReason("bills", result.reasons.bills));
-    if (result.reasons.events) {
-      sections.push(formatReason("upcoming events", result.reasons.events));
-    }
-  }
+  if (result.status === "partial") sections.push(...renderPartialReasons(result));
 
-  const hasScored = result.changedBills.some((entry) => entry.alignment);
+  const hasScored =
+    bills.tier1.length > 0 || bills.tier2.length > 0 || bills.tier3.length > 0;
   if (hasScored) {
     sections.push("");
     sections.push(ALIGNMENT_DISCLAIMER);
   }
 
   return sections.join("\n");
+}
+
+type BillGroups = {
+  tier1: ScoredBillChange[];
+  tier2: ScoredBillChange[];
+  tier3: ScoredBillChange[];
+  schemaBump: ScoredBillChange[];
+};
+
+type EventGroups = {
+  tier1: ChangedEvent[];
+  tier2: ChangedEvent[];
+};
+
+function groupBillsByTier(bills: readonly ScoredBillChange[]): BillGroups {
+  const groups: BillGroups = { tier1: [], tier2: [], tier3: [], schemaBump: [] };
+  for (const entry of bills) {
+    if (entry.tier === "schema_bump") groups.schemaBump.push(entry);
+    else if (entry.tier === "tier1") groups.tier1.push(entry);
+    else if (entry.tier === "tier2") groups.tier2.push(entry);
+    else groups.tier3.push(entry);
+  }
+  return groups;
+}
+
+function groupEventsByTier(events: readonly ChangedEvent[]): EventGroups {
+  const groups: EventGroups = { tier1: [], tier2: [] };
+  for (const entry of events) {
+    if (entry.tier === "tier1") groups.tier1.push(entry);
+    else groups.tier2.push(entry);
+  }
+  return groups;
+}
+
+function renderEmptyDelta(result: CheckUpcomingVotesResult): string {
+  return `No new or materially changed items since last check (checked ${result.unchangedBillCount} bills, ${result.unchangedEventCount} upcoming events).`;
+}
+
+function renderSchemaBumpOnly(count: number): string {
+  const noun = count === 1 ? "bill" : "bills";
+  return `Baseline updated for ${count} ${noun} — no real change, will re-alert on the next material movement.`;
+}
+
+function renderPartialReasons(result: CheckUpcomingVotesResult): string[] {
+  const lines: string[] = [];
+  if (result.reasons.bills) lines.push(formatReason("bills", result.reasons.bills));
+  if (result.reasons.events) {
+    lines.push(formatReason("upcoming events", result.reasons.events));
+  }
+  return lines;
 }
 
 function renderMutedNote(result: CheckUpcomingVotesResult): string {
@@ -170,43 +283,233 @@ function renderProvenance(result: CheckUpcomingVotesResult): string {
   return parts.length > 0 ? `Sources: ${parts.join("; ")}.` : "Sources: none available.";
 }
 
-function renderBill(entry: ScoredBillChange): string {
-  const bill = entry.bill;
-  const header = `- [${entry.change.reason}] ${bill.congress} ${bill.billType} ${bill.number}: ${bill.title}`;
-  const action = bill.latestActionText
-    ? `    ${bill.latestActionDate ?? ""} ${bill.latestActionText}`.trimEnd()
+/**
+ * Class A — interruptive bill change. Headline + why-it-matters (grounded in
+ * stance match and bill-text quote when direction wired) + optional
+ * counter-consideration + optional next-step. Capped at ~60 words of prose,
+ * not counting the headline.
+ */
+function renderBillClassA(entry: ScoredBillChange): string {
+  const lines: string[] = [];
+  lines.push(`- **${billShortId(entry)} — ${entry.bill.title}** ${billVerb(entry)}.`);
+  const why = buildWhyItMatters(entry);
+  if (why) lines.push(`    Why it matters: ${why}`);
+  const counter = buildCounterConsideration(entry);
+  if (counter) lines.push(`    Counter-consideration: ${counter}`);
+  const next = buildNextStep(entry);
+  if (next) lines.push(`    Next: ${next}`);
+  return lines.join("\n");
+}
+
+/**
+ * Digest-row bill summary — single line, ≤ 25 words, no Next step (digest
+ * body stays scannable). Still grounded in the stance match.
+ */
+function renderBillDigestLine(entry: ScoredBillChange): string {
+  const match = topStanceMatch(entry.alignment?.matches);
+  const touches = match
+    ? ` · touches your \`${match.stance}\` on \`${match.issue}\``
     : "";
-  const alignment = renderAlignmentLine(entry);
-  return [header, action, alignment].filter(Boolean).join("\n");
+  return `- **${billShortId(entry)} — ${entry.bill.title}** ${billVerb(entry)}${touches}.`;
 }
 
-function renderAlignmentLine(entry: ScoredBillChange): string {
-  if (!entry.alignment) return "";
-  if (entry.alignment.belowConfidenceFloor) {
-    return "    Alignment: insufficient data (confidence below floor).";
+function renderTailLine(
+  tier3: readonly ScoredBillChange[],
+  overflowFromTiers: number,
+): string {
+  const topicSummary = summarizeTailTopics(tier3);
+  const total = tier3.length + overflowFromTiers;
+  const noun = total === 1 ? "bill" : "bills";
+  if (topicSummary.length > 0) {
+    return `Also changed: ${total} ${noun} — ${topicSummary}. Ask for the full list.`;
   }
-  const rel = Math.round(entry.alignment.relevance * 100);
-  const conf = Math.round(entry.alignment.confidence * 100);
-  const matches =
-    entry.alignment.matches.length === 0
-      ? "no declared-stance matches"
-      : entry.alignment.matches
-          .map((m) => `${m.issue} (${m.stance}, weight ${m.stanceWeight})`)
-          .join(", ");
-  return `    Alignment: ${rel}% relevance, ${conf}% confidence — ${matches}.`;
+  return `Also changed: ${total} ${noun} with no declared-stance match. Ask for the full list.`;
 }
 
-function renderEvent(entry: ChangedEvent): string {
+function summarizeTailTopics(tier3: readonly ScoredBillChange[]): string {
+  const counts = new Map<string, number>();
+  for (const entry of tier3) {
+    for (const match of entry.alignment?.matches ?? []) {
+      counts.set(match.issue, (counts.get(match.issue) ?? 0) + 1);
+    }
+  }
+  if (counts.size === 0) return "";
+  const parts = [...counts.entries()]
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 3)
+    .map(([issue, count]) => `${count} touching \`${issue}\``);
+  return parts.join(", ");
+}
+
+/**
+ * Class B — upcoming committee event. Interruptive render when the event is
+ * promoted to tier 1 (related bill is tier 1); otherwise the digest variant
+ * below renders the one-liner.
+ */
+function renderEventClassB(entry: ChangedEvent): string {
   const event = entry.event;
-  const when = event.startDateTime ?? "(no date on record)";
-  const header = `- [${entry.change.reason}] ${when} — ${event.title}`;
-  const committee = event.committeeName ? `    Committee: ${event.committeeName}` : "";
-  const location = event.location ? `    Location: ${event.location}` : "";
+  const when = formatEventDateTime(event.startDateTime);
+  const location = event.location ? ` (${event.location})` : "";
+  const headline = `- **${event.committeeName ?? "Committee"} — ${event.title}** · ${when}${location}.`;
+  const lines: string[] = [headline];
+  if (event.relatedBillIds.length > 0) {
+    lines.push(`    Related bills: ${event.relatedBillIds.join(", ")}.`);
+  }
+  if (eventIsInFuture(event.startDateTime)) {
+    lines.push(
+      `    Next: politiclaw_draft_letter if you want to weigh in before the hearing.`,
+    );
+  }
+  return lines.join("\n");
+}
+
+function renderEventDigestLine(entry: ChangedEvent): string {
+  const event = entry.event;
+  const when = formatEventDateTime(event.startDateTime);
   const related =
     event.relatedBillIds.length > 0
-      ? `    Related bills: ${event.relatedBillIds.join(", ")}`
+      ? ` · ${event.relatedBillIds.slice(0, 2).join(", ")}`
       : "";
-  return [header, committee, location, related].filter(Boolean).join("\n");
+  return `- **${event.committeeName ?? "Committee"} — ${event.title}** · ${when}${related}.`;
+}
+
+/**
+ * Canonical short id for headlines — "HR-1234" reads better than
+ * "119 HR 1234" in a prose lede. Congress context lives in provenance.
+ */
+function billShortId(entry: ScoredBillChange): string {
+  return `${entry.bill.billType}-${entry.bill.number}`;
+}
+
+/**
+ * Pick a verb that matches what actually happened — newly introduced vs.
+ * advanced in committee vs. schema-bump baseline. For anything we can't
+ * classify confidently we say "updated", which is accurate and not misleading.
+ */
+function billVerb(entry: ScoredBillChange): string {
+  if (entry.change.reason === "new") return "newly introduced";
+  if (entry.change.reason === "schema_bump") return "baseline updated";
+  const text = entry.bill.latestActionText?.toLowerCase() ?? "";
+  if (text.includes("became public law") || text.includes("signed by")) {
+    return "signed into law";
+  }
+  if (text.includes("passed") || text.includes("agreed to")) return "passed";
+  if (text.includes("referred to")) return "referred to committee";
+  if (text.includes("reported")) return "reported out of committee";
+  if (text.includes("placed on") && text.includes("calendar")) {
+    return "placed on the calendar";
+  }
+  if (text.includes("vetoed")) return "vetoed";
+  if (text.includes("failed")) return "failed";
+  return "updated";
+}
+
+function buildWhyItMatters(entry: ScoredBillChange): string | null {
+  const match = topStanceMatch(entry.alignment?.matches);
+  if (!match) return null;
+  const base = `touches your \`${match.stance}\` on \`${match.issue}\``;
+  const directionQuote = topDirectionQuote(entry.direction, match.issue);
+  if (directionQuote) {
+    return `${base} — bill text: "${directionQuote}".`;
+  }
+  if (entry.direction && entry.direction.length > 0) {
+    return `${base}. Direction unclear; no stance-grounded quote in available text.`;
+  }
+  return `${base} (via ${match.matchedText}).`;
+}
+
+function buildCounterConsideration(entry: ScoredBillChange): string | null {
+  if (!entry.direction) return null;
+  for (const item of entry.direction) {
+    if (item.direction.kind === "advances" || item.direction.kind === "obstructs") {
+      if (item.direction.counterConsideration) {
+        return item.direction.counterConsideration;
+      }
+    }
+  }
+  return null;
+}
+
+/**
+ * Build a Next-step line only when a realistic action exists. For bills with
+ * a finality keyword in the latest action (Became Public Law, signed, failed,
+ * vetoed) we omit the line — nudging the user to act after the fact would
+ * be noise. Bills that are still moving get a draft-letter pointer plus the
+ * primary-source link.
+ */
+function buildNextStep(entry: ScoredBillChange): string | null {
+  const text = entry.bill.latestActionText?.toLowerCase() ?? "";
+  const final =
+    text.includes("became public law") ||
+    text.includes("signed by the president") ||
+    text.includes("vetoed") ||
+    text.includes("failed of passage");
+  if (final) return null;
+  const link = congressGovPublicBillUrl(entry.bill.id);
+  const draft = `politiclaw_draft_letter to weigh in`;
+  if (link) return `${draft} · ${link}`;
+  return draft;
+}
+
+function topStanceMatch(
+  matches: readonly StanceMatch[] | undefined,
+): StanceMatch | null {
+  if (!matches || matches.length === 0) return null;
+  return [...matches].sort((a, b) => b.stanceWeight - a.stanceWeight)[0] ?? null;
+}
+
+/**
+ * Pick the directional quote that matches the surfaced stance. Prefers
+ * `advances`/`obstructs` (fully grounded); falls back to the `mixed` quote
+ * that exists when available. Returns null when direction is `unclear` or
+ * the LLM wasn't wired.
+ */
+function topDirectionQuote(
+  direction: readonly DirectionForStance[] | null,
+  issue: string,
+): string | null {
+  if (!direction) return null;
+  const match = direction.find((d) => d.issue === issue);
+  if (!match) return null;
+  const dir = match.direction;
+  if (dir.kind === "advances" || dir.kind === "obstructs") {
+    return dir.quotedText || null;
+  }
+  if (dir.kind === "mixed") {
+    return dir.advancesQuote || dir.obstructsQuote || null;
+  }
+  return null;
+}
+
+/**
+ * Render event date in a scannable "Fri Apr 24, 10:00 AM" shape. Falls back
+ * to the raw ISO string if parsing fails (never throws; the raw value is still
+ * auditable in the tool `details` payload).
+ */
+function formatEventDateTime(iso: string | undefined): string {
+  if (!iso) return "(no date on record)";
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return iso;
+  try {
+    return d.toLocaleString("en-US", {
+      weekday: "short",
+      month: "short",
+      day: "numeric",
+      hour: "numeric",
+      minute: "2-digit",
+      timeZone: "UTC",
+      timeZoneName: "short",
+    });
+  } catch {
+    return iso;
+  }
+}
+
+function eventIsInFuture(iso: string | undefined): boolean {
+  if (!iso) return false;
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return false;
+  return d.getTime() >= Date.now();
 }
 
 function formatReason(
@@ -228,7 +531,8 @@ export const checkUpcomingVotesTool: AnyAgentTool = {
     "committee events from api.congress.gov (tier 1), compares each against the " +
     "persisted snapshot, and returns only items that are new or have materially " +
     "changed since the last check. Bill changes are scored against declared " +
-    "issue stances when any are set. A second invocation on unchanged data " +
+    "issue stances when any are set. Output is grouped by triage tier " +
+    "(interruptive / digest / tail). A second invocation on unchanged data " +
     "returns an empty delta. Requires plugins.politiclaw.apiKeys.apiDataGov.",
   parameters: CheckUpcomingVotesParams,
   async execute(_toolCallId, rawParams) {
@@ -268,6 +572,7 @@ export const checkUpcomingVotesTool: AnyAgentTool = {
         limit: input.limit,
       },
       refreshBills: input.refresh,
+      directionLlm: directionLlmOverride ?? undefined,
     });
 
     return textResult(renderCheckUpcomingVotesOutput(result), result);

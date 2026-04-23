@@ -10,6 +10,11 @@ import { recordAlert } from "../alerts/index.js";
 import { searchBills, type StoredBill } from "../bills/index.js";
 import { listMutedRefs } from "../mutes/index.js";
 import { computeBillAlignment, type AlignmentResult } from "../scoring/alignment.js";
+import {
+  computeBillDirection,
+  type DirectionForStance,
+  type LlmClient,
+} from "../scoring/direction.js";
 import { listIssueStances } from "../preferences/index.js";
 import type { IssueStance } from "../preferences/types.js";
 import { detectChange, type ChangeDetectionResult } from "./changeDetection.js";
@@ -23,17 +28,46 @@ import { detectChange, type ChangeDetectionResult } from "./changeDetection.js";
  * bumping the hash schema means we've changed what we consider "material,"
  * and the honest failure mode is to let the user re-see these once rather
  * than silently suppress them.
+ *
+ * `direction` is populated when an LLM client is wired through
+ * `checkUpcomingVotes` options and the bill's alignment crosses the
+ * confidence floor. Without that, direction is null and the renderer falls
+ * back to alignment-only framing.
  */
 export type ScoredBillChange = {
   bill: StoredBill;
   change: ChangeDetectionResult;
   alignment: AlignmentResult | null;
+  direction: DirectionForStance[] | null;
+  tier: BillChangeTier;
 };
 
 export type ChangedEvent = {
   event: UpcomingEvent;
   change: ChangeDetectionResult;
+  tier: EventChangeTier;
 };
+
+/**
+ * Triage tier for a changed bill. Drives render grouping (interruptive vs
+ * digest vs tail) and bundling caps. Schema bumps always route to their own
+ * footer and never compete with real changes for tier slots.
+ *
+ * Thresholds align with the plan's bundling rules: tier 1 is interruptive
+ * (max 3 items); tier 2 is digest body (max 5 items); tier 3 is tail.
+ */
+export type BillChangeTier = "tier1" | "tier2" | "tier3" | "schema_bump";
+
+export type EventChangeTier = "tier1" | "tier2";
+
+const TIER1_RELEVANCE = 0.6;
+const TIER1_CONFIDENCE = 0.6;
+const TIER2_RELEVANCE = 0.4;
+const TIER2_CONFIDENCE = 0.4;
+
+/** Max items surfaced per tier before the overflow rolls into the tail. */
+export const TIER1_MAX = 3;
+export const TIER2_MAX = 5;
 
 export type CheckUpcomingVotesResult = {
   status: "ok" | "partial" | "unavailable";
@@ -58,6 +92,14 @@ export type CheckUpcomingVotesOptions = {
   eventFilters?: UpcomingEventsFilters;
   /** When true, bypass the bills-list cache and force a refetch. */
   refreshBills?: boolean;
+  /**
+   * When provided, the engine asks the LLM to classify whether each changed
+   * bill advances or obstructs the user's declared stances. Direction output
+   * is only computed for bills whose alignment crosses the confidence floor;
+   * schema-bump entries are never classified. Without this option, direction
+   * is null and the renderer falls back to alignment-only framing.
+   */
+  directionLlm?: LlmClient;
 };
 
 /**
@@ -122,7 +164,17 @@ export async function checkUpcomingVotes(
       if (change.changed) {
         const alignment =
           stances.length > 0 ? computeBillAlignment(bill, stances) : null;
-        result.changedBills.push({ bill, change, alignment });
+        const tier = classifyBillTier(change, alignment);
+        let direction: DirectionForStance[] | null = null;
+        if (
+          options.directionLlm &&
+          change.reason !== "schema_bump" &&
+          alignment &&
+          !alignment.belowConfidenceFloor
+        ) {
+          direction = await computeBillDirection(bill, stances, options.directionLlm);
+        }
+        result.changedBills.push({ bill, change, alignment, direction, tier });
       } else {
         result.unchangedBillCount += 1;
       }
@@ -162,7 +214,7 @@ export async function checkUpcomingVotes(
         source: { adapterId: eventsResult.adapterId, tier: eventsResult.tier },
       });
       if (change.changed) {
-        result.changedEvents.push({ event, change });
+        result.changedEvents.push({ event, change, tier: "tier2" });
       } else {
         result.unchangedEventCount += 1;
       }
@@ -176,6 +228,8 @@ export async function checkUpcomingVotes(
 
   result.changedBills.sort(byAlignmentThenAction);
   result.changedEvents.sort(byEventStart);
+
+  promoteEventTiers(result);
 
   persistAlertHistory(db, result);
 
@@ -267,4 +321,50 @@ function byAlignmentThenAction(a: ScoredBillChange, b: ScoredBillChange): number
 
 function byEventStart(a: ChangedEvent, b: ChangedEvent): number {
   return (a.event.startDateTime ?? "").localeCompare(b.event.startDateTime ?? "");
+}
+
+/**
+ * Classify a bill change into a triage tier. Schema bumps always route to
+ * their own footer; real changes land in tier 1/2/3 based on alignment
+ * strength. Bills with no alignment (no declared stances) default to tier 3.
+ */
+export function classifyBillTier(
+  change: ChangeDetectionResult,
+  alignment: AlignmentResult | null,
+): BillChangeTier {
+  if (change.reason === "schema_bump") return "schema_bump";
+  if (!alignment) return "tier3";
+  if (alignment.belowConfidenceFloor) return "tier3";
+  if (
+    alignment.relevance >= TIER1_RELEVANCE &&
+    alignment.confidence >= TIER1_CONFIDENCE
+  ) {
+    return "tier1";
+  }
+  if (
+    alignment.relevance >= TIER2_RELEVANCE &&
+    alignment.confidence >= TIER2_CONFIDENCE
+  ) {
+    return "tier2";
+  }
+  return "tier3";
+}
+
+/**
+ * Promote a committee event to tier 1 when any of its related bills already
+ * sits in tier 1. Markups and hearings on high-relevance bills are themselves
+ * high-relevance; treating them as tier 2 by default would bury them.
+ */
+function promoteEventTiers(result: CheckUpcomingVotesResult): void {
+  const tier1BillIds = new Set(
+    result.changedBills
+      .filter((entry) => entry.tier === "tier1")
+      .map((entry) => entry.bill.id),
+  );
+  if (tier1BillIds.size === 0) return;
+  for (const entry of result.changedEvents) {
+    if (entry.event.relatedBillIds.some((id) => tier1BillIds.has(id))) {
+      entry.tier = "tier1";
+    }
+  }
 }
