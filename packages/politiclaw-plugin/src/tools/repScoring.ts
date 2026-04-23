@@ -231,12 +231,11 @@ export const scoreRepresentativeTool: AnyAgentTool = {
   name: "politiclaw_score_representative",
   label: "Did this representative represent the stances you declared?",
   description:
-    "Answers the accountability question for one stored representative: did they represent the " +
-    "stances you declared? Computes per-issue alignment from their House roll-call votes, your " +
-    "declared issue stances, and your recorded stance signals on specific bills, and attaches a " +
-    "deterministic 3-band pattern label (aligned / mixed / concerning), or 'insufficient data' " +
-    "when confidence is too low to classify. " +
-    "Deterministic (no LLM) — direction for rep scoring comes exclusively from your explicit " +
+    "Measure the gap between a rep's actual House voting record and the stances the user declared — " +
+    "per issue — so the user can see where this rep represents them and where they don't. " +
+    "Returns a 3-band pattern label (aligned / mixed / concerning), or 'insufficient data' when " +
+    "confidence is too low to classify. " +
+    "Computation is deterministic (no LLM); direction comes exclusively from the user's explicit " +
     "stance signals on bills, so the rep's record is counted, not narrated. Confidence below the " +
     `${CONFIDENCE_FLOOR} floor renders as "insufficient data". ` +
     "Procedural motions are excluded by default; pass includeProcedural=true " +

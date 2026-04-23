@@ -261,7 +261,7 @@ export function createConfigureTool(deps: ConfigureToolDeps = {}): AnyAgentTool 
     name: "politiclaw_configure",
     label: "Configure PolitiClaw",
     description:
-      "Single front door for PolitiClaw setup and reconfiguration. Saves or updates the user's address, resolves reps, runs issue-stance setup, and applies monitoring cadence in one flow. When information is missing, returns the next setup step instead of requiring separate setup tools.",
+      "Stand up the accountability loop: capture the stances PolitiClaw will measure the user's reps against, save the address that resolves those reps, and set how loudly monitoring should alert. Saves or updates the user's address, resolves reps, runs issue-stance setup, and applies monitoring cadence in one flow. When information is missing, returns the next setup step instead of requiring separate setup tools.",
     parameters: ConfigureParams,
     async execute(_toolCallId, rawParams) {
       const input = (rawParams ?? {}) as ConfigureInput;

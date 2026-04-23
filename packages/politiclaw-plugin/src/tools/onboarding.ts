@@ -32,7 +32,7 @@ export type StartOnboardingResult = ChoicePrompt | ConversationHandoff | QuizHan
 
 export function renderChoicePrompt(existing: readonly IssueStanceRow[]): string {
   const lines: string[] = [
-    "How would you like to set up your issue stances?",
+    "Before PolitiClaw can tell you when your reps are (or aren't) representing you, it needs to know what you actually care about. How would you like to declare those stances?",
     "",
     "  1. **Conversation** — I'll ask open-ended questions about what matters to you, paraphrase each one back, then persist your stances.",
     "  2. **Quiz** — I'll walk you through ~12 short policy questions with support/oppose/no-strong-view options, then ask how much each matters to you.",

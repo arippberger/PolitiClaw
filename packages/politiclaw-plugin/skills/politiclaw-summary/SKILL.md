@@ -1,8 +1,9 @@
 ---
 name: politiclaw-summary
 description: >-
-  Weekly PolitiClaw digest style. One message, readable in ~60 seconds, with a
-  mandatory "things you might be surprised by" section.
+  Weekly PolitiClaw digest style: what the user's reps did this week against
+  the stances they declared. One message, readable in ~60 seconds, facts not
+  cheerleading, with a mandatory "things you might be surprised by" section.
 read_when:
   - The weekly_summary cron template fires.
   - The user explicitly asks for a weekly roll-up of PolitiClaw activity.

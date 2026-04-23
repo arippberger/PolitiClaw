@@ -1,7 +1,7 @@
 {
   "name": "@politiclaw/politiclaw",
   "version": "0.0.1",
-  "description": "Local-first OpenClaw plugin: a personal political co-pilot for legislation, reps, elections, and action.",
+  "description": "Local-first OpenClaw plugin: a civic copilot that holds your representatives accountable to the values you declare — watches federal legislation and elections for you, flags when your reps' actions align or don't, and drafts letters you send yourself.",
   "type": "module",
   "main": "./src/index.ts",
   "files": [

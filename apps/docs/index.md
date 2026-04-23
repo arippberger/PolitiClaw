@@ -21,12 +21,12 @@ import { withBase } from "vitepress";
   </h1>
 
   <div class="pc-tagline">
-    <span class="quote">Hold your representatives accountable to the stances you declared.</span>
-    PolitiClaw scores your federal delegation against the priorities you set — then gives you the bills, votes, and outreach drafts to act on what you learn.
+    <span class="quote">Holds your representatives accountable to the values you declare.</span>
+    Generated reference where accuracy matters. Short guides where judgment matters.
   </div>
 
   <p class="pc-lede">
-    PolitiClaw is a local-first <strong>OpenClaw plugin</strong> built around one question: <em>did my representatives represent the values I declared?</em> It measures federal House roll-call votes against your declared issue stances, and backs that up with bill tracking, ballot prep, recurring monitoring, candidate finance research, and draft-only outreach. The docs split into a narrative <strong>guide</strong> you read end-to-end and a <strong>reference</strong> generated from the current implementation.
+    PolitiClaw is a <strong>local-first civic copilot</strong> — an OpenClaw plugin that learns the stances you care about, watches federal legislation and your reps' House votes for you, and flags when their actions align (or don't) with those stances. It drafts letters you send yourself; it never speaks on your behalf and never tells you how to vote. The docs split into a narrative <strong>guide</strong> you read end-to-end and a <strong>reference</strong> generated from the current implementation.
   </p>
 
   <div class="pc-cta">
@@ -67,7 +67,7 @@ import { withBase } from "vitepress";
 <h2 class="pc-h2">what is politiclaw?</h2>
 
 <p>
-  PolitiClaw is a <strong>local-first OpenClaw plugin</strong> that turns representative accountability into a deterministic, auditable workflow. You declare what you care about; PolitiClaw scores your federal House delegation against those stances using their public roll-call votes, cites every bill it counted, and is honest about what it couldn't measure. Bills, ballots, monitoring, and draft-only outreach are the supporting evidence base — not the headline.
+  PolitiClaw is a <strong>local-first civic copilot</strong> that holds your representatives accountable to the values you declare. It learns the stances you care about, watches federal legislation and House votes on your behalf, and flags when your reps' actions align — or don't — with those stances. Ballot prep, candidate finance research, and draft-only outreach all build on the same stance-driven loop. Your queries never touch a third-party political platform.
 </p>
 
 <p>
@@ -77,7 +77,7 @@ import { withBase } from "vitepress";
 <div class="pc-callout civic">
   <span class="label">honest scope</span>
   <div class="body">
-    PolitiClaw does not currently ship a dashboard, a background web service, or a send-on-your-behalf outreach path. Outreach is <strong>draft-only</strong>, and the docs distinguish wired providers from optional upgrades, transport-pending adapters, and schema-only placeholders. For the goal-indexed scope boundaries — Senate votes, state legislatures, local reps, down-ballot depth — see <a href="/reference/source-coverage#what-is-not-covered-today">current coverage</a>.
+    Outreach is <strong>draft-only</strong> — PolitiClaw never sends mail, posts on your behalf, or routes your message through a political platform, so accountability stays in your hands instead of a vendor's. Coverage today is federal: bills and House roll-call votes through api.congress.gov, ballots through Google Civic. Senate roll-call votes, state legislation, and local races are not yet wired; the docs distinguish wired providers from optional upgrades, transport-pending adapters, and schema-only placeholders. For the goal-indexed scope boundaries, see <a href="/reference/source-coverage#what-is-not-covered-today">current coverage</a>.
   </div>
 </div>
 </section>

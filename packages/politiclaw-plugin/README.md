@@ -1,6 +1,6 @@
 # PolitiClaw Plugin
 
-A local-first OpenClaw plugin built around one question: *did my representatives represent the stances I declared?* PolitiClaw scores your federal House delegation against your declared issue stances deterministically from their public roll-call votes, cites every bill it counted, and surfaces "insufficient data" where coverage is thin — never a false percentage. Bill tracking, ballot prep, recurring monitoring, candidate finance research, and draft-only outreach are the supporting evidence base, not the headline.
+A local-first OpenClaw plugin that turns your agent into a civic copilot that **holds your representatives accountable to the values you declare.** It learns the stances you care about, watches federal legislation and elections on your behalf, flags when your reps' votes and actions align — or don't — with those stances, and drafts letters you send yourself. All on your own machine; no send path, no prescriptive voting recommendations, no stance it invented for you.
 
 Political data stays in a plugin-private SQLite database under the gateway's state directory. It does not write to shared agent memory.
 
