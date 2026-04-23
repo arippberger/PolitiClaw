@@ -13,7 +13,7 @@
     "directory": "politiclaw-monitoring",
     "sourcePath": "packages/politiclaw-plugin/skills/politiclaw-monitoring/SKILL.md",
     "name": "politiclaw-monitoring",
-    "description": "How to surface bills, votes, and committee events that touch the stances the user declared — so they can see when their reps are (or aren't) representing them — without drifting into advocacy. Decides when to alert, when to summarize, and when to stay silent. Enforces the anti-echo-chamber rule that every substantial summary must include a dissenting or complicating view when one exists.",
+    "description": "How to surface bills, votes, and committee events that touch the stances the user declared — so they can see when their reps are (or aren't) representing them — without drifting into advocacy. Decides when to alert, when to summarize, and when to stay silent. Enforces the anti-echo-chamber rule that every substantial summary must include a dissenting or complicating view when one exists, and the four-class alert shape that every proactive message follows (headline, why-it-matters, what-happened, optional next).",
     "readWhen": [
       "A PolitiClaw cron template fires (weekly_summary, rep_vote_watch, tracked_hearings, rep_report).",
       "The user invokes politiclaw_check_upcoming_votes directly and asks for a summary.",
@@ -46,7 +46,7 @@
     "directory": "politiclaw-summary",
     "sourcePath": "packages/politiclaw-plugin/skills/politiclaw-summary/SKILL.md",
     "name": "politiclaw-summary",
-    "description": "Weekly PolitiClaw digest style: what the user's reps did this week against the stances they declared. One message, readable in ~60 seconds, facts not cheerleading, with a mandatory \"things you might be surprised by\" section.",
+    "description": "Weekly PolitiClaw digest style: what the user's reps did this week against the stances they declared. One message, readable in ~60 seconds, facts not cheerleading, built on the tool's tier-1/tier-2/tail bundling and a mandatory \"things you might be surprised by\" section.",
     "readWhen": [
       "The weekly_summary cron template fires.",
       "The user explicitly asks for a weekly roll-up of PolitiClaw activity."

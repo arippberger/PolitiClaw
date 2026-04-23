@@ -7,10 +7,10 @@ Current skill count: 5.
 | Skill | Directory | Summary |
 | --- | --- | --- |
 | `politiclaw-ballot` | `politiclaw-ballot` | How to map each contest on the user's ballot against the stances they declared — showing where candidates and incumbents align with their values and where they don't — without prescribing votes. Enforces no prescriptive recommendations and strict guardrails on when LLM-search-derived narrative is allowed. |
-| `politiclaw-monitoring` | `politiclaw-monitoring` | How to surface bills, votes, and committee events that touch the stances the user declared — so they can see when their reps are (or aren't) representing them — without drifting into advocacy. Decides when to alert, when to summarize, and when to stay silent. Enforces the anti-echo-chamber rule that every substantial summary must include a dissenting or complicating view when one exists. |
+| `politiclaw-monitoring` | `politiclaw-monitoring` | How to surface bills, votes, and committee events that touch the stances the user declared — so they can see when their reps are (or aren't) representing them — without drifting into advocacy. Decides when to alert, when to summarize, and when to stay silent. Enforces the anti-echo-chamber rule that every substantial summary must include a dissenting or complicating view when one exists, and the four-class alert shape that every proactive message follows (headline, why-it-matters, what-happened, optional next). |
 | `politiclaw-onboarding` | `politiclaw-onboarding` | How to capture the issue stances PolitiClaw will later measure the user's reps against. Runs the initial setup with a new user via one of two modes — a guided conversation or a structured quiz — and persists results through politiclaw_set_issue_stance so the accountability loop has values to compare votes to. |
 | `politiclaw-outreach` | `politiclaw-outreach` | How to help the user close the loop on a stance-gap the monitoring loop surfaced: put an accountability question in front of the rep in the user's own words. Covers when to offer a letter draft, how to use politiclaw_draft_letter, and the firm rule that PolitiClaw never sends mail — the user sends from their own client. |
-| `politiclaw-summary` | `politiclaw-summary` | Weekly PolitiClaw digest style: what the user's reps did this week against the stances they declared. One message, readable in ~60 seconds, facts not cheerleading, with a mandatory "things you might be surprised by" section. |
+| `politiclaw-summary` | `politiclaw-summary` | Weekly PolitiClaw digest style: what the user's reps did this week against the stances they declared. One message, readable in ~60 seconds, facts not cheerleading, built on the tool's tier-1/tier-2/tail bundling and a mandatory "things you might be surprised by" section. |
 
 ## politiclaw-ballot
 
@@ -23,7 +23,7 @@ Current skill count: 5.
 ## politiclaw-monitoring
 
 - Source file: `packages/politiclaw-plugin/skills/politiclaw-monitoring/SKILL.md`
-- Description: How to surface bills, votes, and committee events that touch the stances the user declared — so they can see when their reps are (or aren't) representing them — without drifting into advocacy. Decides when to alert, when to summarize, and when to stay silent. Enforces the anti-echo-chamber rule that every substantial summary must include a dissenting or complicating view when one exists.
+- Description: How to surface bills, votes, and committee events that touch the stances the user declared — so they can see when their reps are (or aren't) representing them — without drifting into advocacy. Decides when to alert, when to summarize, and when to stay silent. Enforces the anti-echo-chamber rule that every substantial summary must include a dissenting or complicating view when one exists, and the four-class alert shape that every proactive message follows (headline, why-it-matters, what-happened, optional next).
 - Read when:
   - A PolitiClaw cron template fires (weekly_summary, rep_vote_watch, tracked_hearings, rep_report).
   - The user invokes politiclaw_check_upcoming_votes directly and asks for a summary.
@@ -50,7 +50,7 @@ Current skill count: 5.
 ## politiclaw-summary
 
 - Source file: `packages/politiclaw-plugin/skills/politiclaw-summary/SKILL.md`
-- Description: Weekly PolitiClaw digest style: what the user's reps did this week against the stances they declared. One message, readable in ~60 seconds, facts not cheerleading, with a mandatory "things you might be surprised by" section.
+- Description: Weekly PolitiClaw digest style: what the user's reps did this week against the stances they declared. One message, readable in ~60 seconds, facts not cheerleading, built on the tool's tier-1/tier-2/tail bundling and a mandatory "things you might be surprised by" section.
 - Read when:
   - The weekly_summary cron template fires.
   - The user explicitly asks for a weekly roll-up of PolitiClaw activity.

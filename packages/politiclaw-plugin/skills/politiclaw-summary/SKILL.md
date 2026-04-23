@@ -3,7 +3,8 @@ name: politiclaw-summary
 description: >-
   Weekly PolitiClaw digest style: what the user's reps did this week against
   the stances they declared. One message, readable in ~60 seconds, facts not
-  cheerleading, with a mandatory "things you might be surprised by" section.
+  cheerleading, built on the tool's tier-1/tier-2/tail bundling and a mandatory
+  "things you might be surprised by" section.
 read_when:
   - The weekly_summary cron template fires.
   - The user explicitly asks for a weekly roll-up of PolitiClaw activity.
@@ -27,27 +28,49 @@ touching your declared stances moved."
 
 ### 2. Bills touching your declared stances
 
-Bullet list, one line per bill. Format:
+Use the tool's tier grouping. Do not re-sort. See `politiclaw-monitoring`
+§2 Class A for the full shape.
 
-> - **HR-1234 — [title]** · status: [latest action] · aligns with your
->   `support` on `climate` (tier 1, api.congress.gov)
+- **Interruptive (tier 1, up to 3 items)**: full Class-A render — headline,
+  why it matters (with quoted bill text when the tool surfaced one),
+  counter-consideration if present, and a Next line unless the action is
+  past.
+- **Digest (tier 2, up to 5 items)**: one-line Class-A digest render. No
+  Next step in the digest body.
+- **Tail**: the tool's single "Also changed: N bills — {topic counts}" line.
+  Never silently truncate; keep the count so the user can ask for the full
+  list.
 
-Cap at 5 bills. If there are more, add a "+N more, ask for the full list"
-line. Never truncate silently.
+Example tier-2 digest line:
 
-If `alignment.belowConfidenceFloor` is true, drop the bill or render it as
-"insufficient data" — do not quote the raw percentages.
+> - **HR-1234 — Clean Housing Investment Act of 2026** referred to
+>   committee · touches your `support` on `affordable-housing`.
+
+If `alignment.belowConfidenceFloor` is true, the tool has already routed the
+item to the tail — do not lift it into the digest or quote raw percentages.
 
 ### 3. Upcoming (next 10 days)
 
-Committee hearings, markups, or floor votes on tracked bills. One line each.
-If nothing's scheduled, say "Nothing scheduled in the tracked set."
+Committee hearings, markups, or floor votes on tracked bills. Class B format
+(see `politiclaw-monitoring` §2). If nothing's scheduled, say "Nothing
+scheduled in the tracked set."
 
-### 4. Things you might be surprised by (required)
+### 4. Rep misalignments surfaced this week (when applicable)
+
+Summarize any Class C items that `rep_vote_watch` posted immediately during
+the week, plus any aligned-vote counts. Example:
+
+> - Rep. Smith (D-CA-12) had 2 misaligned votes flagged this week (HR-1234,
+>   HR-5678). Aligned with your stances on 3 of 5 counted votes.
+
+If no misalignments fired, skip this section — do not pad.
+
+### 5. Things you might be surprised by (required)
 
 This section is **not optional on weeks with any bill movement**. It contains
 at least one item that complicates or cuts against the user's declared
-stances. Examples:
+stances. The tool's `counterConsideration` output is the first-choice
+source; external examples:
 
 - A bill in an area the user marked `support` that the sponsoring committee
   staff argue would harm rather than help that stance.
@@ -66,7 +89,7 @@ Rules:
 - **Never use tier-5 LLM-search output for numbers, vote counts, or status
   claims.**
 
-### 5. What PolitiClaw missed
+### 6. What PolitiClaw missed
 
 One line naming any source that returned `unavailable` or `partial` this
 week, with the actionable fix. Examples:
@@ -78,7 +101,7 @@ week, with the actionable fix. Examples:
 
 If everything ran clean, skip this section.
 
-### 6. Disclaimer
+### 7. Disclaimer
 
 Verbatim, at the bottom:
 
