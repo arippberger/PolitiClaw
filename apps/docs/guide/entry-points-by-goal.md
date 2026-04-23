@@ -47,6 +47,11 @@ It is the cleanest user-facing control. Most users want one place to save setup 
 - you want a one-off snapshot instead of ongoing monitoring, use [`politiclaw_check_upcoming_votes`](../reference/generated/tools/politiclaw_check_upcoming_votes)
 - you want to suppress a specific topic without changing cadence, use [`politiclaw_mute`](../reference/generated/tools/politiclaw_mute), [`politiclaw_unmute`](../reference/generated/tools/politiclaw_unmute), and [`politiclaw_list_mutes`](../reference/generated/tools/politiclaw_list_mutes)
 
+### See also
+
+- [Set It and Forget It](./set-it-and-forget-it) for what the cadence actually produces over time.
+- [Examples of Good Alerts](./example-alerts) for the shape of each job's output.
+
 ## Candidate and race research
 
 ### Default entry point
@@ -78,3 +83,7 @@ These pair clean discovery questions with alignment questions. They are the stro
 
 - you need a single bill's exact source-backed details, use [`politiclaw_get_bill_details`](../reference/generated/tools/politiclaw_get_bill_details)
 - you want a combined report across stored reps, use [`politiclaw_rep_report`](../reference/generated/tools/politiclaw_rep_report)
+
+### See also
+
+- [How PolitiClaw Holds Representatives Accountable](./rep-accountability) for how scoring, digests, and draft outreach fit into one loop.

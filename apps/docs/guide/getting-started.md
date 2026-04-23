@@ -26,6 +26,10 @@ If you are bringing up a fresh local install, the shortest path is:
 
 From there, most users branch into either bill tracking, ballot prep, or monitoring. When several tools seem to overlap, use [Entry Points by Goal](./entry-points-by-goal) to find the default front door before jumping into lower-level reference pages.
 
+## What To Expect Over Time
+
+After setup, PolitiClaw's recurring monitoring jobs run on your gateway and stay silent on empty windows. For a walk-through of what shows up in your session and when, read [Set It and Forget It](./set-it-and-forget-it). For a feel for the shape of a good alert, read [Examples of Good Alerts](./example-alerts). For how scoring and accountability fit together, read [How PolitiClaw Holds Representatives Accountable](./rep-accountability).
+
 ## What To Trust
 
 When a question is about an exact runtime fact, prefer the generated reference pages over prose summaries:
