@@ -1,12 +1,12 @@
 # politiclaw_rep_report
 
-- Label: Monthly-style representative alignment report for all stored reps
+- Label: Did your delegation represent the stances you declared?
 - Group: Representatives and alignment
 - Source file: `packages/politiclaw-plugin/src/tools/repReport.ts`
 
 ## Description
 
-Recomputes alignment for every representative in the reps table (same logic as politiclaw_score_representative) and returns one combined report with per-rep sections, congress.gov links for cited bills, and source-tier labels. Requires declared issue stances and stored reps. Intended for periodic digests (see politiclaw.rep_report cron template).
+Canonical accountability surface across your full stored delegation. Recomputes per-issue alignment for every rep (same deterministic logic as politiclaw_score_representative), tags each rep with a 3-band accountability pattern (aligned / mixed / concerning / insufficient data), and returns one combined document with a pattern tally, per-rep sections, congress.gov links for cited bills, and source-tier labels. Requires declared issue stances and stored reps. Intended for periodic digests (see politiclaw.rep_report cron template).
 
 ## Parameters
 

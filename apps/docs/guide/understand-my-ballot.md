@@ -2,6 +2,8 @@
 
 This is the best path when the user's goal is, "Help me make sense of the next election."
 
+Ballots come from Google Civic with generic contest shape — judicial and ballot-measure enrichment is not wired. See [current coverage](../reference/source-coverage#what-is-not-covered-today).
+
 ## Default tool
 
 - [`politiclaw_prepare_me_for_my_next_election`](../reference/generated/tools/politiclaw_prepare_me_for_my_next_election)

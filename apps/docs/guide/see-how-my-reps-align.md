@@ -4,6 +4,8 @@
 
 The workflow is deterministic — there is no LLM judgment about how a rep "really feels" about an issue. You declare stances with weights, PolitiClaw matches those stances to bills by subject and title, you record agree/disagree signals on specific bills, and your rep's House roll-call votes are counted for or against your direction. Scores below the confidence floor surface as *insufficient data*, never as a false percentage.
 
+Rep coverage is US House and US Senate only; state-legislative and local offices are not resolved — see [current coverage](../reference/source-coverage#what-is-not-covered-today).
+
 ## Default tools
 
 - [`politiclaw_get_my_reps`](../reference/generated/tools/politiclaw_get_my_reps) — resolve your current federal delegation from your saved address.

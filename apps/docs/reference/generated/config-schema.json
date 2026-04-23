@@ -49,7 +49,7 @@
         "packages/politiclaw-plugin/src/storage/context.ts"
       ],
       "unlockedByTools": [],
-      "notes": "No Open States resolver or tool path currently imports this key."
+      "notes": "State legislative coverage is out of scope for the wired runtime today."
     },
     {
       "key": "legiscan",
@@ -62,7 +62,7 @@
         "packages/politiclaw-plugin/src/storage/context.ts"
       ],
       "unlockedByTools": [],
-      "notes": "No LegiScan adapter or tool path currently imports this key."
+      "notes": "State legislative coverage is out of scope for the wired runtime today."
     },
     {
       "key": "openSecrets",
@@ -128,7 +128,7 @@
         "packages/politiclaw-plugin/src/storage/context.ts"
       ],
       "unlockedByTools": [],
-      "notes": "Local and municipal representative coverage is not implemented today."
+      "notes": "Municipal, county, and state-legislative representative coverage is not implemented today."
     },
     {
       "key": "ballotReady",
@@ -141,7 +141,7 @@
         "packages/politiclaw-plugin/src/storage/context.ts"
       ],
       "unlockedByTools": [],
-      "notes": "Down-ballot commercial coverage is not integrated today."
+      "notes": "Curated down-ballot contest enrichment beyond Google Civic is not wired."
     },
     {
       "key": "googleCivic",
@@ -158,7 +158,7 @@
         "politiclaw_explain_my_ballot",
         "politiclaw_prepare_me_for_my_next_election"
       ],
-      "notes": "Required for every ballot tool. Per-state SoS adapters were scoped out in v1 after an audit found none of the six candidate states publishes a public address-to-ballot JSON feed; revisit when BallotReady or Democracy Works provides self-serve keys."
+      "notes": "Required for every ballot tool. Per-state SoS adapters were scoped out in v1 after an audit found none of the six candidate states publishes a public address-to-ballot JSON feed; revisit when BallotReady or Democracy Works provides self-serve keys. Judicial retention detail and ballot-measure plain-language enrichment are not wired."
     }
   ],
   "rawConfigSchema": {

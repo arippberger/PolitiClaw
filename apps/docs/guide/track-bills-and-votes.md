@@ -2,6 +2,8 @@
 
 This path is for, "What is happening in Congress, and how much should I care?"
 
+Vote coverage is House-only today — see [current coverage](../reference/source-coverage#what-is-not-covered-today).
+
 ## Default tools
 
 - [`politiclaw_search_bills`](../reference/generated/tools/politiclaw_search_bills)

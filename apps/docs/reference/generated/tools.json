@@ -379,11 +379,11 @@
   },
   {
     "name": "politiclaw_score_representative",
-    "label": "Score a representative against your declared stances",
+    "label": "Did this representative represent the stances you declared?",
     "groupId": "representatives",
     "groupLabel": "Representatives and alignment",
     "sourcePath": "packages/politiclaw-plugin/src/tools/repScoring.ts",
-    "description": "Compute per-issue alignment for a stored representative based on their House roll-call votes, your declared issue stances, and your recorded stance signals on specific bills. Deterministic (no LLM) — direction for rep scoring comes exclusively from your explicit stance signals on bills, so the rep's record is counted, not narrated. Confidence below the 0.4 floor renders as \"insufficient data\". Procedural motions are excluded by default; pass includeProcedural=true for the raw tally. Senate votes are not yet ingested, so senators will show \"insufficient data\" until Senate vote coverage exists.",
+    "description": "Answers the accountability question for one stored representative: did they represent the stances you declared? Computes per-issue alignment from their House roll-call votes, your declared issue stances, and your recorded stance signals on specific bills, and attaches a deterministic 3-band pattern label (aligned / mixed / concerning), or 'insufficient data' when confidence is too low to classify. Deterministic (no LLM) — direction for rep scoring comes exclusively from your explicit stance signals on bills, so the rep's record is counted, not narrated. Confidence below the 0.4 floor renders as \"insufficient data\". Procedural motions are excluded by default; pass includeProcedural=true for the raw tally. Senate votes are not yet ingested, so senators will show \"insufficient data\" until Senate vote coverage exists.",
     "parameters": [
       {
         "name": "repId",
@@ -417,11 +417,11 @@
   },
   {
     "name": "politiclaw_rep_report",
-    "label": "Monthly-style representative alignment report for all stored reps",
+    "label": "Did your delegation represent the stances you declared?",
     "groupId": "representatives",
     "groupLabel": "Representatives and alignment",
     "sourcePath": "packages/politiclaw-plugin/src/tools/repReport.ts",
-    "description": "Recomputes alignment for every representative in the reps table (same logic as politiclaw_score_representative) and returns one combined report with per-rep sections, congress.gov links for cited bills, and source-tier labels. Requires declared issue stances and stored reps. Intended for periodic digests (see politiclaw.rep_report cron template).",
+    "description": "Canonical accountability surface across your full stored delegation. Recomputes per-issue alignment for every rep (same deterministic logic as politiclaw_score_representative), tags each rep with a 3-band accountability pattern (aligned / mixed / concerning / insufficient data), and returns one combined document with a pattern tally, per-rep sections, congress.gov links for cited bills, and source-tier labels. Requires declared issue stances and stored reps. Intended for periodic digests (see politiclaw.rep_report cron template).",
     "parameters": [
       {
         "name": "includeProcedural",

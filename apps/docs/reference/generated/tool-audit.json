@@ -64,7 +64,7 @@
     "tier": "core",
     "docsAction": "lead-in-guides",
     "rationale": "One of the clearest user-value tools: how a rep's House votes line up with declared issues.",
-    "label": "Score a representative against your declared stances",
+    "label": "Did this representative represent the stances you declared?",
     "groupId": "representatives",
     "groupLabel": "Representatives and alignment",
     "sourcePath": "packages/politiclaw-plugin/src/tools/repScoring.ts"
@@ -74,7 +74,7 @@
     "tier": "advanced",
     "docsAction": "follow-up-or-advanced-docs",
     "rationale": "Batch version of rep scoring, useful for digests and power users more than casual queries.",
-    "label": "Monthly-style representative alignment report for all stored reps",
+    "label": "Did your delegation represent the stances you declared?",
     "groupId": "representatives",
     "groupLabel": "Representatives and alignment",
     "sourcePath": "packages/politiclaw-plugin/src/tools/repReport.ts"

@@ -17,8 +17,8 @@ Configure the plugin, declare issue stances, and manage the saved preference dat
 Resolve federal representatives and summarize current alignment.
 
 - [`politiclaw_get_my_reps`](./politiclaw_get_my_reps.md) — Get my federal representatives
-- [`politiclaw_score_representative`](./politiclaw_score_representative.md) — Score a representative against your declared stances
-- [`politiclaw_rep_report`](./politiclaw_rep_report.md) — Monthly-style representative alignment report for all stored reps
+- [`politiclaw_score_representative`](./politiclaw_score_representative.md) — Did this representative represent the stances you declared?
+- [`politiclaw_rep_report`](./politiclaw_rep_report.md) — Did your delegation represent the stances you declared?
 
 ## Bills and votes
 

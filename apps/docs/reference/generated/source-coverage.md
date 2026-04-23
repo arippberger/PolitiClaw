@@ -72,7 +72,7 @@ This page is generated from the explicit source coverage catalog.
 - Required: no
 - Config key: `apiKeys.googleCivic`
 - Summary: Key-gated ballot and election-logistics provider — the only ballot source the plugin wires today.
-- Notes: Required for every ballot tool. Per-state SoS adapters were scoped out in v1 after an audit found none of the six candidate states publishes a public address-to-ballot JSON feed; revisit when BallotReady or Democracy Works provides self-serve keys.
+- Notes: Required for every ballot tool. Per-state SoS adapters were scoped out in v1 after an audit found none of the six candidate states publishes a public address-to-ballot JSON feed; revisit when BallotReady or Democracy Works provides self-serve keys. Judicial retention detail and ballot-measure plain-language enrichment are not wired.
 - Tools: `politiclaw_get_my_ballot`, `politiclaw_explain_my_ballot`, `politiclaw_prepare_me_for_my_next_election`
 - Runtime files: `packages/politiclaw-plugin/src/sources/ballot/index.ts`, `packages/politiclaw-plugin/src/sources/ballot/googleCivic.ts`
 
@@ -91,7 +91,7 @@ This page is generated from the explicit source coverage catalog.
 - Required: no
 - Config key: `apiKeys.openStates`
 - Summary: Declared in the plugin config schema but not wired into the current runtime.
-- Notes: No Open States resolver or tool path currently imports this key.
+- Notes: State legislative coverage is out of scope for the wired runtime today.
 - Runtime files: `packages/politiclaw-plugin/openclaw.plugin.json`, `packages/politiclaw-plugin/src/storage/context.ts`
 
 ### LegiScan
@@ -100,7 +100,7 @@ This page is generated from the explicit source coverage catalog.
 - Required: no
 - Config key: `apiKeys.legiscan`
 - Summary: Declared in the plugin config schema but not wired into the current runtime.
-- Notes: No LegiScan adapter or tool path currently imports this key.
+- Notes: State legislative coverage is out of scope for the wired runtime today.
 - Runtime files: `packages/politiclaw-plugin/openclaw.plugin.json`, `packages/politiclaw-plugin/src/storage/context.ts`
 
 ### OpenSecrets
@@ -145,7 +145,7 @@ This page is generated from the explicit source coverage catalog.
 - Required: no
 - Config key: `apiKeys.cicero`
 - Summary: Declared in the plugin config schema but not wired into the current runtime.
-- Notes: Local and municipal representative coverage is not implemented today.
+- Notes: Municipal, county, and state-legislative representative coverage is not implemented today.
 - Runtime files: `packages/politiclaw-plugin/openclaw.plugin.json`, `packages/politiclaw-plugin/src/storage/context.ts`
 
 ### BallotReady
@@ -154,5 +154,5 @@ This page is generated from the explicit source coverage catalog.
 - Required: no
 - Config key: `apiKeys.ballotReady`
 - Summary: Declared in the plugin config schema but not wired into the current runtime.
-- Notes: Down-ballot commercial coverage is not integrated today.
+- Notes: Curated down-ballot contest enrichment beyond Google Civic is not wired.
 - Runtime files: `packages/politiclaw-plugin/openclaw.plugin.json`, `packages/politiclaw-plugin/src/storage/context.ts`

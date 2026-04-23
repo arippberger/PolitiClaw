@@ -46,7 +46,7 @@ OPTIONAL UPGRADE. State bills and votes with individual member positions. Withou
 - Required: no
 - Wired today: no
 - Runtime files: `packages/politiclaw-plugin/openclaw.plugin.json`, `packages/politiclaw-plugin/src/storage/context.ts`
-- Notes: No Open States resolver or tool path currently imports this key.
+- Notes: State legislative coverage is out of scope for the wired runtime today.
 
 ## apiKeys.legiscan
 
@@ -56,7 +56,7 @@ OPTIONAL UPGRADE. State bills fallback or primary source. Free tier 30,000 queri
 - Required: no
 - Wired today: no
 - Runtime files: `packages/politiclaw-plugin/openclaw.plugin.json`, `packages/politiclaw-plugin/src/storage/context.ts`
-- Notes: No LegiScan adapter or tool path currently imports this key.
+- Notes: State legislative coverage is out of scope for the wired runtime today.
 
 ## apiKeys.openSecrets
 
@@ -106,7 +106,7 @@ OPTIONAL UPGRADE (paid). Local municipal, county, and school-board representativ
 - Required: no
 - Wired today: no
 - Runtime files: `packages/politiclaw-plugin/openclaw.plugin.json`, `packages/politiclaw-plugin/src/storage/context.ts`
-- Notes: Local and municipal representative coverage is not implemented today.
+- Notes: Municipal, county, and state-legislative representative coverage is not implemented today.
 
 ## apiKeys.ballotReady
 
@@ -116,7 +116,7 @@ OPTIONAL UPGRADE (commercial). Structured down-ballot data. Default scope covers
 - Required: no
 - Wired today: no
 - Runtime files: `packages/politiclaw-plugin/openclaw.plugin.json`, `packages/politiclaw-plugin/src/storage/context.ts`
-- Notes: Down-ballot commercial coverage is not integrated today.
+- Notes: Curated down-ballot contest enrichment beyond Google Civic is not wired.
 
 ## apiKeys.googleCivic
 
@@ -127,4 +127,4 @@ OPTIONAL but required for politiclaw_get_my_ballot. Google Cloud API key with th
 - Wired today: yes
 - Unlocks: `politiclaw_get_my_ballot`, `politiclaw_explain_my_ballot`, `politiclaw_prepare_me_for_my_next_election`
 - Runtime files: `packages/politiclaw-plugin/src/sources/ballot/index.ts`, `packages/politiclaw-plugin/src/sources/ballot/googleCivic.ts`
-- Notes: Required for every ballot tool. Per-state SoS adapters were scoped out in v1 after an audit found none of the six candidate states publishes a public address-to-ballot JSON feed; revisit when BallotReady or Democracy Works provides self-serve keys.
+- Notes: Required for every ballot tool. Per-state SoS adapters were scoped out in v1 after an audit found none of the six candidate states publishes a public address-to-ballot JSON feed; revisit when BallotReady or Democracy Works provides self-serve keys. Judicial retention detail and ballot-measure plain-language enrichment are not wired.

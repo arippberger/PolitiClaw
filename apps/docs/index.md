@@ -77,7 +77,7 @@ import { withBase } from "vitepress";
 <div class="pc-callout civic">
   <span class="label">honest scope</span>
   <div class="body">
-    PolitiClaw does not currently ship a dashboard, a background web service, or a send-on-your-behalf outreach path. Outreach is <strong>draft-only</strong>, and the docs distinguish wired providers from optional upgrades, transport-pending adapters, and schema-only placeholders.
+    PolitiClaw does not currently ship a dashboard, a background web service, or a send-on-your-behalf outreach path. Outreach is <strong>draft-only</strong>, and the docs distinguish wired providers from optional upgrades, transport-pending adapters, and schema-only placeholders. For the goal-indexed scope boundaries — Senate votes, state legislatures, local reps, down-ballot depth — see <a href="/reference/source-coverage#what-is-not-covered-today">current coverage</a>.
   </div>
 </div>
 </section>

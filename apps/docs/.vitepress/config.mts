@@ -44,7 +44,7 @@ export default defineConfig({
           { text: "Tools", link: "/reference/tools" },
           { text: "Tool Audit", link: "/reference/tool-audit" },
           { text: "Config Schema", link: "/reference/config-schema" },
-          { text: "Source Coverage", link: "/reference/source-coverage" },
+          { text: "Coverage & Limits", link: "/reference/source-coverage" },
           { text: "Cron Jobs", link: "/reference/cron-jobs" },
           { text: "Storage Schema", link: "/reference/storage-schema" },
           { text: "Skills", link: "/reference/skills" }
