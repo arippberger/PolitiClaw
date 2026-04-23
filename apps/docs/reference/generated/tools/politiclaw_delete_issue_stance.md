@@ -6,7 +6,7 @@
 
 ## Description
 
-Remove a single declared issue stance by issue slug or label.
+Remove a single declared issue stance by issue slug or label. For first-time setup or full reconfiguration, prefer politiclaw_configure.
 
 ## Parameters
 

@@ -3,20 +3,33 @@ import type { AnyAgentTool } from "openclaw/plugin-sdk";
 
 import { setupMonitoring, type MonitoringSetupResult } from "../cron/setup.js";
 import {
+  ACCOUNTABILITY_EXPLAINERS,
+  ACCOUNTABILITY_KV_FLAG,
+  ACCOUNTABILITY_LABELS,
+  ACCOUNTABILITY_VALUES,
+  AccountabilityModeSchema,
   IssueStanceSchema,
   MonitoringModeSchema,
   getPreferences,
   listIssueStances,
+  setAccountability,
   setMonitoringMode,
   upsertIssueStance,
   upsertPreferences,
+  type AccountabilityMode,
   type IssueStanceRow,
   type MonitoringMode,
   type PreferencesRow,
 } from "../domain/preferences/index.js";
+import {
+  buildMonitoringContract,
+  renderMonitoringContract,
+  type MonitoringContract,
+} from "../domain/preferences/contract.js";
 import { identifyMyReps, type IdentifyResult } from "../domain/reps/index.js";
 import { createRepsResolver } from "../sources/reps/index.js";
 import { getPluginConfig, getStorage } from "../storage/context.js";
+import { getGatewayCronAdapter } from "../cron/gatewayAdapter.js";
 import {
   buildStartOnboardingResult,
   renderChoicePrompt,
@@ -24,7 +37,51 @@ import {
   type StartOnboardingResult,
 } from "./onboarding.js";
 
+const MONITORING_KV_FLAG = "onboarding.monitoring_mode_chosen_at";
+
+const MONITORING_MODE_VALUES = [
+  "off",
+  "quiet_watch",
+  "weekly_digest",
+  "action_only",
+  "full_copilot",
+] as const;
+
+const MODE_EXPLAINERS: Record<MonitoringMode, string> = {
+  off: "Paused — PolitiClaw won't run on its own.",
+  quiet_watch:
+    "Silent background change-detection on tracked bills and hearings. No digests or election alerts.",
+  weekly_digest:
+    "Sunday digest plus monthly rep report, with background change-detection on tracked items.",
+  action_only:
+    "Quiet background change-detection plus election-proximity alerts. No weekly digest or monthly rep report.",
+  full_copilot:
+    "Everything: weekly digest, monthly rep report, election-proximity alerts, 6-hour bill watch, 12-hour committee-hearings sweep.",
+};
+
+export type ConfigureStage =
+  | "address"
+  | "issues"
+  | "monitoring"
+  | "accountability"
+  | "complete";
+
 const ConfigureParams = Type.Object({
+  stage: Type.Optional(
+    Type.Union(
+      [
+        Type.Literal("address"),
+        Type.Literal("issues"),
+        Type.Literal("monitoring"),
+        Type.Literal("accountability"),
+        Type.Literal("complete"),
+      ],
+      {
+        description:
+          "Optional hint for which stage you intend this call to satisfy. The tool re-derives the next stage from DB state regardless, so a wrong hint just no-ops.",
+      },
+    ),
+  ),
   address: Type.Optional(
     Type.String({
       description: "Street address. When provided, saves it and refreshes reps for that address.",
@@ -33,10 +90,15 @@ const ConfigureParams = Type.Object({
   zip: Type.Optional(Type.String()),
   state: Type.Optional(Type.String({ description: "2-letter state code (e.g., CA)." })),
   district: Type.Optional(Type.String({ description: "Congressional district if known." })),
-  mode: Type.Optional(
+  issueMode: Type.Optional(
     Type.Union([Type.Literal("conversation"), Type.Literal("quiz")], {
       description:
-        "Optional issue-setup style. Use when the user is ready to walk through stance setup.",
+        "Issue-setup style. Use when you want the issues stage to return a quiz or conversational handoff.",
+    }),
+  ),
+  mode: Type.Optional(
+    Type.Union([Type.Literal("conversation"), Type.Literal("quiz")], {
+      description: "Deprecated alias for issueMode. Prefer issueMode.",
     }),
   ),
   issueStances: Type.Optional(
@@ -59,23 +121,24 @@ const ConfigureParams = Type.Object({
           }),
         ),
       }),
-      {
-        additionalProperties: false,
-      },
+      { additionalProperties: false },
     ),
   ),
   monitoringMode: Type.Optional(
     Type.Union(
-      [
-        Type.Literal("off"),
-        Type.Literal("quiet_watch"),
-        Type.Literal("weekly_digest"),
-        Type.Literal("action_only"),
-        Type.Literal("full_copilot"),
-      ],
+      MONITORING_MODE_VALUES.map((v) => Type.Literal(v)),
       {
         description:
           "How PolitiClaw should watch for you. 'off' pauses everything. 'quiet_watch' is silent unless tracked bills/hearings materially change. 'weekly_digest' adds the Sunday summary and monthly rep report. 'action_only' is quiet except when elections are near or tracked items change. 'full_copilot' enables everything. Defaults to 'action_only' when first configuring unless a mode is already saved.",
+      },
+    ),
+  ),
+  accountability: Type.Optional(
+    Type.Union(
+      ACCOUNTABILITY_VALUES.map((v) => Type.Literal(v)),
+      {
+        description:
+          "How proactive PolitiClaw should be when bills/votes cross your alignment threshold: self_serve (post deltas only), nudge_me (add a 'Your move' section with suggestions), draft_for_me (also draft a letter to your rep proactively).",
       },
     ),
   ),
@@ -87,68 +150,70 @@ const ConfigureParams = Type.Object({
 });
 
 type ConfigureInput = {
+  stage?: ConfigureStage;
   address?: string;
   zip?: string;
   state?: string;
   district?: string;
+  issueMode?: "conversation" | "quiz";
   mode?: "conversation" | "quiz";
   issueStances?: Array<{ issue: string; stance: "support" | "oppose" | "neutral"; weight?: number }>;
   monitoringMode?: MonitoringMode;
+  accountability?: AccountabilityMode;
   refreshReps?: boolean;
 };
 
-type ConfigureNeedsAddressResult = {
-  status: "needs_address";
-  preferences: null;
-};
-
-type ConfigureNeedsIssueSetupResult = {
-  status: "needs_issue_setup";
-  preferences: PreferencesRow;
-  reps: IdentifyResult;
-  issueSetup: StartOnboardingResult;
-  monitoringMode: MonitoringMode;
-  addressUpdated: boolean;
-  savedIssueStances: IssueStanceRow[];
-  currentIssueStances: IssueStanceRow[];
-};
-
-type ConfigureConfiguredResult = {
-  status: "configured";
-  preferences: PreferencesRow;
-  reps: IdentifyResult;
-  monitoringMode: MonitoringMode;
-  monitoring: MonitoringSetupResult;
-  addressUpdated: boolean;
-  savedIssueStances: IssueStanceRow[];
-  currentIssueStances: IssueStanceRow[];
-};
-
-type ConfigurePartialResult = {
-  status: "partial";
-  preferences: PreferencesRow;
-  reps: IdentifyResult;
-  monitoringMode: MonitoringMode;
-  monitoringError: string;
-  addressUpdated: boolean;
-  savedIssueStances: IssueStanceRow[];
-  currentIssueStances: IssueStanceRow[];
-};
-
-const MODE_DESCRIPTIONS: Record<MonitoringMode, string> = {
-  off: "Paused — PolitiClaw won't run on its own.",
-  quiet_watch: "Silent unless tracked bills or hearings materially change.",
-  weekly_digest:
-    "Sunday digest and monthly rep report, plus background change-watches.",
-  action_only: "Quiet except when an election is near or tracked items change.",
-  full_copilot: "Everything: digest, rep report, election alerts, background watches.",
-};
-
 export type ConfigureResult =
-  | ConfigureNeedsAddressResult
-  | ConfigureNeedsIssueSetupResult
-  | ConfigureConfiguredResult
-  | ConfigurePartialResult;
+  | {
+      stage: "address";
+      prompt: string;
+      preferences: null;
+      savedThisCall: SavedThisCall;
+    }
+  | {
+      stage: "issues";
+      prompt: string;
+      preferences: PreferencesRow;
+      reps: IdentifyResult;
+      issueSetup: StartOnboardingResult;
+      currentIssueStances: IssueStanceRow[];
+      savedThisCall: SavedThisCall;
+    }
+  | {
+      stage: "monitoring";
+      prompt: string;
+      preferences: PreferencesRow;
+      currentIssueStances: IssueStanceRow[];
+      currentMonitoringMode: MonitoringMode;
+      options: Array<{ label: MonitoringMode; explainer: string }>;
+      savedThisCall: SavedThisCall;
+    }
+  | {
+      stage: "accountability";
+      prompt: string;
+      preferences: PreferencesRow;
+      currentMonitoringMode: MonitoringMode;
+      currentAccountability: AccountabilityMode;
+      options: Array<{ label: AccountabilityMode; humanLabel: string; explainer: string }>;
+      savedThisCall: SavedThisCall;
+    }
+  | {
+      stage: "complete";
+      prompt: string;
+      preferences: PreferencesRow;
+      reps: IdentifyResult;
+      monitoring: MonitoringSetupResult | null;
+      monitoringError: string | null;
+      monitoringContract: MonitoringContract;
+      savedThisCall: SavedThisCall;
+    };
+
+export type SavedThisCall = {
+  address: boolean;
+  stancesAdded: number;
+  monitoringChanged: boolean;
+  accountabilityChanged: boolean;
+};
 
 export type ConfigureToolDeps = {
   identifyReps?: typeof identifyMyReps;
@@ -192,75 +257,91 @@ function renderRepsSummary(reps: IdentifyResult): string[] {
   return [`Rep lookup is waiting on an address: ${reps.actionable}.`];
 }
 
-function renderNeedsAddress(): string {
+function renderAddressPrompt(): string {
   return [
-    "PolitiClaw needs your street address before it can finish configuration.",
+    "PolitiClaw needs your street address to start.",
     "",
-    "Send the address, and I can save it, resolve your reps, and continue the rest of setup.",
+    "Send the address (and zip/state/district if you have them). I'll save it, resolve your federal reps, and walk you through the rest of setup one question at a time.",
   ].join("\n");
 }
 
-function renderNeedsIssueSetup(result: ConfigureNeedsIssueSetupResult): string {
+function renderIssuesPrompt(
+  preferences: PreferencesRow,
+  reps: IdentifyResult,
+  issueSetup: StartOnboardingResult,
+  currentStances: readonly IssueStanceRow[],
+  saved: SavedThisCall,
+): string {
   const lines: string[] = [];
   lines.push(
-    result.addressUpdated
-      ? `Saved your address for ${result.preferences.address}.`
-      : `Using your saved address for ${result.preferences.address}.`,
+    saved.address
+      ? `Saved your address (${preferences.address}).`
+      : `Address on file: ${preferences.address}.`,
   );
   lines.push("");
-  lines.push(...renderRepsSummary(result.reps));
+  lines.push(...renderRepsSummary(reps));
   lines.push("");
-  lines.push("Next step: tell me what issues matter to you.");
-  lines.push("");
-  if (result.savedIssueStances.length > 0) {
-    lines.push(
-      `Saved ${result.savedIssueStances.length} issue stance${result.savedIssueStances.length === 1 ? "" : "s"} from this call, but I still need at least one more or a confirmation flow before I finish configuration.`,
-    );
-    lines.push("");
-  }
-  lines.push(
-    result.issueSetup.mode === "choice"
-      ? renderChoicePrompt(result.currentIssueStances)
-      : renderStartOnboardingOutput(result.issueSetup),
-  );
+  lines.push("Next: tell me which issues matter to you.");
   lines.push("");
   lines.push(
-    `Monitoring will default to '${result.monitoringMode}' (${MODE_DESCRIPTIONS[result.monitoringMode]}) once issue setup is complete unless you tell me to use a different mode.`,
+    issueSetup.mode === "choice"
+      ? renderChoicePrompt(currentStances)
+      : renderStartOnboardingOutput(issueSetup),
   );
   return lines.join("\n");
 }
 
-function renderConfigured(result: ConfigureConfiguredResult): string {
-  const lines: string[] = ["PolitiClaw is configured.", ""];
-  lines.push(`- Address: ${result.preferences.address}`);
-  lines.push(
-    `- Monitoring mode: ${result.monitoringMode} — ${MODE_DESCRIPTIONS[result.monitoringMode]}`,
-  );
-  lines.push(
-    `- Issue stances: ${result.currentIssueStances.length} total${
-      result.savedIssueStances.length > 0 ? ` (${result.savedIssueStances.length} saved this call)` : ""
-    }`,
-  );
-  if (result.reps.status === "ok") {
-    lines.push(`- Reps: ${result.reps.reps.length} loaded`);
-  } else {
-    lines.push(`- Reps: not ready (${result.reps.reason})`);
+function renderMonitoringPrompt(
+  current: MonitoringMode,
+  options: Array<{ label: MonitoringMode; explainer: string }>,
+): string {
+  const lines: string[] = [
+    "Pick how PolitiClaw should watch for you.",
+    "",
+    `(Current: '${current}'.)`,
+    "",
+    "Options:",
+  ];
+  for (const opt of options) {
+    lines.push(`  - **${opt.label}** — ${opt.explainer}`);
   }
-  const changedJobs = result.monitoring.outcomes.filter(
-    (outcome) => outcome.action !== "unchanged" && outcome.action !== "missing",
-  ).length;
-  lines.push(`- Monitoring jobs reconciled: ${result.monitoring.outcomes.length} checked, ${changedJobs} changed`);
-  if (result.reps.status !== "ok") {
-    lines.push("");
-    lines.push(...renderRepsSummary(result.reps));
-  }
+  lines.push("");
+  lines.push(
+    "Reply with one of: " + MONITORING_MODE_VALUES.map((v) => `'${v}'`).join(", "),
+  );
   return lines.join("\n");
 }
 
-function renderPartial(result: ConfigurePartialResult): string {
-  const lines = [renderConfigured({ ...result, status: "configured", monitoring: { outcomes: [] } }), ""];
-  lines.push(`Monitoring reconciliation failed: ${result.monitoringError}`);
-  lines.push("Your saved preferences and issue stances are still in place.");
+function renderAccountabilityPrompt(
+  current: AccountabilityMode,
+  options: Array<{ label: AccountabilityMode; humanLabel: string; explainer: string }>,
+): string {
+  const lines: string[] = [
+    "Last question: how proactive should I be when something material crosses your alignment threshold?",
+    "",
+    `(Current: '${ACCOUNTABILITY_LABELS[current]}'.)`,
+    "",
+    "Options:",
+  ];
+  for (const opt of options) {
+    lines.push(`  - **${opt.label}** (${opt.humanLabel}) — ${opt.explainer}`);
+  }
+  lines.push("");
+  lines.push(
+    "Reply with one of: " + ACCOUNTABILITY_VALUES.map((v) => `'${v}'`).join(", "),
+  );
+  return lines.join("\n");
+}
+
+function renderCompletePrompt(
+  contract: MonitoringContract,
+  monitoringError: string | null,
+): string {
+  const lines: string[] = [renderMonitoringContract(contract)];
+  if (monitoringError) {
+    lines.push("");
+    lines.push(`(Monitoring reconciliation failed: ${monitoringError}. Saved settings remain in place; re-run politiclaw_configure to retry.)`);
+  }
   return lines.join("\n");
 }
 
@@ -273,16 +354,33 @@ export function createConfigureTool(deps: ConfigureToolDeps = {}): AnyAgentTool 
     name: "politiclaw_configure",
     label: "Configure PolitiClaw",
     description:
-      "Stand up the accountability loop: capture the stances PolitiClaw will measure the user's reps against, save the address that resolves those reps, and set how loudly monitoring should alert. Saves or updates the user's address, resolves reps, runs issue-stance setup, and applies the chosen monitoring mode in one flow. When information is missing, returns the next setup step instead of requiring separate setup tools.",
+      "One front-door tool that walks the user through PolitiClaw setup end-to-end: " +
+      "address → top issues → monitoring mode → accountability preference → final " +
+      "monitoring contract. Call with whatever you have; the tool returns the next " +
+      "question to ask. When everything is collected it reconciles cron jobs once and " +
+      "returns stage:'complete' with a monitoringContract summary. Use this for " +
+      "first-time setup, reconfiguration, or any 'set up PolitiClaw / change my " +
+      "settings' request. Lower-level stance/mode tools still exist for one-off " +
+      "edits after setup is complete.",
     parameters: ConfigureParams,
     async execute(_toolCallId, rawParams) {
       const input = (rawParams ?? {}) as ConfigureInput;
-      const { db } = getStorage();
+      const { db, kv } = getStorage();
       const pluginConfig = getPluginConfig();
 
-      let preferences = getPreferences(db);
-      let addressUpdated = false;
+      const saved: SavedThisCall = {
+        address: false,
+        stancesAdded: 0,
+        monitoringChanged: false,
+        accountabilityChanged: false,
+      };
 
+      // 1. Address — save first, since downstream stages assume preferences exist.
+      let preferences = getPreferences(db);
+      const priorMonitoringMode: MonitoringMode | null =
+        preferences?.monitoringMode ?? null;
+      const priorAccountability: AccountabilityMode | null =
+        preferences?.accountability ?? null;
       if (typeof input.address === "string" && input.address.trim().length > 0) {
         preferences = upsertPreferences(db, {
           address: input.address,
@@ -290,82 +388,166 @@ export function createConfigureTool(deps: ConfigureToolDeps = {}): AnyAgentTool 
           state: input.state,
           district: input.district,
           monitoringMode: input.monitoringMode,
+          accountability: input.accountability,
         });
-        addressUpdated = true;
-      } else if (input.monitoringMode) {
-        const parsedMode = MonitoringModeSchema.parse(input.monitoringMode);
-        try {
-          preferences = setMonitoringMode(db, parsedMode);
-        } catch {
-          // We surface the missing-address case below through the normal gate.
-        }
+        saved.address = true;
       }
 
       if (!preferences) {
-        return textResult(renderNeedsAddress(), {
-          status: "needs_address",
+        const result: ConfigureResult = {
+          stage: "address",
+          prompt: renderAddressPrompt(),
           preferences: null,
-        } satisfies ConfigureNeedsAddressResult);
+          savedThisCall: saved,
+        };
+        return textResult(result.prompt, result);
       }
 
-      const monitoringMode = preferences.monitoringMode ?? "action_only";
-      const resolver = createResolver({ geocodioApiKey: pluginConfig.apiKeys?.geocodio });
-      const reps = await identifyReps(db, resolver, {
-        refresh: Boolean(input.refreshReps) || addressUpdated,
-      });
-
-      const savedIssueStances: IssueStanceRow[] = [];
+      // 2. Issue stances — save anything passed inline before deciding the cursor.
       for (const row of input.issueStances ?? []) {
         const validated = IssueStanceSchema.parse(row);
-        savedIssueStances.push(upsertIssueStance(db, validated));
+        upsertIssueStance(db, validated);
+        saved.stancesAdded += 1;
+      }
+      const currentIssueStances = listIssueStances(db);
+
+      // 3. Monitoring mode — upsertPreferences already applied it when address
+      //    was saved; otherwise persist it separately.
+      let monitoringSetThisCall = false;
+      if (input.monitoringMode) {
+        const parsed = MonitoringModeSchema.parse(input.monitoringMode);
+        if (preferences.monitoringMode !== parsed) {
+          preferences = setMonitoringMode(db, parsed);
+        }
+        if (priorMonitoringMode !== parsed) {
+          saved.monitoringChanged = true;
+        }
+        monitoringSetThisCall = true;
+        kv.set(MONITORING_KV_FLAG, Date.now());
       }
 
-      const currentIssueStances = listIssueStances(db);
+      // 4. Accountability.
+      let accountabilitySetThisCall = false;
+      if (input.accountability) {
+        const parsed = AccountabilityModeSchema.parse(input.accountability);
+        if (preferences.accountability !== parsed) {
+          preferences = setAccountability(db, parsed);
+        }
+        if (priorAccountability !== parsed) {
+          saved.accountabilityChanged = true;
+        }
+        accountabilitySetThisCall = true;
+        kv.set(ACCOUNTABILITY_KV_FLAG, Date.now());
+      }
+
+      // 5. Decide the next stage.
+      const monitoringCaptured =
+        monitoringSetThisCall || kv.get<number>(MONITORING_KV_FLAG) !== undefined;
+      const accountabilityCaptured =
+        accountabilitySetThisCall || kv.get<number>(ACCOUNTABILITY_KV_FLAG) !== undefined;
+
+      // Lazy reps resolution — only when needed (issues / complete stages).
+      let reps: IdentifyResult | null = null;
+      const ensureReps = async (): Promise<IdentifyResult> => {
+        if (reps) return reps;
+        const resolver = createResolver({ geocodioApiKey: pluginConfig.apiKeys?.geocodio });
+        reps = await identifyReps(db, resolver, {
+          refresh: Boolean(input.refreshReps) || saved.address,
+        });
+        return reps;
+      };
+
       if (currentIssueStances.length === 0) {
         const issueSetup = buildStartOnboardingResult(
-          input.mode ? { mode: input.mode } : {},
+          input.issueMode || input.mode ? { mode: input.issueMode ?? input.mode } : {},
           currentIssueStances,
         );
-        const result: ConfigureNeedsIssueSetupResult = {
-          status: "needs_issue_setup",
+        const repsResult = await ensureReps();
+        const result: ConfigureResult = {
+          stage: "issues",
+          prompt: renderIssuesPrompt(
+            preferences,
+            repsResult,
+            issueSetup,
+            currentIssueStances,
+            saved,
+          ),
           preferences,
-          reps,
+          reps: repsResult,
           issueSetup,
-          monitoringMode,
-          addressUpdated,
-          savedIssueStances,
           currentIssueStances,
+          savedThisCall: saved,
         };
-        return textResult(renderNeedsIssueSetup(result), result);
+        return textResult(result.prompt, result);
       }
 
-      try {
-        const monitoring = await reconcileMonitoring({ mode: monitoringMode });
-        const result: ConfigureConfiguredResult = {
-          status: "configured",
+      if (!monitoringCaptured) {
+        const options = MONITORING_MODE_VALUES.map((label) => ({
+          label,
+          explainer: MODE_EXPLAINERS[label],
+        }));
+        const result: ConfigureResult = {
+          stage: "monitoring",
+          prompt: renderMonitoringPrompt(preferences.monitoringMode, options),
           preferences,
-          reps,
-          monitoringMode,
-          monitoring,
-          addressUpdated,
-          savedIssueStances,
           currentIssueStances,
+          currentMonitoringMode: preferences.monitoringMode,
+          options,
+          savedThisCall: saved,
         };
-        return textResult(renderConfigured(result), result);
-      } catch (error) {
-        const monitoringError = error instanceof Error ? error.message : String(error);
-        const result: ConfigurePartialResult = {
-          status: "partial",
-          preferences,
-          reps,
-          monitoringMode,
-          monitoringError,
-          addressUpdated,
-          savedIssueStances,
-          currentIssueStances,
-        };
-        return textResult(renderPartial(result), result);
+        return textResult(result.prompt, result);
       }
+
+      if (!accountabilityCaptured) {
+        const options = ACCOUNTABILITY_VALUES.map((label) => ({
+          label,
+          humanLabel: ACCOUNTABILITY_LABELS[label],
+          explainer: ACCOUNTABILITY_EXPLAINERS[label],
+        }));
+        const result: ConfigureResult = {
+          stage: "accountability",
+          prompt: renderAccountabilityPrompt(preferences.accountability, options),
+          preferences,
+          currentMonitoringMode: preferences.monitoringMode,
+          currentAccountability: preferences.accountability,
+          options,
+          savedThisCall: saved,
+        };
+        return textResult(result.prompt, result);
+      }
+
+      // 6. Complete — reconcile cron only if something cron-affecting changed
+      //    this call (or first-time complete).
+      const cronAffectingChange =
+        saved.address || saved.monitoringChanged || saved.stancesAdded > 0;
+      let monitoring: MonitoringSetupResult | null = null;
+      let monitoringError: string | null = null;
+      if (cronAffectingChange) {
+        try {
+          monitoring = await reconcileMonitoring({ mode: preferences.monitoringMode });
+        } catch (error) {
+          monitoringError = error instanceof Error ? error.message : String(error);
+        }
+      }
+
+      const repsResult = await ensureReps();
+      const contract = await buildMonitoringContract({
+        db,
+        config: pluginConfig,
+        cronAdapter: getGatewayCronAdapter(),
+      });
+
+      const result: ConfigureResult = {
+        stage: "complete",
+        prompt: renderCompletePrompt(contract, monitoringError),
+        preferences,
+        reps: repsResult,
+        monitoring,
+        monitoringError,
+        monitoringContract: contract,
+        savedThisCall: saved,
+      };
+      return textResult(result.prompt, result);
     },
   };
 }

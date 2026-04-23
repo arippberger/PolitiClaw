@@ -2,7 +2,14 @@ import type { PolitiClawDb } from "../../storage/sqlite.js";
 import type { PluginConfigSnapshot } from "../../storage/context.js";
 import type { GatewayCronAdapter } from "../../cron/gatewayAdapter.js";
 import { POLITICLAW_CRON_NAMES } from "../../cron/templates.js";
-import { getPreferences } from "../preferences/index.js";
+import {
+  ACCOUNTABILITY_LABELS,
+  getPreferences,
+} from "../preferences/index.js";
+import {
+  buildMonitoringContract,
+  type MonitoringContract,
+} from "../preferences/contract.js";
 
 export type CheckStatus = "ok" | "warn" | "fail";
 
@@ -18,6 +25,7 @@ export type DoctorReport = {
   checks: DoctorCheck[];
   worst: CheckStatus;
   generatedAtMs: number;
+  monitoringContract: MonitoringContract | null;
 };
 
 export type RunDoctorDeps = {
@@ -34,15 +42,57 @@ export async function runDoctor(deps: RunDoctorDeps): Promise<DoctorReport> {
   checks.push(checkSchemaVersion(deps.db));
   checks.push(checkDbIntegrity(deps.db));
   checks.push(checkPreferences(deps.db));
+  checks.push(checkAccountabilityIntensity(deps.db));
   checks.push(checkApiKeys(deps.config));
   checks.push(checkRepsCoverage(deps.db));
   checks.push(await checkCron(deps.cronAdapter));
+
+  let monitoringContract: MonitoringContract | null = null;
+  try {
+    monitoringContract = await buildMonitoringContract({
+      db: deps.db,
+      config: deps.config,
+      cronAdapter: deps.cronAdapter,
+      now,
+    });
+  } catch {
+    monitoringContract = null;
+  }
 
   return {
     checks,
     worst: worstStatus(checks),
     generatedAtMs: now(),
+    monitoringContract,
   };
+}
+
+function checkAccountabilityIntensity(db: PolitiClawDb): DoctorCheck {
+  try {
+    const prefs = getPreferences(db);
+    if (!prefs) {
+      return {
+        id: "accountability_intensity",
+        label: "Monitoring mode & accountability",
+        status: "warn",
+        summary: "No preferences row yet — monitoring and accountability defaults are not in effect.",
+        actionable: "Run politiclaw_configure to set them.",
+      };
+    }
+    const accountabilityLabel = ACCOUNTABILITY_LABELS[prefs.accountability];
+    return {
+      id: "accountability_intensity",
+      label: "Monitoring mode & accountability",
+      status: "ok",
+      summary: `Mode '${prefs.monitoringMode}', accountability '${accountabilityLabel}'.`,
+    };
+  } catch (error) {
+    return failedCheck(
+      "accountability_intensity",
+      "Monitoring mode & accountability",
+      error,
+    );
+  }
 }
 
 function worstStatus(checks: DoctorCheck[]): CheckStatus {

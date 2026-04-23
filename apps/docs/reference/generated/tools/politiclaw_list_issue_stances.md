@@ -6,7 +6,7 @@
 
 ## Description
 
-Return every declared issue stance, ordered by weight (high to low). Use to show the user what PolitiClaw is scoring bills and reps against.
+Return every declared issue stance, ordered by weight (high to low). Use to show the user what PolitiClaw is scoring bills and reps against. For first-time setup or full reconfiguration, prefer politiclaw_configure.
 
 ## Parameters
 

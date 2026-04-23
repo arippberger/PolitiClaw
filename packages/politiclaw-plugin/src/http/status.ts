@@ -43,6 +43,7 @@ export type StatusPreferences =
       state: string | null;
       district: string | null;
       monitoringMode: string;
+      accountability: string;
       updatedAtMs: number;
       issueStances: {
         issue: string;
@@ -313,6 +314,7 @@ function buildPreferencesSection(
     state: prefs.state ?? null,
     district: prefs.district ?? null,
     monitoringMode: prefs.monitoringMode ?? "action_only",
+    accountability: prefs.accountability,
     updatedAtMs: prefs.updatedAt,
     issueStances: stances,
   };

@@ -32,11 +32,25 @@ export function renderDoctorOutput(report: DoctorReport): string {
     report.worst === "ok"
       ? `PolitiClaw doctor: all ${counts.ok} check(s) green.`
       : `PolitiClaw doctor: ${counts.fail} fail, ${counts.warn} warn, ${counts.ok} ok.`;
-  const lines = report.checks.map((check) => {
+  const checkLines = report.checks.map((check) => {
     const base = `${marker(check.status)} ${check.label}: ${check.summary}`;
     return check.actionable ? `${base}\n    → ${check.actionable}` : base;
   });
-  return [header, ...lines].join("\n");
+  const lines: string[] = [header, ...checkLines];
+  if (report.monitoringContract) {
+    const contract = report.monitoringContract;
+    lines.push("");
+    lines.push(
+      `Current monitoring mode: ${contract.monitoring.mode}.`,
+    );
+    lines.push(
+      `Current accountability: ${contract.accountability.label}.`,
+    );
+    lines.push(
+      `Active monitoring jobs: ${contract.activeJobs.length}; inactive: ${contract.inactiveJobs.length}.`,
+    );
+  }
+  return lines.join("\n");
 }
 
 export const doctorTool: AnyAgentTool = {

@@ -195,7 +195,9 @@ When `politiclaw.election_proximity_alert` fires (daily):
 
 ## Monitoring mode
 
-The user picks how loud monitoring is via `politiclaw_configure`:
+The user picks how loud monitoring is via `politiclaw_configure`. Modes
+are product-shaped and persisted directly to the `monitoring_mode`
+column:
 
 - `off` — no monitoring jobs installed.
 - `quiet_watch` — rep-vote watch + hearings only. Silent unless something
@@ -208,6 +210,28 @@ The user picks how loud monitoring is via `politiclaw_configure`:
 
 `politiclaw_configure` reconciles to whichever mode is saved; jobs outside the
 mode's set are paused (kept, not deleted) so flipping back is instant.
+
+## Accountability mode
+
+Read the user's `accountability` mode from `politiclaw_doctor` output or
+the cached preferences. It governs whether monitoring takes follow-up
+action beyond reporting facts:
+
+- `self_serve` (default): facts only. Do not suggest actions, do not
+  draft letters automatically. Status quo behavior.
+- `nudge_me`: after the factual sections, the per-skill "Your move"
+  guidance applies (see `politiclaw-summary`). Suggest 1–3 concrete
+  actions; do not draft anything yourself.
+- `draft_for_me`: same as `nudge_me`, plus when a tracked bill in the
+  current delta has `alignment.relevance ≥ 0.6` and
+  `alignment.confidence ≥ 0.5` and the user has not yet sent a letter
+  on it, call `politiclaw_draft_letter` proactively for the
+  highest-alignment rep on that bill, and surface "Drafted a letter for
+  Rep. X — review and send via `politiclaw_send_letter`." Cap at one
+  proactive draft per monitoring run; the user can always ask for more.
+
+Do not escalate behavior beyond the saved mode. If the user wants more
+proactivity they will say so; switching them silently breaks trust.
 
 ## Rep report (periodic digest)
 

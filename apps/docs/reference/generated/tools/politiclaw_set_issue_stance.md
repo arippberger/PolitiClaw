@@ -6,7 +6,7 @@
 
 ## Description
 
-Record the user's declared position (support / oppose / neutral) on a named policy issue, with a 1-5 importance weight. Drives bill alignment scoring and rep scoring. Re-running with the same issue overwrites the previous stance.
+Record the user's declared position (support / oppose / neutral) on a named policy issue, with a 1-5 importance weight. Drives bill alignment scoring and rep scoring. Re-running with the same issue overwrites the previous stance. For first-time setup or full reconfiguration, prefer politiclaw_configure.
 
 ## Parameters
 

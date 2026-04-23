@@ -1,98 +1,167 @@
 ---
 name: politiclaw-onboarding
 description: >-
-  How to capture the issue stances PolitiClaw will later measure the user's
-  reps against. Runs the initial setup with a new user via one of two modes —
-  a guided conversation or a structured quiz — and persists results through
-  politiclaw_set_issue_stance so the accountability loop has values to compare
-  votes to.
+  How to drive `politiclaw_configure` end-to-end — a single staged tool that
+  walks the user through address → top issues → monitoring mode →
+  accountability → final monitoring contract. The tool re-derives the
+  current stage from DB state on every call; you just relay the prompt and
+  collect the next answer.
 read_when:
-  - The user asks to "set up PolitiClaw", "get started", or "help me pick my issues".
-  - The politiclaw_configure tool is invoked and returns an issue-setup handoff.
-  - A user with zero declared issue stances asks anything that would require them.
+  - The user asks to "set up PolitiClaw", "get started", or "change my settings".
+  - The user asks "what is PolitiClaw doing for me?" / "what are you watching?".
+  - A user with no preferences asks anything that would require them.
+  - You see a `politiclaw_configure` response with a `nextPrompt` field.
 ---
 
 # politiclaw-onboarding
 
+`politiclaw_configure` is a one-tool front door. Each call returns:
+
+```
+{ stage, nextPrompt, savedThisCall, monitoringContract? }
+```
+
+You call it, read `nextPrompt`, ask the user, then call again with their
+answer plus the same `stage` you were told to advance to. When `stage`
+becomes `complete`, render the `monitoringContract` block to the user.
+
+## The five stages
+
+| Stage | What you collect from the user |
+|---|---|
+| `address` | Street address (and optionally zip / state / district). |
+| `issues` | Either inline `issueStances[]`, or pick a mode: conversation / quiz. |
+| `monitoring` | Monitoring mode: `off` / `quiet_watch` / `weekly_digest` / `action_only` / `full_copilot`. |
+| `accountability` | Accountability mode: `self_serve` / `nudge_me` / `draft_for_me`. |
+| `complete` | Nothing — just render the contract. |
+
 The goal is to end the session with a populated `issue_stances` set that
 feels like the user's own words, not a survey they filled out. These
 stances become the accountability anchor — every rep score later in the
-product is measured against them, and nothing else. Two modes are
-supported; the user picks.
+product is measured against them, and nothing else.
+
+The stage cursor is derived from DB state, not from you. If a user
+changes their mind mid-flow ("actually, set me back to quiet_watch") just
+call again with the new value — the tool will accept it.
 
 ## Entry protocol
 
-1. Call `politiclaw_configure` (no `mode` argument).
-2. Present the two choices to the user in your own words. Do not bias —
-   neither mode is "better", they suit different users.
-3. Re-invoke `politiclaw_configure` with the chosen `mode`. The
-   tool returns everything you need to run that mode plus any stances the
-   user has already declared.
+1. Call `politiclaw_configure` with no arguments.
+2. The tool returns `{ stage, nextPrompt, ... }`. Read `nextPrompt`
+   verbatim is acceptable, but rephrase in your own voice if it fits.
+3. Ask the user. Wait for the answer.
+4. Call `politiclaw_configure` again with `{ stage, <field>: <answer> }`.
+5. Loop until `stage === "complete"`.
 
-If the user already has stances and asks to "redo" onboarding, ask
-whether they want to keep, revise, or wipe each existing one before
-persisting anything new.
+You may pass multiple stages' answers in one call if the user volunteered
+them ("I'm at 123 Main St, weekly_digest, nudge me"). The tool will save
+all of it and advance the cursor to the earliest unfilled gate.
 
-## Conversation mode
+## The `issues` stage
 
-The tool returns a list of suggested opening prompts and the canonical
-issue-slug set. Use them like this:
+If the user has zero stances, the tool returns a payload offering two
+modes — conversation or quiz. Present both options briefly; do not bias.
 
-1. **Open with one question, not a menu.** Pick one of the suggested
-   prompts that fits the moment. Ask it plainly. Do not list the
-   canonical slugs upfront — you'll match later.
-2. **Let the user speak in their own words.** They will say "I care
-   about healthcare costs," "guns scare me," "I'm furious about rent."
-   Accept all of that as-is.
-3. **Paraphrase every stance back before persisting.** Format:
+### Conversation mode
+
+The tool returns suggested opening prompts and the canonical issue-slug
+set.
+
+1. Open with one question, not a menu. Pick one suggested prompt that
+   fits the moment.
+2. Let the user speak in their own words. Accept "healthcare costs",
+   "guns scare me", "I'm furious about rent" as-is.
+3. Paraphrase every stance back before persisting:
    "Sounds like you support stronger gun-policy restrictions, and it
-   matters a lot to you — want me to record that as `support` on
-   `gun-policy` with weight 4 out of 5?" Wait for confirmation.
-4. **Map free text to a canonical slug when possible.** If the user
-   names an issue that doesn't match the canonical set, flag it: "That's
-   not one of the canonical issues PolitiClaw scores — I can still save
-   it as a custom slug, but automated bill matching may be weaker." Then
-   let them decide.
-5. **Persist via `politiclaw_set_issue_stance`.** Pass the normalized
-   slug, the confirmed stance (`support` / `oppose` / `neutral`), and
-   the weight. Do not batch persists silently — confirm each.
-6. **Stop when the user runs out of things to say.** Three solid stances
-   are better than twelve half-considered ones.
+   matters a lot — record that as `support` on `gun-policy`, weight 4
+   out of 5?"
+4. Map free text to a canonical slug when possible. If it doesn't fit,
+   flag it: "That's not one of PolitiClaw's canonical issues — I can
+   save it as a custom slug, but automated bill matching may be weaker."
+5. Persist by calling `politiclaw_configure` with `{ stage: "issues",
+   issueStances: [{ issue, stance, weight }] }`. One stance at a time
+   is fine; the tool will keep returning `stage: "issues"` until the
+   user says they're done.
+6. Stop when the user runs out — three solid stances beat twelve
+   half-considered ones.
 
-Anti-patterns to avoid:
-
-- Don't ask all suggested prompts in sequence — you'll sound like a form.
-- Don't argue with or "correct" a stance you disagree with. Record what
-  the user said.
-- Don't persist a stance without confirming the slug and weight back.
-
-## Quiz mode
+### Quiz mode
 
 The tool returns the question bank (~12 items) with canonical slugs and
-suggested labels. Rules:
+suggested labels.
 
-1. **Ask sequentially, one at a time.** Never paste the full list.
-2. **Present exactly three answer labels** (the ones the tool returned).
-   The user can free-text, but keep the options visible.
-3. **Skip the weight follow-up on "no strong view."** Only ask "how
+1. Ask sequentially, one at a time. Never paste the full list.
+2. Present exactly three answer labels per question.
+3. Skip the weight follow-up on "no strong view." Only ask "how
    important is this?" after `support` or `oppose`.
-4. **"No strong view" is silence, not `neutral`.** Do not persist an
-   `IssueStance` row for questions the user declined unless they
-   explicitly say "yes, record it as neutral."
-5. **Read back the full list before committing.** "Here's what I'll save:
-   [list]. Commit all of these?"
-6. **Commit via `politiclaw_set_issue_stance`** once the user
-   confirms.
+4. "No strong view" is silence, not `neutral`. Do not persist a row for
+   declined questions unless the user explicitly says "yes, record it
+   as neutral."
+5. Read back the full list before committing.
+6. Commit by calling `politiclaw_configure` with the full
+   `issueStances[]` array.
+
+## The `monitoring` stage
+
+The tool returns plain-English explainers for each mode. Read them to
+the user, ask which fits, then call again with `monitoringMode: <choice>`.
+Five options, product-shaped:
+
+- `off` — no automated alerts.
+- `quiet_watch` — silent unless tracked bills or hearings materially change.
+- `weekly_digest` — Sunday summary plus monthly rep report, plus change
+  detection.
+- `action_only` — quiet, with election-proximity alerts layered on.
+- `full_copilot` — everything.
+
+## The `accountability` stage
+
+Three modes, each with concrete consequences:
+
+- `self_serve` — facts only. Status quo. Default.
+- `nudge_me` — appends a "Your move" section with 1–3 suggested actions.
+- `draft_for_me` — same as `nudge_me`, plus auto-drafts letters when a
+  tracked bill crosses the alignment threshold.
+
+Read the explainer the tool returns, ask, save with
+`accountability: <choice>`.
+
+## The `complete` stage
+
+The tool returns a `monitoringContract`. Render it as one block:
+
+- Address (resolved or not)
+- Top stances by weight
+- "Monitoring mode: weekly_digest — Sunday summary plus monthly rep report."
+- "Accountability: nudge me — I'll add a 'Your move' section."
+- "Watching:" — list active jobs with what each one watches for.
+- "Not watching:" — list inactive jobs with the reason
+  (`missing_api_key`, `no_address`, `mode_excludes`, etc.) so the
+  user knows the gap is named, not silently ignored.
+- Caveats — single delivery channel, federal reps only, etc.
+- "To change: …" — the `changeHowTo` line.
+
+Do not omit the inactive jobs or caveats. Surfacing limitations honestly
+is the whole point of the contract block.
 
 ## Returning users
 
-The tool passes `existingStances`. In either mode:
+If the user already has preferences, stances, monitoring mode, and
+accountability set, calling `politiclaw_configure` with no args returns
+`stage: "complete"` and the current contract — no prompts. Just render.
 
-- Skip questions the user already answered, unless they say "I want to
-  revise that."
-- Never silently overwrite an existing stance. Confirm first.
-- If the user has stances on issues outside the canonical set, leave
-  them alone.
+If the user says "change my X", call with `{ stage: "<X>", <field>:
+<value> }` directly. You don't have to walk them through the earlier
+stages again.
+
+## Anti-patterns
+
+- Don't call lower-level tools (`politiclaw_set_issue_stance`,
+  `politiclaw_set_monitoring_mode`) for first-time setup. Use
+  `politiclaw_configure`.
+- Don't omit inactive jobs or caveats from the contract block.
+- Don't argue with a stance you disagree with. Record what the user said.
+- Don't persist a stance without confirming the slug and weight back.
 
 ## Tone
 

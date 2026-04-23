@@ -85,6 +85,7 @@
     if (section.state) appendKv(kv, "State", section.state);
     if (section.district) appendKv(kv, "District", section.district);
     appendKv(kv, "Mode", section.monitoringMode);
+    if (section.accountability) appendKv(kv, "Accountability", section.accountability);
     appendKv(kv, "Updated", formatDate(section.updatedAtMs));
     container.appendChild(kv);
 
@@ -480,6 +481,8 @@
       if (district) payload.district = district;
       const monitoringMode = String(fd.get("monitoringMode") || "").trim();
       if (monitoringMode) payload.monitoringMode = monitoringMode;
+      const accountability = String(fd.get("accountability") || "").trim();
+      if (accountability) payload.accountability = accountability;
 
       if (Object.keys(payload).length === 0) {
         toast("Nothing to save.", true);

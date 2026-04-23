@@ -59,7 +59,8 @@ export const recordStanceSignalTool: AnyAgentTool = {
   label: "Record PolitiClaw stance signal",
   description:
     "Record a single agree/disagree/skip signal from the user in response to a shown bill or issue. " +
-    "Later scoring can aggregate these signals into learned issue stances; this tool only records the raw signal.",
+    "Later scoring can aggregate these signals into learned issue stances; this tool only records the raw signal. " +
+    "For first-time setup or full reconfiguration, prefer politiclaw_configure.",
   parameters: RecordStanceSignalParams,
   async execute(_toolCallId, rawParams) {
     const validated = StanceSignalSchema.parse(rawParams);
@@ -75,7 +76,8 @@ export const setIssueStanceTool: AnyAgentTool = {
   description:
     "Record the user's declared position (support / oppose / neutral) on a named policy issue, " +
     "with a 1-5 importance weight. Drives bill alignment scoring and rep scoring. " +
-    "Re-running with the same issue overwrites the previous stance.",
+    "Re-running with the same issue overwrites the previous stance. " +
+    "For first-time setup or full reconfiguration, prefer politiclaw_configure.",
   parameters: SetIssueStanceParams,
   async execute(_toolCallId, rawParams) {
     const validated = IssueStanceSchema.parse(rawParams);
@@ -93,7 +95,8 @@ export const listIssueStancesTool: AnyAgentTool = {
   label: "List declared issue stances",
   description:
     "Return every declared issue stance, ordered by weight (high to low). Use to show " +
-    "the user what PolitiClaw is scoring bills and reps against.",
+    "the user what PolitiClaw is scoring bills and reps against. " +
+    "For first-time setup or full reconfiguration, prefer politiclaw_configure.",
   parameters: ListIssueStancesParams,
   async execute() {
     const { db } = getStorage();
@@ -114,7 +117,9 @@ export const listIssueStancesTool: AnyAgentTool = {
 export const deleteIssueStanceTool: AnyAgentTool = {
   name: "politiclaw_delete_issue_stance",
   label: "Delete a declared issue stance",
-  description: "Remove a single declared issue stance by issue slug or label.",
+  description:
+    "Remove a single declared issue stance by issue slug or label. " +
+    "For first-time setup or full reconfiguration, prefer politiclaw_configure.",
   parameters: DeleteIssueStanceParams,
   async execute(_toolCallId, rawParams) {
     const { issue } = rawParams as { issue: string };

@@ -19,7 +19,7 @@ export type SourceCoverageEntry = {
 export const DOCS_BASELINE = {
   tools: 23,
   cronTemplates: 5,
-  migrations: 14,
+  migrations: 15,
   skills: 5,
 } as const;
 

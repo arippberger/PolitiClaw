@@ -89,6 +89,27 @@ Rules:
 - **Never use tier-5 LLM-search output for numbers, vote counts, or status
   claims.**
 
+### 5. Your move (only if accountability is `nudge_me` or `draft_for_me`)
+
+Check the user's `accountability` mode (read it from
+`politiclaw_doctor` output or the cached preferences if you have them).
+
+- `self_serve` (default): **omit this section entirely.** The user opted
+  out of suggested actions. Don't editorialize.
+- `nudge_me`: append 1–3 concrete next steps the user could take this
+  week — e.g. "Call Rep. Garcia (D-CA-13) about HR-1234 before Tuesday's
+  markup", "Check your registration; primary is in 21 days." Do not
+  draft anything yourself; just suggest.
+- `draft_for_me`: same as `nudge_me`, plus call
+  `politiclaw_draft_letter` proactively for the single highest-alignment
+  bill from section 2 and surface "Drafted a letter for Rep. X — review
+  and send via `politiclaw_send_letter`." Cap at one auto-draft per
+  digest to avoid swamping the user.
+
+Each suggestion is one sentence. Do not pad. If the week is quiet enough
+that there's nothing concrete to suggest, omit the section even in
+`nudge_me`/`draft_for_me`.
+
 ### 6. What PolitiClaw missed
 
 One line naming any source that returned `unavailable` or `partial` this

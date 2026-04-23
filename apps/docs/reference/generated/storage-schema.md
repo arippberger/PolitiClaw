@@ -2,7 +2,7 @@
 
 This page is generated from a real in-memory SQLite database after migrations run.
 
-Migration count: 14.
+Migration count: 15.
 
 ## Migrations
 
@@ -20,6 +20,7 @@ Migration count: 14.
 - `packages/politiclaw-plugin/src/storage/migrations/0012_alert_history.sql`
 - `packages/politiclaw-plugin/src/storage/migrations/0013_letter_redraft.sql`
 - `packages/politiclaw-plugin/src/storage/migrations/0014_monitoring_mode.sql`
+- `packages/politiclaw-plugin/src/storage/migrations/0015_accountability.sql`
 
 ## Tables
 
@@ -322,6 +323,7 @@ CREATE TABLE mute_list (
 | `district` | `TEXT` | no | no | n/a |
 | `monitoring_mode` | `TEXT` | yes | no | `'action_only'` |
 | `updated_at` | `INTEGER` | yes | no | n/a |
+| `accountability` | `TEXT` | yes | no | `'self_serve'` |
 
 ```sql
 CREATE TABLE "preferences" (
@@ -333,7 +335,8 @@ CREATE TABLE "preferences" (
   monitoring_mode    TEXT NOT NULL DEFAULT 'action_only'
     CHECK (monitoring_mode IN ('off','quiet_watch','weekly_digest','action_only','full_copilot')),
   updated_at         INTEGER NOT NULL
-)
+, accountability TEXT NOT NULL DEFAULT 'self_serve'
+  CHECK (accountability IN ('self_serve','nudge_me','draft_for_me')))
 ```
 
 ### rep_scores

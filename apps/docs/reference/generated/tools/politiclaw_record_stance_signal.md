@@ -6,7 +6,7 @@
 
 ## Description
 
-Record a single agree/disagree/skip signal from the user in response to a shown bill or issue. Later scoring can aggregate these signals into learned issue stances; this tool only records the raw signal.
+Record a single agree/disagree/skip signal from the user in response to a shown bill or issue. Later scoring can aggregate these signals into learned issue stances; this tool only records the raw signal. For first-time setup or full reconfiguration, prefer politiclaw_configure.
 
 ## Parameters
 

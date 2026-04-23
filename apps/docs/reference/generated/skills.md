@@ -8,7 +8,7 @@ Current skill count: 5.
 | --- | --- | --- |
 | `politiclaw-ballot` | `politiclaw-ballot` | How to map each contest on the user's ballot against the stances they declared — showing where candidates and incumbents align with their values and where they don't — without prescribing votes. Enforces no prescriptive recommendations and strict guardrails on when LLM-search-derived narrative is allowed. |
 | `politiclaw-monitoring` | `politiclaw-monitoring` | How to surface bills, votes, and committee events that touch the stances the user declared — so they can see when their reps are (or aren't) representing them — without drifting into advocacy. Decides when to alert, when to summarize, and when to stay silent. Enforces the anti-echo-chamber rule that every substantial summary must include a dissenting or complicating view when one exists, and the four-class alert shape that every proactive message follows (headline, why-it-matters, what-happened, optional next). |
-| `politiclaw-onboarding` | `politiclaw-onboarding` | How to capture the issue stances PolitiClaw will later measure the user's reps against. Runs the initial setup with a new user via one of two modes — a guided conversation or a structured quiz — and persists results through politiclaw_set_issue_stance so the accountability loop has values to compare votes to. |
+| `politiclaw-onboarding` | `politiclaw-onboarding` | How to drive `politiclaw_configure` end-to-end — a single staged tool that walks the user through address → top issues → monitoring mode → accountability → final monitoring contract. The tool re-derives the current stage from DB state on every call; you just relay the prompt and collect the next answer. |
 | `politiclaw-outreach` | `politiclaw-outreach` | How to help the user close the loop on a stance-gap the monitoring loop surfaced: put an accountability question in front of the rep in the user's own words. Covers when to offer a letter draft, how to use politiclaw_draft_letter, and the firm rule that PolitiClaw never sends mail — the user sends from their own client. |
 | `politiclaw-summary` | `politiclaw-summary` | Weekly PolitiClaw digest style: what the user's reps did this week against the stances they declared. One message, readable in ~60 seconds, facts not cheerleading, built on the tool's tier-1/tier-2/tail bundling and a mandatory "things you might be surprised by" section. |
 
@@ -32,11 +32,12 @@ Current skill count: 5.
 ## politiclaw-onboarding
 
 - Source file: `packages/politiclaw-plugin/skills/politiclaw-onboarding/SKILL.md`
-- Description: How to capture the issue stances PolitiClaw will later measure the user's reps against. Runs the initial setup with a new user via one of two modes — a guided conversation or a structured quiz — and persists results through politiclaw_set_issue_stance so the accountability loop has values to compare votes to.
+- Description: How to drive `politiclaw_configure` end-to-end — a single staged tool that walks the user through address → top issues → monitoring mode → accountability → final monitoring contract. The tool re-derives the current stage from DB state on every call; you just relay the prompt and collect the next answer.
 - Read when:
-  - The user asks to "set up PolitiClaw", "get started", or "help me pick my issues".
-  - The politiclaw_configure tool is invoked and returns an issue-setup handoff.
-  - A user with zero declared issue stances asks anything that would require them.
+  - The user asks to "set up PolitiClaw", "get started", or "change my settings".
+  - The user asks "what is PolitiClaw doing for me?" / "what are you watching?".
+  - A user with no preferences asks anything that would require them.
+  - You see a `politiclaw_configure` response with a `nextPrompt` field.
 
 ## politiclaw-outreach
 

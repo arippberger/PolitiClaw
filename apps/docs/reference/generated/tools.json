@@ -5,8 +5,14 @@
     "groupId": "preferences",
     "groupLabel": "Configuration and preferences",
     "sourcePath": "packages/politiclaw-plugin/src/tools/configure.ts",
-    "description": "Stand up the accountability loop: capture the stances PolitiClaw will measure the user's reps against, save the address that resolves those reps, and set how loudly monitoring should alert. Saves or updates the user's address, resolves reps, runs issue-stance setup, and applies the chosen monitoring mode in one flow. When information is missing, returns the next setup step instead of requiring separate setup tools.",
+    "description": "One front-door tool that walks the user through PolitiClaw setup end-to-end: address → top issues → monitoring mode → accountability preference → final monitoring contract. Call with whatever you have; the tool returns the next question to ask. When everything is collected it reconciles cron jobs once and returns stage:'complete' with a monitoringContract summary. Use this for first-time setup, reconfiguration, or any 'set up PolitiClaw / change my settings' request. Lower-level stance/mode tools still exist for one-off edits after setup is complete.",
     "parameters": [
+      {
+        "name": "stage",
+        "required": false,
+        "type": "\"address\" | \"issues\" | \"monitoring\" | \"accountability\" | \"complete\"",
+        "description": "Optional hint for which stage you intend this call to satisfy. The tool re-derives the next stage from DB state regardless, so a wrong hint just no-ops."
+      },
       {
         "name": "address",
         "required": false,
@@ -32,10 +38,16 @@
         "description": "Congressional district if known."
       },
       {
+        "name": "issueMode",
+        "required": false,
+        "type": "\"conversation\" | \"quiz\"",
+        "description": "Issue-setup style. Use when you want the issues stage to return a quiz or conversational handoff."
+      },
+      {
         "name": "mode",
         "required": false,
         "type": "\"conversation\" | \"quiz\"",
-        "description": "Optional issue-setup style. Use when the user is ready to walk through stance setup."
+        "description": "Deprecated alias for issueMode. Prefer issueMode."
       },
       {
         "name": "issueStances",
@@ -50,6 +62,12 @@
         "description": "How PolitiClaw should watch for you. 'off' pauses everything. 'quiet_watch' is silent unless tracked bills/hearings materially change. 'weekly_digest' adds the Sunday summary and monthly rep report. 'action_only' is quiet except when elections are near or tracked items change. 'full_copilot' enables everything. Defaults to 'action_only' when first configuring unless a mode is already saved."
       },
       {
+        "name": "accountability",
+        "required": false,
+        "type": "\"self_serve\" | \"nudge_me\" | \"draft_for_me\"",
+        "description": "How proactive PolitiClaw should be when bills/votes cross your alignment threshold: self_serve (post deltas only), nudge_me (add a 'Your move' section with suggestions), draft_for_me (also draft a letter to your rep proactively)."
+      },
+      {
         "name": "refreshReps",
         "required": false,
         "type": "boolean",
@@ -59,6 +77,31 @@
     "rawSchema": {
       "type": "object",
       "properties": {
+        "stage": {
+          "description": "Optional hint for which stage you intend this call to satisfy. The tool re-derives the next stage from DB state regardless, so a wrong hint just no-ops.",
+          "anyOf": [
+            {
+              "const": "address",
+              "type": "string"
+            },
+            {
+              "const": "issues",
+              "type": "string"
+            },
+            {
+              "const": "monitoring",
+              "type": "string"
+            },
+            {
+              "const": "accountability",
+              "type": "string"
+            },
+            {
+              "const": "complete",
+              "type": "string"
+            }
+          ]
+        },
         "address": {
           "description": "Street address. When provided, saves it and refreshes reps for that address.",
           "type": "string"
@@ -74,8 +117,21 @@
           "description": "Congressional district if known.",
           "type": "string"
         },
+        "issueMode": {
+          "description": "Issue-setup style. Use when you want the issues stage to return a quiz or conversational handoff.",
+          "anyOf": [
+            {
+              "const": "conversation",
+              "type": "string"
+            },
+            {
+              "const": "quiz",
+              "type": "string"
+            }
+          ]
+        },
         "mode": {
-          "description": "Optional issue-setup style. Use when the user is ready to walk through stance setup.",
+          "description": "Deprecated alias for issueMode. Prefer issueMode.",
           "anyOf": [
             {
               "const": "conversation",
@@ -151,6 +207,23 @@
             }
           ]
         },
+        "accountability": {
+          "description": "How proactive PolitiClaw should be when bills/votes cross your alignment threshold: self_serve (post deltas only), nudge_me (add a 'Your move' section with suggestions), draft_for_me (also draft a letter to your rep proactively).",
+          "anyOf": [
+            {
+              "const": "self_serve",
+              "type": "string"
+            },
+            {
+              "const": "nudge_me",
+              "type": "string"
+            },
+            {
+              "const": "draft_for_me",
+              "type": "string"
+            }
+          ]
+        },
         "refreshReps": {
           "description": "When true, bypass the reps cache and re-resolve representatives.",
           "type": "boolean"
@@ -164,7 +237,7 @@
     "groupId": "preferences",
     "groupLabel": "Configuration and preferences",
     "sourcePath": "packages/politiclaw-plugin/src/tools/preferences.ts",
-    "description": "Record a single agree/disagree/skip signal from the user in response to a shown bill or issue. Later scoring can aggregate these signals into learned issue stances; this tool only records the raw signal.",
+    "description": "Record a single agree/disagree/skip signal from the user in response to a shown bill or issue. Later scoring can aggregate these signals into learned issue stances; this tool only records the raw signal. For first-time setup or full reconfiguration, prefer politiclaw_configure.",
     "parameters": [
       {
         "name": "direction",
@@ -258,7 +331,7 @@
     "groupId": "preferences",
     "groupLabel": "Configuration and preferences",
     "sourcePath": "packages/politiclaw-plugin/src/tools/preferences.ts",
-    "description": "Record the user's declared position (support / oppose / neutral) on a named policy issue, with a 1-5 importance weight. Drives bill alignment scoring and rep scoring. Re-running with the same issue overwrites the previous stance.",
+    "description": "Record the user's declared position (support / oppose / neutral) on a named policy issue, with a 1-5 importance weight. Drives bill alignment scoring and rep scoring. Re-running with the same issue overwrites the previous stance. For first-time setup or full reconfiguration, prefer politiclaw_configure.",
     "parameters": [
       {
         "name": "issue",
@@ -321,7 +394,7 @@
     "groupId": "preferences",
     "groupLabel": "Configuration and preferences",
     "sourcePath": "packages/politiclaw-plugin/src/tools/preferences.ts",
-    "description": "Return every declared issue stance, ordered by weight (high to low). Use to show the user what PolitiClaw is scoring bills and reps against.",
+    "description": "Return every declared issue stance, ordered by weight (high to low). Use to show the user what PolitiClaw is scoring bills and reps against. For first-time setup or full reconfiguration, prefer politiclaw_configure.",
     "parameters": [],
     "rawSchema": {
       "type": "object",
@@ -334,7 +407,7 @@
     "groupId": "preferences",
     "groupLabel": "Configuration and preferences",
     "sourcePath": "packages/politiclaw-plugin/src/tools/preferences.ts",
-    "description": "Remove a single declared issue stance by issue slug or label.",
+    "description": "Remove a single declared issue stance by issue slug or label. For first-time setup or full reconfiguration, prefer politiclaw_configure.",
     "parameters": [
       {
         "name": "issue",

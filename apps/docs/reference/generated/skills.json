@@ -24,11 +24,12 @@
     "directory": "politiclaw-onboarding",
     "sourcePath": "packages/politiclaw-plugin/skills/politiclaw-onboarding/SKILL.md",
     "name": "politiclaw-onboarding",
-    "description": "How to capture the issue stances PolitiClaw will later measure the user's reps against. Runs the initial setup with a new user via one of two modes — a guided conversation or a structured quiz — and persists results through politiclaw_set_issue_stance so the accountability loop has values to compare votes to.",
+    "description": "How to drive `politiclaw_configure` end-to-end — a single staged tool that walks the user through address → top issues → monitoring mode → accountability → final monitoring contract. The tool re-derives the current stage from DB state on every call; you just relay the prompt and collect the next answer.",
     "readWhen": [
-      "The user asks to \"set up PolitiClaw\", \"get started\", or \"help me pick my issues\".",
-      "The politiclaw_configure tool is invoked and returns an issue-setup handoff.",
-      "A user with zero declared issue stances asks anything that would require them."
+      "The user asks to \"set up PolitiClaw\", \"get started\", or \"change my settings\".",
+      "The user asks \"what is PolitiClaw doing for me?\" / \"what are you watching?\".",
+      "A user with no preferences asks anything that would require them.",
+      "You see a `politiclaw_configure` response with a `nextPrompt` field."
     ]
   },
   {

@@ -1,5 +1,10 @@
 import { z } from "zod";
 
+import { AccountabilityModeSchema, type AccountabilityMode } from "./accountability.js";
+
+export { AccountabilityModeSchema };
+export type { AccountabilityMode };
+
 export const MONITORING_MODE_VALUES = [
   "off",
   "quiet_watch",
@@ -23,11 +28,16 @@ export const PreferencesSchema = z.object({
     .optional(),
   district: z.string().trim().optional(),
   monitoringMode: MonitoringModeSchema.optional(),
+  accountability: AccountabilityModeSchema.optional(),
 });
 
 export type Preferences = z.infer<typeof PreferencesSchema>;
 
-export type PreferencesRow = Preferences & { updatedAt: number };
+export type PreferencesRow = Preferences & {
+  monitoringMode: MonitoringMode;
+  accountability: AccountabilityMode;
+  updatedAt: number;
+};
 
 export const StanceSignalSchema = z
   .object({
