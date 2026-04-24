@@ -15,6 +15,7 @@ import {
 import {
   ACCOUNTABILITY_KV_FLAG,
   getPreferences,
+  listIssueStances,
 } from "../domain/preferences/index.js";
 import type { IdentifyResult } from "../domain/reps/index.js";
 import { createConfigureTool, type ConfigureResult } from "./configure.js";
@@ -169,6 +170,37 @@ describe("politiclaw_configure", () => {
       expect(details.stage).toBe("issues");
       if (details.stage !== "issues") throw new Error("type narrowing");
       expect(details.issueSetup.mode).toBe("choice");
+    });
+
+    it("normalizes free-text issue labels to canonical slugs before saving", async () => {
+      const tool = createConfigureTool({
+        identifyReps: vi.fn(async () => okReps()),
+        createResolver: vi.fn(() => ({}) as never),
+        reconcileMonitoring: vi.fn(async () => ({ outcomes: [] })),
+      });
+
+      await tool.execute!(
+        "call-1",
+        {
+          address: "123 Main St",
+          state: "CA",
+          issueStances: [
+            { issue: "war in Iran", stance: "oppose", weight: 5 },
+            { issue: "AI regulation", stance: "support" },
+            { issue: "Antarctic / Arctic claims", stance: "neutral" },
+          ],
+        },
+        undefined,
+        undefined,
+      );
+
+      const { db } = (await import("../storage/context.js")).getStorage();
+      const stances = listIssueStances(db);
+      const issues = stances.map((s) => s.issue);
+      expect(issues).toContain("middle-east-policy");
+      expect(issues).toContain("tech-regulation");
+      // Novel-issue path: punctuation should be stripped, not preserved.
+      expect(issues).toContain("antarctic-arctic-claims");
     });
 
     it("accepts inline issueStances and advances to monitoring", async () => {
@@ -355,7 +387,8 @@ describe("politiclaw_configure", () => {
         reconcileMonitoring: vi.fn(async () => ({ outcomes: [] })),
       });
 
-      const res = await tool.execute!(
+      // First call: with missing key, configure stops at the api_key notice.
+      const noticeRes = await tool.execute!(
         "call-1",
         {
           address: "123 Main St",
@@ -367,6 +400,14 @@ describe("politiclaw_configure", () => {
         undefined,
         undefined,
       );
+      const noticeDetails = detailsFrom<ConfigureResult>(
+        noticeRes as { details: ConfigureResult },
+      );
+      expect(noticeDetails.stage).toBe("api_key");
+
+      // Second call: notice KV flag is set, so we transition to complete even
+      // though the key is still missing.
+      const res = await tool.execute!("call-2", {}, undefined, undefined);
       const details = detailsFrom<ConfigureResult>(res as { details: ConfigureResult });
       expect(details.stage).toBe("complete");
       if (details.stage !== "complete") throw new Error("type narrowing");
@@ -432,6 +473,122 @@ describe("politiclaw_configure", () => {
       expect(text).toContain("climate");
       expect(text).toContain("Monitoring mode: weekly_digest");
       expect(text).toContain("Accountability: Nudge me");
+    });
+  });
+
+  describe("api_key stage", () => {
+    it("prompts for api.data.gov key once when it is missing", async () => {
+      setPluginConfigForTests({ apiKeys: {} });
+      const tool = createConfigureTool({
+        identifyReps: vi.fn(async () => okReps()),
+        createResolver: vi.fn(() => ({}) as never),
+        reconcileMonitoring: vi.fn(async () => ({ outcomes: [] })),
+      });
+
+      const res = await tool.execute!(
+        "call-1",
+        {
+          address: "123 Main St",
+          state: "CA",
+          issueStances: [{ issue: "climate", stance: "support" }],
+          monitoringMode: "weekly_digest",
+          accountability: "self_serve",
+        },
+        undefined,
+        undefined,
+      );
+      const details = detailsFrom<ConfigureResult>(res as { details: ConfigureResult });
+      expect(details.stage).toBe("api_key");
+      if (details.stage !== "api_key") throw new Error("type narrowing");
+      expect(details.signupUrl).toBe("https://api.data.gov/signup/");
+      expect(details.configPath).toBe("plugins.politiclaw.apiKeys.apiDataGov");
+      const text = textFrom(res as { content: Array<{ type: string; text: string }> });
+      expect(text).toContain("api.data.gov");
+      expect(text).toContain("https://api.data.gov/signup/");
+      expect(text).toContain("apiDataGov");
+    });
+
+    it("does not re-prompt once the notice has been shown", async () => {
+      setPluginConfigForTests({ apiKeys: {} });
+      const tool = createConfigureTool({
+        identifyReps: vi.fn(async () => okReps()),
+        createResolver: vi.fn(() => ({}) as never),
+        reconcileMonitoring: vi.fn(async () => ({ outcomes: [] })),
+      });
+
+      await tool.execute!(
+        "call-1",
+        {
+          address: "123 Main St",
+          state: "CA",
+          issueStances: [{ issue: "climate", stance: "support" }],
+          monitoringMode: "weekly_digest",
+          accountability: "self_serve",
+        },
+        undefined,
+        undefined,
+      );
+
+      const res = await tool.execute!("call-2", {}, undefined, undefined);
+      const details = detailsFrom<ConfigureResult>(res as { details: ConfigureResult });
+      expect(details.stage).toBe("complete");
+    });
+
+    it("skips the api_key stage when the key is already configured", async () => {
+      const tool = createConfigureTool({
+        identifyReps: vi.fn(async () => okReps()),
+        createResolver: vi.fn(() => ({}) as never),
+        reconcileMonitoring: vi.fn(async () => ({ outcomes: [] })),
+      });
+
+      const res = await tool.execute!(
+        "call-1",
+        {
+          address: "123 Main St",
+          state: "CA",
+          issueStances: [{ issue: "climate", stance: "support" }],
+          monitoringMode: "weekly_digest",
+          accountability: "self_serve",
+        },
+        undefined,
+        undefined,
+      );
+      const details = detailsFrom<ConfigureResult>(res as { details: ConfigureResult });
+      expect(details.stage).toBe("complete");
+    });
+  });
+
+  describe("monitoring stage labels", () => {
+    it("renders human-readable monitoring labels and explainers", async () => {
+      const tool = createConfigureTool({
+        identifyReps: vi.fn(async () => okReps()),
+        createResolver: vi.fn(() => ({}) as never),
+        reconcileMonitoring: vi.fn(async () => ({ outcomes: [] })),
+      });
+
+      const res = await tool.execute!(
+        "call-1",
+        {
+          address: "123 Main St",
+          state: "CA",
+          issueStances: [{ issue: "climate", stance: "support" }],
+        },
+        undefined,
+        undefined,
+      );
+
+      const details = detailsFrom<ConfigureResult>(res as { details: ConfigureResult });
+      if (details.stage !== "monitoring") throw new Error("type narrowing");
+      expect(details.options.map((o) => o.humanLabel)).toEqual([
+        "Paused",
+        "Quiet watch",
+        "Weekly digest",
+        "Action only",
+        "Full copilot",
+      ]);
+      const text = textFrom(res as { content: Array<{ type: string; text: string }> });
+      expect(text).toContain("**Weekly digest**");
+      expect(text).toContain("**Quiet watch**");
     });
   });
 

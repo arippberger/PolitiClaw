@@ -1,14 +1,18 @@
 /**
  * Best-effort mapping from free-form user text ("global warming",
- * "guns", "choice") onto one of the canonical kebab-case issue slugs the
- * rest of the plugin expects. Used by the conversation onboarding mode so
- * the skill does not have to memorize the slug set and can hand raw user
- * wording through to the tool.
+ * "guns", "choice", "war in Iran") onto one of the canonical kebab-case
+ * issue slugs the rest of the plugin expects.
  *
  * Returns `matchedCanonical: true` only when a synonym was hit. A novel
  * issue (no synonym match) still gets a usable kebab-case slug so the
- * skill can decide whether to persist it or flag "this isn't one of our
- * canonical issues — keep it?" to the user.
+ * caller can decide whether to persist it as-is or flag "this isn't one
+ * of our canonical issues — keep it?" to the user.
+ *
+ * Iteration is first-match-wins in insertion order. Narrower buckets
+ * (region-specific foreign policy, drug policy, trade policy) are listed
+ * before broader ones (foreign-policy, defense-spending) so that
+ * "war in Iran" resolves to middle-east-policy rather than getting
+ * collapsed into defense-spending. Edit ordering with that in mind.
  */
 
 const CANONICAL_SYNONYMS: Record<string, readonly string[]> = {
@@ -30,6 +34,21 @@ const CANONICAL_SYNONYMS: Record<string, readonly string[]> = {
     "carbon",
     "emissions",
     "environment",
+  ],
+  "energy-policy": [
+    "oil",
+    "gas drilling",
+    "natural gas",
+    "drilling",
+    "pipeline",
+    "pipelines",
+    "fracking",
+    "fossil fuels",
+    "nuclear power",
+    "nuclear energy",
+    "anwr",
+    "keystone xl",
+    "energy independence",
   ],
   healthcare: [
     "healthcare",
@@ -72,6 +91,22 @@ const CANONICAL_SYNONYMS: Record<string, readonly string[]> = {
     "pro life",
     "dobbs",
     "roe",
+    "plan b",
+    "ivf",
+    "contraception",
+  ],
+  "lgbtq-rights": [
+    "lgbtq",
+    "lgbt",
+    "lgbtqia",
+    "gay rights",
+    "trans rights",
+    "transgender",
+    "marriage equality",
+    "same sex marriage",
+    "gender affirming care",
+    "gender-affirming care",
+    "queer rights",
   ],
   "labor-rights": [
     "labor",
@@ -82,6 +117,8 @@ const CANONICAL_SYNONYMS: Record<string, readonly string[]> = {
     "workers",
     "worker rights",
     "collective bargaining",
+    "right to work",
+    "nlrb",
   ],
   "tax-policy": [
     "taxes",
@@ -90,6 +127,74 @@ const CANONICAL_SYNONYMS: Record<string, readonly string[]> = {
     "wealth tax",
     "corporate tax",
     "irs",
+    "estate tax",
+    "capital gains",
+  ],
+  "trade-policy": [
+    "tariff",
+    "tariffs",
+    "trade war",
+    "trade policy",
+    "trade deal",
+    "free trade",
+    "nafta",
+    "usmca",
+    "imports",
+    "exports",
+    "wto",
+  ],
+  "middle-east-policy": [
+    "iran",
+    "iranian",
+    "israel",
+    "israeli",
+    "palestine",
+    "palestinian",
+    "gaza",
+    "west bank",
+    "saudi arabia",
+    "saudis",
+    "yemen",
+    "houthis",
+    "syria",
+    "iraq",
+    "hamas",
+    "hezbollah",
+    "two state solution",
+  ],
+  "ukraine-russia-policy": [
+    "ukraine",
+    "ukrainian",
+    "russia",
+    "russian",
+    "putin",
+    "kyiv",
+    "donbas",
+    "crimea",
+    "ukraine aid",
+  ],
+  "china-policy": [
+    "china",
+    "chinese government",
+    "ccp",
+    "taiwan",
+    "xi jinping",
+    "south china sea",
+    "tiktok ban",
+  ],
+  "foreign-policy": [
+    "foreign policy",
+    "foreign affairs",
+    "state department",
+    "diplomacy",
+    "treaty",
+    "treaties",
+    "nato",
+    "united nations",
+    "sanctions",
+    "foreign aid",
+    "international affairs",
+    "alliances",
   ],
   "defense-spending": [
     "defense",
@@ -97,8 +202,9 @@ const CANONICAL_SYNONYMS: Record<string, readonly string[]> = {
     "pentagon",
     "defense spending",
     "military spending",
-    "war",
-    "foreign policy",
+    "defense budget",
+    "military budget",
+    "dod",
   ],
   "voting-rights": [
     "voting",
@@ -125,6 +231,62 @@ const CANONICAL_SYNONYMS: Record<string, readonly string[]> = {
     "incarceration",
     "sentencing",
     "bail reform",
+  ],
+  "drug-policy": [
+    "marijuana",
+    "cannabis",
+    "weed legalization",
+    "opioids",
+    "opioid crisis",
+    "drug war",
+    "war on drugs",
+    "drug decriminalization",
+    "psychedelics",
+    "fentanyl",
+  ],
+  "tech-regulation": [
+    "big tech",
+    "antitrust",
+    "section 230",
+    "social media regulation",
+    "content moderation",
+    "ai regulation",
+    "ai safety",
+    "artificial intelligence",
+    "platform regulation",
+  ],
+  "crypto-policy": [
+    "crypto",
+    "cryptocurrency",
+    "bitcoin",
+    "ethereum",
+    "stablecoin",
+    "stablecoins",
+    "blockchain",
+    "central bank digital currency",
+    "cbdc",
+  ],
+  "social-security": [
+    "social security",
+    "ssi",
+    "ssa",
+    "retirement age",
+    "social security benefits",
+  ],
+  "veterans-affairs": [
+    "veterans",
+    "veterans affairs",
+    "va benefits",
+    "gi bill",
+    "vha",
+  ],
+  "privacy-rights": [
+    "surveillance",
+    "fisa",
+    "nsa surveillance",
+    "data privacy",
+    "warrantless",
+    "patriot act",
   ],
 };
 

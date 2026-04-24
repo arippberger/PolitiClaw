@@ -26,6 +26,7 @@ import {
   renderMonitoringContract,
   type MonitoringContract,
 } from "../domain/preferences/contract.js";
+import { normalizeFreeformIssue } from "../domain/preferences/normalize.js";
 import { identifyMyReps, type IdentifyResult } from "../domain/reps/index.js";
 import { createRepsResolver } from "../sources/reps/index.js";
 import { getPluginConfig, getStorage } from "../storage/context.js";
@@ -38,6 +39,8 @@ import {
 } from "./onboarding.js";
 
 const MONITORING_KV_FLAG = "onboarding.monitoring_mode_chosen_at";
+const API_KEY_NOTICE_KV_FLAG = "onboarding.api_key_notice_shown_at";
+const API_DATA_GOV_SIGNUP_URL = "https://api.data.gov/signup/";
 
 const MONITORING_MODE_VALUES = [
   "off",
@@ -47,8 +50,16 @@ const MONITORING_MODE_VALUES = [
   "full_copilot",
 ] as const;
 
+const MODE_LABELS: Record<MonitoringMode, string> = {
+  off: "Paused",
+  quiet_watch: "Quiet watch",
+  weekly_digest: "Weekly digest",
+  action_only: "Action only",
+  full_copilot: "Full copilot",
+};
+
 const MODE_EXPLAINERS: Record<MonitoringMode, string> = {
-  off: "Paused — PolitiClaw won't run on its own.",
+  off: "PolitiClaw won't run on its own.",
   quiet_watch:
     "Silent background change-detection on tracked bills and hearings. No digests or election alerts.",
   weekly_digest:
@@ -64,6 +75,7 @@ export type ConfigureStage =
   | "issues"
   | "monitoring"
   | "accountability"
+  | "api_key"
   | "complete";
 
 const ConfigureParams = Type.Object({
@@ -74,6 +86,7 @@ const ConfigureParams = Type.Object({
         Type.Literal("issues"),
         Type.Literal("monitoring"),
         Type.Literal("accountability"),
+        Type.Literal("api_key"),
         Type.Literal("complete"),
       ],
       {
@@ -185,7 +198,7 @@ export type ConfigureResult =
       preferences: PreferencesRow;
       currentIssueStances: IssueStanceRow[];
       currentMonitoringMode: MonitoringMode;
-      options: Array<{ label: MonitoringMode; explainer: string }>;
+      options: Array<{ label: MonitoringMode; humanLabel: string; explainer: string }>;
       savedThisCall: SavedThisCall;
     }
   | {
@@ -195,6 +208,15 @@ export type ConfigureResult =
       currentMonitoringMode: MonitoringMode;
       currentAccountability: AccountabilityMode;
       options: Array<{ label: AccountabilityMode; humanLabel: string; explainer: string }>;
+      savedThisCall: SavedThisCall;
+    }
+  | {
+      stage: "api_key";
+      prompt: string;
+      preferences: PreferencesRow;
+      signupUrl: string;
+      configPath: string;
+      configKey: string;
       savedThisCall: SavedThisCall;
     }
   | {
@@ -293,23 +315,49 @@ function renderIssuesPrompt(
 
 function renderMonitoringPrompt(
   current: MonitoringMode,
-  options: Array<{ label: MonitoringMode; explainer: string }>,
+  options: Array<{ label: MonitoringMode; humanLabel: string; explainer: string }>,
 ): string {
   const lines: string[] = [
     "Pick how PolitiClaw should watch for you.",
     "",
-    `(Current: '${current}'.)`,
+    `(Current: ${MODE_LABELS[current]}.)`,
     "",
     "Options:",
   ];
   for (const opt of options) {
-    lines.push(`  - **${opt.label}** — ${opt.explainer}`);
+    lines.push(`  - **${opt.humanLabel}** — ${opt.explainer}`);
   }
   lines.push("");
   lines.push(
-    "Reply with one of: " + MONITORING_MODE_VALUES.map((v) => `'${v}'`).join(", "),
+    "Reply with the name of one option (e.g. 'weekly digest').",
   );
   return lines.join("\n");
+}
+
+function renderApiKeyPrompt(): string {
+  return [
+    "Almost done. One last manual step: PolitiClaw needs a free api.data.gov key for federal bills, House votes, and FEC finance data. Without it, the background jobs we just configured can't actually run.",
+    "",
+    `1. Sign up (free, instant, no credit card): ${API_DATA_GOV_SIGNUP_URL}`,
+    "2. Copy the key the page gives you.",
+    "3. Add it to your OpenClaw config under `plugins.politiclaw.apiKeys.apiDataGov`, e.g.:",
+    "",
+    "   ```json",
+    "   {",
+    "     \"plugins\": {",
+    "       \"politiclaw\": {",
+    "         \"apiKeys\": {",
+    "           \"apiDataGov\": \"<paste-key-here>\"",
+    "         }",
+    "       }",
+    "     }",
+    "   }",
+    "   ```",
+    "",
+    "4. Reload the gateway so the plugin picks up the new config.",
+    "",
+    "You can continue without it — setup is saved either way — but the monitoring contract will flag these jobs as inactive until the key is in place. Reply with anything to see the final contract.",
+  ].join("\n");
 }
 
 function renderAccountabilityPrompt(
@@ -404,8 +452,16 @@ export function createConfigureTool(deps: ConfigureToolDeps = {}): AnyAgentTool 
       }
 
       // 2. Issue stances — save anything passed inline before deciding the cursor.
+      //    Free-text issue labels run through normalizeFreeformIssue first so
+      //    the canonical-synonym map is the source of truth for slug assignment,
+      //    not the agent's inline judgment. We use normalized.slug whether or
+      //    not a canonical synonym matched: novel issues still benefit from
+      //    toKebabSlug's full punctuation stripping (the schema's transform
+      //    only collapses whitespace).
       for (const row of input.issueStances ?? []) {
-        const validated = IssueStanceSchema.parse(row);
+        const normalized = normalizeFreeformIssue(row.issue);
+        const issue = normalized ? normalized.slug : row.issue;
+        const validated = IssueStanceSchema.parse({ ...row, issue });
         upsertIssueStance(db, validated);
         saved.stancesAdded += 1;
       }
@@ -484,6 +540,7 @@ export function createConfigureTool(deps: ConfigureToolDeps = {}): AnyAgentTool 
       if (!monitoringCaptured) {
         const options = MONITORING_MODE_VALUES.map((label) => ({
           label,
+          humanLabel: MODE_LABELS[label],
           explainer: MODE_EXPLAINERS[label],
         }));
         const result: ConfigureResult = {
@@ -511,6 +568,26 @@ export function createConfigureTool(deps: ConfigureToolDeps = {}): AnyAgentTool 
           currentMonitoringMode: preferences.monitoringMode,
           currentAccountability: preferences.accountability,
           options,
+          savedThisCall: saved,
+        };
+        return textResult(result.prompt, result);
+      }
+
+      // 5b. api.data.gov key — show once, don't loop. Plugin config is host-
+      //     managed, so we can only surface instructions; we can't persist the
+      //     key from here.
+      const apiKeyNoticeShown =
+        kv.get<number>(API_KEY_NOTICE_KV_FLAG) !== undefined;
+      const apiDataGovMissing = !pluginConfig.apiKeys?.apiDataGov;
+      if (apiDataGovMissing && !apiKeyNoticeShown) {
+        kv.set(API_KEY_NOTICE_KV_FLAG, Date.now());
+        const result: ConfigureResult = {
+          stage: "api_key",
+          prompt: renderApiKeyPrompt(),
+          preferences,
+          signupUrl: API_DATA_GOV_SIGNUP_URL,
+          configPath: "plugins.politiclaw.apiKeys.apiDataGov",
+          configKey: "apiDataGov",
           savedThisCall: saved,
         };
         return textResult(result.prompt, result);

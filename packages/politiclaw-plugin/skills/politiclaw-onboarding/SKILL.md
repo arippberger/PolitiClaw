@@ -25,7 +25,7 @@ You call it, read `nextPrompt`, ask the user, then call again with their
 answer plus the same `stage` you were told to advance to. When `stage`
 becomes `complete`, render the `monitoringContract` block to the user.
 
-## The five stages
+## The six stages
 
 | Stage | What you collect from the user |
 |---|---|
@@ -33,6 +33,7 @@ becomes `complete`, render the `monitoringContract` block to the user.
 | `issues` | Either inline `issueStances[]`, or pick a mode: conversation / quiz. |
 | `monitoring` | Monitoring mode: `off` / `quiet_watch` / `weekly_digest` / `action_only` / `full_copilot`. |
 | `accountability` | Accountability mode: `self_serve` / `nudge_me` / `draft_for_me`. |
+| `api_key` | One-time notice directing the user to `https://api.data.gov/signup/` and the host-config path for `apiDataGov`. Only appears if the key is missing. No re-prompt. |
 | `complete` | Nothing — just render the contract. |
 
 The goal is to end the session with a populated `issue_stances` set that
@@ -103,16 +104,21 @@ suggested labels.
 
 ## The `monitoring` stage
 
-The tool returns plain-English explainers for each mode. Read them to
-the user, ask which fits, then call again with `monitoringMode: <choice>`.
-Five options, product-shaped:
+The tool returns human labels and plain-English explainers for each mode.
+Read them to the user using the human label ("Quiet watch", "Weekly digest",
+etc.), ask which fits, then call again with the matching enum value in
+`monitoringMode`.
 
-- `off` — no automated alerts.
-- `quiet_watch` — silent unless tracked bills or hearings materially change.
-- `weekly_digest` — Sunday summary plus monthly rep report, plus change
-  detection.
-- `action_only` — quiet, with election-proximity alerts layered on.
-- `full_copilot` — everything.
+Mapping (human label → enum value):
+
+- "Paused" → `off`
+- "Quiet watch" → `quiet_watch`
+- "Weekly digest" → `weekly_digest`
+- "Action only" → `action_only`
+- "Full copilot" → `full_copilot`
+
+Accept either form from the user (e.g. "weekly digest" or "weekly_digest")
+and normalize before calling the tool.
 
 ## The `accountability` stage
 
@@ -125,6 +131,24 @@ Three modes, each with concrete consequences:
 
 Read the explainer the tool returns, ask, save with
 `accountability: <choice>`.
+
+## The `api_key` stage
+
+Only appears when the plugin config is missing `apiDataGov` and we haven't
+shown the notice already. The tool returns a `signupUrl`, `configPath`, and
+`configKey` along with a ready-to-read prompt. Read it verbatim or rephrase
+lightly — the key points are:
+
+1. The user needs to sign up at `https://api.data.gov/signup/` (free, instant).
+2. They need to paste the key into their OpenClaw host config under
+   `plugins.politiclaw.apiKeys.apiDataGov`.
+3. They need to reload the gateway so the plugin picks it up.
+
+Do **not** loop here. The next `politiclaw_configure` call — with any
+arguments, including none — will advance straight to `complete`. If the
+user later confirms they added the key, re-run configure to refresh the
+contract (the inactive jobs will move to active). If they skip it, the
+contract will still be rendered, just with those jobs flagged inactive.
 
 ## The `complete` stage
 

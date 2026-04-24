@@ -9,6 +9,9 @@ import {
   writeFileSync,
 } from "node:fs";
 import { dirname, join } from "node:path";
+import JSZip from "jszip";
+// @ts-expect-error shapefile has no bundled types
+import * as shapefile from "shapefile";
 import { parseLegislators, type NormalizedLegislator } from "./legislators.js";
 
 type Fetcher = typeof fetch;
@@ -74,7 +77,10 @@ export async function primeShapefileCache(opts: PrimeCacheOptions): Promise<Prim
 
   try {
     logger?.info("Downloading congressional district boundaries...");
-    const districtsPayload = await fetchTextOrThrow(fetcher, districtsUrl);
+    const districtsGeoJsonString = await fetchDistrictsAsGeoJson(
+      fetcher,
+      districtsUrl,
+    );
 
     logger?.info("Downloading federal legislator roster...");
     const legislatorsPayload = await fetchTextOrThrow(fetcher, legislatorsUrl);
@@ -82,14 +88,14 @@ export async function primeShapefileCache(opts: PrimeCacheOptions): Promise<Prim
     // Persist to temp first, then atomically replace target files.
     const tempDistricts = join(tempDir, "districts.geojson");
     const tempLegislators = join(tempDir, "legislators-current.yaml");
-    writeFileSync(tempDistricts, districtsPayload, "utf8");
+    writeFileSync(tempDistricts, districtsGeoJsonString, "utf8");
     writeFileSync(tempLegislators, legislatorsPayload, "utf8");
 
     const manifest: CacheManifest = {
       congress: opts.congress ?? DEFAULT_CONGRESS,
       tigerYear: opts.tigerYear ?? DEFAULT_TIGER_YEAR,
       downloadedAt: new Date().toISOString(),
-      cdSha256: sha256(districtsPayload),
+      cdSha256: sha256(districtsGeoJsonString),
       legislatorsSha256: sha256(legislatorsPayload),
     };
     const tempManifest = join(tempDir, "manifest.json");
@@ -143,6 +149,82 @@ async function fetchTextOrThrow(fetcher: Fetcher, url: string): Promise<string> 
     throw new Error(`http ${response.status} for ${url}`);
   }
   return response.text();
+}
+
+async function fetchArrayBufferOrThrow(
+  fetcher: Fetcher,
+  url: string,
+): Promise<ArrayBuffer> {
+  const response = await fetcher(url);
+  if (!response.ok) {
+    throw new Error(`http ${response.status} for ${url}`);
+  }
+  return response.arrayBuffer();
+}
+
+/**
+ * Districts can be served two ways:
+ *   1. Plain GeoJSON text (e.g. a pre-converted mirror, or the fixtures used
+ *      in tests) — read as text and validated.
+ *   2. Census TIGER zip bundle of `.shp`/`.dbf` files — unzipped, converted
+ *      to GeoJSON via the `shapefile` parser, then serialized.
+ *
+ * We branch on the URL extension because that is cheap and unambiguous for
+ * the sources we care about. Serving is done by consumers that read the
+ * persisted GeoJSON, so both paths emit the same on-disk format.
+ */
+async function fetchDistrictsAsGeoJson(
+  fetcher: Fetcher,
+  url: string,
+): Promise<string> {
+  if (isZipUrl(url)) {
+    const zipBuffer = await fetchArrayBufferOrThrow(fetcher, url);
+    const collection = await geoJsonFromTigerZip(zipBuffer);
+    return JSON.stringify(collection);
+  }
+  const text = await fetchTextOrThrow(fetcher, url);
+  // Validate early so a malformed payload fails prime instead of load.
+  JSON.parse(text);
+  return text;
+}
+
+function isZipUrl(url: string): boolean {
+  const withoutQuery = url.split("?")[0] ?? url;
+  return withoutQuery.toLowerCase().endsWith(".zip");
+}
+
+async function geoJsonFromTigerZip(
+  zipBuffer: ArrayBuffer,
+): Promise<GeoJSON.FeatureCollection> {
+  const zip = await JSZip.loadAsync(zipBuffer);
+  const shpEntry = findFirstByExtension(zip, ".shp");
+  const dbfEntry = findFirstByExtension(zip, ".dbf");
+  if (!shpEntry) {
+    throw new Error("tiger zip missing .shp entry");
+  }
+  const shp = await shpEntry.async("uint8array");
+  const dbf = dbfEntry ? await dbfEntry.async("uint8array") : undefined;
+  const collection = (await shapefile.read(
+    shp,
+    dbf,
+  )) as GeoJSON.FeatureCollection;
+  if (!collection || !Array.isArray(collection.features)) {
+    throw new Error("shapefile parser returned no features");
+  }
+  return collection;
+}
+
+function findFirstByExtension(
+  zip: JSZip,
+  extension: string,
+): JSZip.JSZipObject | null {
+  const lower = extension.toLowerCase();
+  for (const name of Object.keys(zip.files)) {
+    const entry = zip.files[name];
+    if (!entry || entry.dir) continue;
+    if (name.toLowerCase().endsWith(lower)) return entry;
+  }
+  return null;
 }
 
 function sha256(payload: string): string {

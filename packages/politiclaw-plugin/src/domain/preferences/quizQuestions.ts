@@ -155,4 +155,104 @@ export const QUIZ_QUESTIONS: readonly QuizQuestion[] = [
     neutralAnswer: "No strong view",
     weightPrompt: "How important is this to you on a 1–5 scale?",
   },
+  {
+    id: "q-foreign-policy",
+    canonicalIssueSlug: "foreign-policy",
+    prompt:
+      "How do you feel about active US engagement abroad through alliances, treaties, and foreign aid (versus a more restrained posture)?",
+    supportAnswer: "Favor engagement",
+    opposeAnswer: "Favor restraint",
+    neutralAnswer: "No strong view",
+    weightPrompt: "How important is this to you on a 1–5 scale?",
+  },
+  {
+    id: "q-middle-east",
+    canonicalIssueSlug: "middle-east-policy",
+    prompt:
+      "How do you feel about continued US military and financial involvement in Middle East conflicts (Israel/Gaza, Iran, Yemen)?",
+    supportAnswer: "Favor continued involvement",
+    opposeAnswer: "Favor scaling back",
+    neutralAnswer: "No strong view",
+    weightPrompt: "How important is this to you on a 1–5 scale?",
+  },
+  {
+    id: "q-ukraine-russia",
+    canonicalIssueSlug: "ukraine-russia-policy",
+    prompt:
+      "How do you feel about continued US military and financial aid to Ukraine in its war with Russia?",
+    supportAnswer: "Favor continued aid",
+    opposeAnswer: "Favor reducing or ending aid",
+    neutralAnswer: "No strong view",
+    weightPrompt: "How important is this to you on a 1–5 scale?",
+  },
+  {
+    id: "q-trade",
+    canonicalIssueSlug: "trade-policy",
+    prompt:
+      "How do you feel about using tariffs and trade restrictions to protect domestic industry (versus prioritizing free-trade agreements)?",
+    supportAnswer: "Favor tariffs / protection",
+    opposeAnswer: "Favor free trade",
+    neutralAnswer: "No strong view",
+    weightPrompt: "How important is this to you on a 1–5 scale?",
+  },
+  {
+    id: "q-energy",
+    canonicalIssueSlug: "energy-policy",
+    prompt:
+      "How do you feel about expanding domestic oil, gas, and nuclear production (separate from emissions policy)?",
+    supportAnswer: "Favor expansion",
+    opposeAnswer: "Favor restriction",
+    neutralAnswer: "No strong view",
+    weightPrompt: "How important is this to you on a 1–5 scale?",
+  },
+  {
+    id: "q-tech",
+    canonicalIssueSlug: "tech-regulation",
+    prompt:
+      "How do you feel about stricter federal regulation of large tech platforms and AI systems (antitrust, content moderation rules, AI safety mandates)?",
+    supportAnswer: "Favor more regulation",
+    opposeAnswer: "Favor less regulation",
+    neutralAnswer: "No strong view",
+    weightPrompt: "How important is this to you on a 1–5 scale?",
+  },
+  {
+    id: "q-crypto",
+    canonicalIssueSlug: "crypto-policy",
+    prompt:
+      "How do you feel about a clear federal framework that legitimizes cryptocurrency and stablecoins (versus tighter restrictions or enforcement)?",
+    supportAnswer: "Favor a permissive framework",
+    opposeAnswer: "Favor tighter restrictions",
+    neutralAnswer: "No strong view",
+    weightPrompt: "How important is this to you on a 1–5 scale?",
+  },
+  {
+    id: "q-drug",
+    canonicalIssueSlug: "drug-policy",
+    prompt:
+      "How do you feel about federal decriminalization or legalization of cannabis and a public-health approach to other drugs?",
+    supportAnswer: "Favor decriminalization",
+    opposeAnswer: "Favor current enforcement",
+    neutralAnswer: "No strong view",
+    weightPrompt: "How important is this to you on a 1–5 scale?",
+  },
+  {
+    id: "q-lgbtq",
+    canonicalIssueSlug: "lgbtq-rights",
+    prompt:
+      "How do you feel about federal protections for LGBTQ people in employment, housing, and healthcare (including gender-affirming care)?",
+    supportAnswer: "Favor expanding protections",
+    opposeAnswer: "Favor narrowing protections",
+    neutralAnswer: "No strong view",
+    weightPrompt: "How important is this to you on a 1–5 scale?",
+  },
+  {
+    id: "q-social-security",
+    canonicalIssueSlug: "social-security",
+    prompt:
+      "How do you feel about preserving current Social Security benefits even if it requires raising the payroll-tax cap or other revenue?",
+    supportAnswer: "Favor preserving benefits",
+    opposeAnswer: "Favor benefit cuts or eligibility changes",
+    neutralAnswer: "No strong view",
+    weightPrompt: "How important is this to you on a 1–5 scale?",
+  },
 ];
