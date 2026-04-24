@@ -37,6 +37,7 @@
     "@sinclair/typebox": "^0.34.0",
     "@turf/boolean-point-in-polygon": "^7.3.5",
     "js-yaml": "^4.1.1",
+    "jszip": "^3.10.1",
     "shapefile": "^0.6.6",
     "zod": "^3.23.0"
   },
