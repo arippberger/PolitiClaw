@@ -541,30 +541,8 @@ export function createConfigureTool(deps: ConfigureToolDeps = {}): AnyAgentTool 
       const input = (rawParams ?? {}) as ConfigureInput;
       const { db, kv } = getStorage();
       const pluginConfig = getPluginConfig();
-
-      // 0. API keys: if any keys were supplied this call, persist them via
-      //    setApiKeys and return early. The gateway restarts to pick up the
-      //    new config; the user reconnects in a new session and re-runs
-      //    politiclaw_configure to continue. Persisting first means the
-      //    contract reconciliation that runs at the "complete" stage gets a
-      //    fresh pluginConfig snapshot on the next call.
       const suppliedKeys = collectSuppliedKeys(input);
-      if (Object.keys(suppliedKeys).length > 0) {
-        const setResult = await setApiKeys(suppliedKeys);
-        const result: ConfigureResult = {
-          stage: "api_keys_saved",
-          prompt: renderApiKeysSavedPrompt(setResult),
-          preferences: getPreferences(db),
-          setResult,
-          savedThisCall: {
-            address: false,
-            stancesAdded: 0,
-            monitoringChanged: false,
-            accountabilityChanged: false,
-          },
-        };
-        return textResult(result.prompt, result);
-      }
+      const hasSuppliedKeys = Object.keys(suppliedKeys).length > 0;
 
       const saved: SavedThisCall = {
         address: false,
@@ -591,7 +569,12 @@ export function createConfigureTool(deps: ConfigureToolDeps = {}): AnyAgentTool 
         saved.address = true;
       }
 
-      if (!preferences) {
+      // Stop early to ask for an address only when nothing else needs doing.
+      // When the agent is also supplying API keys this call (combined
+      // onboarding turn), we still want to persist the keys instead of
+      // silently dropping them — fall through and let the api_keys_saved
+      // branch below handle the response.
+      if (!preferences && !hasSuppliedKeys) {
         const result: ConfigureResult = {
           stage: "address",
           prompt: renderAddressPrompt(),
@@ -618,9 +601,11 @@ export function createConfigureTool(deps: ConfigureToolDeps = {}): AnyAgentTool 
       const currentIssueStances = listIssueStances(db);
 
       // 3. Monitoring mode — upsertPreferences already applied it when address
-      //    was saved; otherwise persist it separately.
+      //    was saved; otherwise persist it separately. Requires a preferences
+      //    row, so it's a no-op when the user is only supplying API keys
+      //    without an address yet.
       let monitoringSetThisCall = false;
-      if (input.monitoringMode) {
+      if (preferences && input.monitoringMode) {
         const parsed = MonitoringModeSchema.parse(input.monitoringMode);
         if (preferences.monitoringMode !== parsed) {
           preferences = setMonitoringMode(db, parsed);
@@ -632,9 +617,9 @@ export function createConfigureTool(deps: ConfigureToolDeps = {}): AnyAgentTool 
         kv.set(MONITORING_KV_FLAG, Date.now());
       }
 
-      // 4. Accountability.
+      // 4. Accountability — same preferences-required guard as monitoring.
       let accountabilitySetThisCall = false;
-      if (input.accountability) {
+      if (preferences && input.accountability) {
         const parsed = AccountabilityModeSchema.parse(input.accountability);
         if (preferences.accountability !== parsed) {
           preferences = setAccountability(db, parsed);
@@ -644,6 +629,35 @@ export function createConfigureTool(deps: ConfigureToolDeps = {}): AnyAgentTool 
         }
         accountabilitySetThisCall = true;
         kv.set(ACCOUNTABILITY_KV_FLAG, Date.now());
+      }
+
+      // 4b. API keys: persist them only after the rest of this call's
+      //     onboarding fields have been written. The gateway will restart
+      //     to pick up the new config and the current session ends — any
+      //     state we have not already saved to the plugin DB before this
+      //     point would be lost. savedThisCall now reflects the actual
+      //     non-key work that happened this call rather than reporting all
+      //     fields as unsaved.
+      if (hasSuppliedKeys) {
+        const setResult = await setApiKeys(suppliedKeys);
+        const result: ConfigureResult = {
+          stage: "api_keys_saved",
+          prompt: renderApiKeysSavedPrompt(setResult),
+          preferences: preferences ?? null,
+          setResult,
+          savedThisCall: saved,
+        };
+        return textResult(result.prompt, result);
+      }
+
+      // Invariant: from here on, preferences is always set. The two ways
+      // it could be null — no prior row and no address supplied this call —
+      // both already returned: the no-keys case took the "address" stage at
+      // step 1.5, and the keys-supplied case took "api_keys_saved" at 4b.
+      if (!preferences) {
+        throw new Error(
+          "politiclaw_configure: unreachable — preferences should be set before stage decisions",
+        );
       }
 
       // 5. Decide the next stage.

@@ -758,6 +758,108 @@ describe("politiclaw_configure", () => {
       expect(text).toContain("baseHash mismatch");
     });
 
+    it("regression: combined onboarding call persists every field even when keys are supplied", async () => {
+      // Reviewer caught this: a single politiclaw_configure call with
+      // address + stances + monitoring + accountability + apiDataGov was
+      // saving the keys but silently dropping the rest. After fix, all
+      // four DB/KV writes must happen before the gateway-restart-bound
+      // setApiKeys call.
+      setPluginConfigForTests({ apiKeys: {} });
+      const { fn, calls } = fakeSetApiKeys();
+      const tool = createConfigureTool({
+        identifyReps: vi.fn(async () => okReps()),
+        createResolver: vi.fn(() => ({}) as never),
+        reconcileMonitoring: vi.fn(async () => ({ outcomes: [] })),
+        setApiKeys: fn,
+      });
+
+      const res = await tool.execute!(
+        "call-1",
+        {
+          address: "999 Combined Lane",
+          state: "CA",
+          zip: "94110",
+          issueStances: [
+            { issue: "climate", stance: "support", weight: 5 },
+            { issue: "housing", stance: "oppose" },
+          ],
+          monitoringMode: "weekly_digest",
+          accountability: "nudge_me",
+          apiDataGov: "the-key",
+        },
+        undefined,
+        undefined,
+      );
+      const details = detailsFrom<ConfigureResult>(
+        res as { details: ConfigureResult },
+      );
+
+      // The keys are still saved.
+      expect(calls).toEqual([{ apiDataGov: "the-key" }]);
+      expect(details.stage).toBe("api_keys_saved");
+      if (details.stage !== "api_keys_saved") throw new Error("type narrowing");
+
+      // The rest of the onboarding fields actually landed in the DB/KV —
+      // savedThisCall reports what happened, and the underlying stores
+      // confirm it.
+      expect(details.savedThisCall).toEqual({
+        address: true,
+        stancesAdded: 2,
+        monitoringChanged: true,
+        accountabilityChanged: true,
+      });
+
+      const ctx = await import("../storage/context.js");
+      const { db, kv } = ctx.getStorage();
+      const prefs = getPreferences(db);
+      expect(prefs?.address).toBe("999 Combined Lane");
+      expect(prefs?.state).toBe("CA");
+      expect(prefs?.monitoringMode).toBe("weekly_digest");
+      expect(prefs?.accountability).toBe("nudge_me");
+      const stances = listIssueStances(db);
+      // "housing" normalizes to "affordable-housing" via the canonical-
+      // synonym map (existing configure behavior). Both stances landed.
+      expect(stances.map((s) => s.issue).sort()).toEqual([
+        "affordable-housing",
+        "climate",
+      ]);
+      expect(kv.get(ACCOUNTABILITY_KV_FLAG)).toBeDefined();
+
+      expect(details.preferences?.address).toBe("999 Combined Lane");
+    });
+
+    it("saves keys without an address when only keys are supplied (no preferences yet)", async () => {
+      setPluginConfigForTests({ apiKeys: {} });
+      const { fn } = fakeSetApiKeys();
+      const tool = createConfigureTool({
+        identifyReps: vi.fn(async () => okReps()),
+        createResolver: vi.fn(() => ({}) as never),
+        reconcileMonitoring: vi.fn(async () => ({ outcomes: [] })),
+        setApiKeys: fn,
+      });
+
+      const res = await tool.execute!(
+        "call-1",
+        { apiDataGov: "k" },
+        undefined,
+        undefined,
+      );
+      const details = detailsFrom<ConfigureResult>(
+        res as { details: ConfigureResult },
+      );
+
+      expect(fn).toHaveBeenCalledOnce();
+      expect(details.stage).toBe("api_keys_saved");
+      if (details.stage !== "api_keys_saved") throw new Error("type narrowing");
+      expect(details.preferences).toBeNull();
+      expect(details.savedThisCall).toEqual({
+        address: false,
+        stancesAdded: 0,
+        monitoringChanged: false,
+        accountabilityChanged: false,
+      });
+    });
+
     it("api_key stage prompt mentions optional keys and paste-into-chat", async () => {
       setPluginConfigForTests({ apiKeys: {} });
       const tool = createConfigureTool({
