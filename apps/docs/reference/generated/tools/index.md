@@ -22,7 +22,7 @@ Resolve federal representatives and summarize current alignment.
 
 ## Bills and votes
 
-Search federal bills, inspect bill details, score bill alignment, and ingest House votes.
+Search federal bills, inspect bill details, score bill alignment, and ingest House and Senate roll-call votes.
 
 - [`politiclaw_search_bills`](./politiclaw_search_bills.md) — Search recent federal bills
 - [`politiclaw_get_bill_details`](./politiclaw_get_bill_details.md) — Fetch a single federal bill

@@ -250,9 +250,10 @@ type MisalignmentRow = {
  * This shares the same joins as `scoreRepresentative`'s evidence read but
  * scoped to a time window and conflicted-only.
  *
- * Known limitation: Senate votes aren't in `member_votes` yet, so this
- * trigger is effectively House-only. Relaxing the count threshold would
- * produce false positives; we accept the silence.
+ * Both chambers feed the same `member_votes` join (House via
+ * api.congress.gov, Senate via voteview.com), so misalignment trigger
+ * coverage now depends on whether `politiclaw_ingest_votes` has run
+ * recently for the chamber in question.
  */
 function classifyRepeatedMisalignment(
   db: PolitiClawDb,

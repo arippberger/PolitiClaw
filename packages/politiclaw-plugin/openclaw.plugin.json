@@ -2,7 +2,7 @@
   "id": "politiclaw",
   "name": "PolitiClaw",
   "description": "Local-first civic copilot that holds your representatives accountable to the values you declare. Learns the stances you care about, watches federal legislation and elections for you, and flags when your reps' votes and actions align — or don't — with those stances. Drafts letters you send yourself; never speaks on your behalf and never tells you how to vote.",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "skills": ["skills"],
   "configSchema": {
     "type": "object",
@@ -11,7 +11,7 @@
       "apiKeys": {
         "type": "object",
         "additionalProperties": false,
-        "description": "One key required (apiDataGov); all others are optional upgrades. The required key powers federal bills, House votes, and FEC finance data.",
+        "description": "One key required (apiDataGov); all others are optional upgrades. The required key powers federal bills, House roll-call votes, committee schedules, and FEC finance data. Senate roll-call votes ingest separately through voteview.com (zero-key, no signup).",
         "properties": {
           "apiDataGov": {
             "type": "string",

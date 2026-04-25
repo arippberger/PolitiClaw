@@ -28,8 +28,9 @@ touching your declared stances moved."
 
 ### 2. Bills touching your declared stances
 
-Use the tool's tier grouping. Do not re-sort. See `politiclaw-monitoring`
-§2 Class A for the full shape.
+Use the tool's tier grouping. Do not re-sort. Render the full Class A
+shape: headline + why-it-matters + optional counter-consideration +
+optional next step.
 
 - **Interruptive (tier 1, up to 3 items)**: full Class-A render — headline,
   why it matters (with quoted bill text when the tool surfaced one),
@@ -49,11 +50,12 @@ Example tier-2 digest line:
 If `alignment.belowConfidenceFloor` is true, the tool has already routed the
 item to the tail — do not lift it into the digest or quote raw percentages.
 
-### 3. Upcoming (next 10 days)
+### 3. Upcoming (next 7 days)
 
-Committee hearings, markups, or floor votes on tracked bills. Class B format
-(see `politiclaw-monitoring` §2). If nothing's scheduled, say "Nothing
-scheduled in the tracked set."
+Committee hearings, markups, or floor votes on tracked bills. Class B
+format: headline + related bills + optional next step when the event is
+still in the future. No direction or counter lines. If nothing's scheduled,
+say "Nothing scheduled in the tracked set."
 
 ### 4. Rep misalignments surfaced this week (when applicable)
 

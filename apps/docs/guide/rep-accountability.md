@@ -65,8 +65,7 @@ There is no "send on your behalf" path today. That is a deliberate choice: trans
 
 Be concrete about what this does *not* cover yet:
 
-- **Senate votes.** Only House roll-call ingest is wired. `politiclaw_rep_report` flags the gap rather than silently showing House-only numbers as full coverage.
-- **State and local reps.** The federal reps-by-address and scoring paths are wired. State and municipal providers are declared in the config schema only — check [Generated Source Coverage](../reference/generated/source-coverage) for the current matrix.
+- **State and local reps.** The federal reps-by-address and scoring paths are wired (House votes via api.congress.gov, Senate votes via voteview.com). State and municipal providers are declared in the config schema only — check [Generated Source Coverage](../reference/generated/source-coverage) for the current matrix.
 - **Committee behavior.** Hearing and markup schedules are surfaced; inside-committee vote records beyond the public roll call aren't ingested.
 - **Follow-up on responses.** If a representative replies to your letter, PolitiClaw won't notice. The loop surfaces drift from their votes and bill signals, not from their communications back to you.
 - **Finance-triggered alerts.** FEC lookups are available on demand for candidate research; there's no cron template that fires a "large new donor reported" proactive signal.

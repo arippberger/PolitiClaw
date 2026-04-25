@@ -279,8 +279,9 @@ This is the canonical accountability surface. Frame it as an answer to
 `politiclaw.rep_report` cron):
 
 1. Call the tool exactly once unless the user asks for a refresh. It re-scores
-   every stored representative deterministically from the SQLite DB (House
-   roll-call votes plus bill alignment and stance signals).
+   every stored representative deterministically from the SQLite DB (federal
+   roll-call votes — House via api.congress.gov and Senate via voteview.com —
+   plus bill alignment and stance signals).
 2. Preserve the tool's markdown bill links (`congress.gov`) — tier-1 primary
    source for federal bill identity.
 3. Misaligned votes render as Class C items (one per misalignment, capped to
@@ -289,8 +290,9 @@ This is the canonical accountability surface. Frame it as an answer to
    every cited vote lines up with the user's stance, explicitly say there is
    no contrary signal in this month's counted votes (do not invent opposition).
 5. Honesty about blind spots: call out bills that matched issues but lack
-   stance signals; note Senate coverage limits until Senate ingest lands.
-   Never use LLM search for vote positions.
+   stance signals; flag any rep with no ingested votes yet (run
+   `politiclaw_ingest_votes` to fill the gap). Never use LLM search for
+   vote positions.
 
 ## 8. Muting
 

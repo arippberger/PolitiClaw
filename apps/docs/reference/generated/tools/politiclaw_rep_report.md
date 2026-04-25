@@ -12,7 +12,7 @@ Canonical accountability surface across your full stored delegation. Recomputes 
 
 | Name | Required | Type | Description |
 | --- | --- | --- | --- |
-| `includeProcedural` | no | `boolean` | When true, procedural House roll calls are INCLUDED in scoring (same semantics as politiclaw_score_representative). Default is false. |
+| `includeProcedural` | no | `boolean` | When true, procedural roll calls (House cloture-style motions and Senate cloture / motion-to-proceed / motion-to-table questions) are INCLUDED in scoring (same semantics as politiclaw_score_representative). Default is false. |
 
 ## Raw Schema
 
@@ -21,7 +21,7 @@ Canonical accountability surface across your full stored delegation. Recomputes 
   "type": "object",
   "properties": {
     "includeProcedural": {
-      "description": "When true, procedural House roll calls are INCLUDED in scoring (same semantics as politiclaw_score_representative). Default is false.",
+      "description": "When true, procedural roll calls (House cloture-style motions and Senate cloture / motion-to-proceed / motion-to-table questions) are INCLUDED in scoring (same semantics as politiclaw_score_representative). Default is false.",
       "type": "boolean"
     }
   }

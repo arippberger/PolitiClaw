@@ -12,7 +12,7 @@ One front-door tool that walks the user through PolitiClaw setup end-to-end: add
 
 | Name | Required | Type | Description |
 | --- | --- | --- | --- |
-| `stage` | no | `"address" \| "issues" \| "monitoring" \| "accountability" \| "complete"` | Optional hint for which stage you intend this call to satisfy. The tool re-derives the next stage from DB state regardless, so a wrong hint just no-ops. |
+| `stage` | no | `"address" \| "issues" \| "monitoring" \| "accountability" \| "api_key" \| "complete"` | Optional hint for which stage you intend this call to satisfy. The tool re-derives the next stage from DB state regardless, so a wrong hint just no-ops. |
 | `address` | no | `string` | Street address. When provided, saves it and refreshes reps for that address. |
 | `zip` | no | `string` |  |
 | `state` | no | `string` | 2-letter state code (e.g., CA). |
@@ -47,6 +47,10 @@ One front-door tool that walks the user through PolitiClaw setup end-to-end: add
         },
         {
           "const": "accountability",
+          "type": "string"
+        },
+        {
+          "const": "api_key",
           "type": "string"
         },
         {

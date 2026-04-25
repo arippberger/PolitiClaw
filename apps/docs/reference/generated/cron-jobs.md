@@ -56,7 +56,7 @@ Run the PolitiClaw tracked-hearings sweep. Read the politiclaw-monitoring skill.
 
 ## politiclaw.rep_report
 
-- Description: Every ~30 days: deterministic representative alignment digest vs. declared issue stances and recorded bill signals (House roll calls only until Senate ingest lands). Calls politiclaw_rep_report; keeps the alignment disclaimer, dissenting-view coverage, and blind-spot callouts intact.
+- Description: Every ~30 days: deterministic representative alignment digest vs. declared issue stances and recorded bill signals across House (api.congress.gov) and Senate (voteview.com) roll calls. Calls politiclaw_rep_report; keeps the alignment disclaimer, dissenting-view coverage, and blind-spot callouts intact.
 - Schedule: every 30 day(s)
 - Session target: `isolated`
 - Wake mode: `next-heartbeat`

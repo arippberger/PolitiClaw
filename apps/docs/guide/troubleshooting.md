@@ -12,7 +12,7 @@ openclaw plugins install ./packages/politiclaw-plugin --link
 
 ## Bill, Vote, Or Finance Tools Are Unavailable
 
-Make sure `plugins.politiclaw.apiKeys.apiDataGov` is set. That is the live key for the current federal bill, House vote, committee schedule, and FEC finance integrations.
+Make sure `plugins.politiclaw.apiKeys.apiDataGov` is set. That is the live key for the current federal bill, House roll-call vote, committee schedule, and FEC finance integrations. (Senate roll-call votes ingest through voteview.com without a key.)
 
 Use the generated config and coverage pages when in doubt:
 

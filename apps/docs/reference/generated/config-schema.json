@@ -168,7 +168,7 @@
       "apiKeys": {
         "type": "object",
         "additionalProperties": false,
-        "description": "One key required (apiDataGov); all others are optional upgrades. The required key powers federal bills, House votes, and FEC finance data.",
+        "description": "One key required (apiDataGov); all others are optional upgrades. The required key powers federal bills, House roll-call votes, committee schedules, and FEC finance data. Senate roll-call votes ingest separately through voteview.com (zero-key, no signup).",
         "properties": {
           "apiDataGov": {
             "type": "string",

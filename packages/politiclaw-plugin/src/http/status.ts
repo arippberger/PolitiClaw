@@ -439,7 +439,7 @@ function computeStatusAlignment(db: PolitiClawDb, rep: StoredRep): StatusRepAlig
       status: "insufficient_data",
       reason:
         "no recorded votes match declared stances yet " +
-        "(ingest House roll calls or record stance signals to broaden coverage)",
+        "(ingest House and Senate roll calls or record stance signals to broaden coverage)",
     };
   }
   const scoredIssues = result.perIssue.filter(

@@ -26,7 +26,7 @@ Criteria:
 Examples:
 
 - `politiclaw_doctor`
-- `politiclaw_start_onboarding`
+- `politiclaw_configure`
 - `politiclaw_prepare_me_for_my_next_election`
 - `politiclaw_get_my_reps`
 - `politiclaw_score_representative`
@@ -34,7 +34,6 @@ Examples:
 - `politiclaw_score_bill`
 - `politiclaw_research_candidate`
 - `politiclaw_draft_letter`
-- `politiclaw_set_monitoring_mode`
 
 ## Tier 2, advanced / power-user
 
@@ -73,12 +72,10 @@ Criteria:
 Examples:
 
 - `politiclaw_record_stance_signal`
-- `politiclaw_download_shapefiles`
 - `politiclaw_ingest_votes`
-- `politiclaw_setup_monitoring`
-- `politiclaw_pause_monitoring`
-- `politiclaw_resume_monitoring`
-- `politiclaw_get_preferences`
+- `politiclaw_set_issue_stance`
+- `politiclaw_delete_issue_stance`
+- `politiclaw_create_reminder`
 - `politiclaw_get_my_ballot`
 
 ## Presentation rules

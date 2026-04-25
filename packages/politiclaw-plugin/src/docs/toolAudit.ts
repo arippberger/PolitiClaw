@@ -54,7 +54,7 @@ export const TOOL_AUDIT_ENTRIES: readonly ToolAuditEntry[] = [
     name: "politiclaw_score_representative",
     tier: "core",
     docsAction: "lead-in-guides",
-    rationale: "One of the clearest user-value tools: how a rep's House votes line up with declared issues.",
+    rationale: "One of the clearest user-value tools: how a rep's federal roll-call votes (House and Senate) line up with declared issues.",
   },
   {
     name: "politiclaw_rep_report",

@@ -336,7 +336,7 @@ function renderMonitoringPrompt(
 
 function renderApiKeyPrompt(): string {
   return [
-    "Almost done. One last manual step: PolitiClaw needs a free api.data.gov key for federal bills, House votes, and FEC finance data. Without it, the background jobs we just configured can't actually run.",
+    "Almost done. One last manual step: PolitiClaw needs a free api.data.gov key for federal bills, House roll-call votes, committee schedules, and FEC finance data. Without it, the background jobs we just configured can't actually run. (Senate roll-call votes ingest separately through voteview.com and don't need this key.)",
     "",
     `1. Sign up (free, instant, no credit card): ${API_DATA_GOV_SIGNUP_URL}`,
     "2. Copy the key the page gives you.",
