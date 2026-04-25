@@ -464,7 +464,7 @@
     "groupId": "representatives",
     "groupLabel": "Representatives and alignment",
     "sourcePath": "packages/politiclaw-plugin/src/tools/repScoring.ts",
-    "description": "Measure the gap between a rep's actual House voting record and the stances the user declared — per issue — so the user can see where this rep represents them and where they don't. Returns a 3-band pattern label (aligned / mixed / concerning), or 'insufficient data' when confidence is too low to classify. Computation is deterministic (no LLM); direction comes exclusively from the user's explicit stance signals on bills, so the rep's record is counted, not narrated. Confidence below the 0.4 floor renders as \"insufficient data\". Procedural motions are excluded by default; pass includeProcedural=true for the raw tally. House votes come from api.congress.gov (tier 1) and Senate votes come from voteview.com (tier 2, zero-key); a senator will only show \"insufficient data\" if politiclaw_ingest_votes has not been run for the Senate yet.",
+    "description": "Measure the gap between a rep's actual federal voting record and the stances the user declared — per issue — so the user can see where this rep represents them and where they don't. Returns a 3-band pattern label (aligned / mixed / concerning), or 'insufficient data' when confidence is too low to classify. Computation is deterministic (no LLM); direction comes exclusively from the user's explicit stance signals on bills, so the rep's record is counted, not narrated. Confidence below the 0.4 floor renders as \"insufficient data\". Procedural motions are excluded by default; pass includeProcedural=true for the raw tally. House votes come from api.congress.gov (tier 1) and Senate votes come from voteview.com (tier 2, zero-key); a senator will only show \"insufficient data\" if politiclaw_ingest_votes has not been run for the Senate yet.",
     "parameters": [
       {
         "name": "repId",
@@ -508,14 +508,14 @@
         "name": "includeProcedural",
         "required": false,
         "type": "boolean",
-        "description": "When true, procedural House roll calls are INCLUDED in scoring (same semantics as politiclaw_score_representative). Default is false."
+        "description": "When true, procedural roll calls (House cloture-style motions and Senate cloture / motion-to-proceed / motion-to-table questions) are INCLUDED in scoring (same semantics as politiclaw_score_representative). Default is false."
       }
     ],
     "rawSchema": {
       "type": "object",
       "properties": {
         "includeProcedural": {
-          "description": "When true, procedural House roll calls are INCLUDED in scoring (same semantics as politiclaw_score_representative). Default is false.",
+          "description": "When true, procedural roll calls (House cloture-style motions and Senate cloture / motion-to-proceed / motion-to-table questions) are INCLUDED in scoring (same semantics as politiclaw_score_representative). Default is false.",
           "type": "boolean"
         }
       }

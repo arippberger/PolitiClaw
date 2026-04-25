@@ -109,7 +109,7 @@ export const POLITICLAW_TOOL_GROUPS: readonly DocsToolGroup[] = [
     id: "bills",
     label: "Bills and votes",
     description:
-      "Search federal bills, inspect bill details, score bill alignment, and ingest House votes.",
+      "Search federal bills, inspect bill details, score bill alignment, and ingest House and Senate roll-call votes.",
     entries: [
       ...makeEntries(
         "bills",

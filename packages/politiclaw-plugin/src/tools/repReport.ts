@@ -11,7 +11,7 @@ const RepReportParams = Type.Object({
   includeProcedural: Type.Optional(
     Type.Boolean({
       description:
-        "When true, procedural House roll calls are INCLUDED in scoring (same semantics as politiclaw_score_representative). Default is false.",
+        "When true, procedural roll calls (House cloture-style motions and Senate cloture / motion-to-proceed / motion-to-table questions) are INCLUDED in scoring (same semantics as politiclaw_score_representative). Default is false.",
     }),
   ),
 });

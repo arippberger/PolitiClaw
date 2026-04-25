@@ -279,8 +279,9 @@ This is the canonical accountability surface. Frame it as an answer to
 `politiclaw.rep_report` cron):
 
 1. Call the tool exactly once unless the user asks for a refresh. It re-scores
-   every stored representative deterministically from the SQLite DB (House
-   roll-call votes plus bill alignment and stance signals).
+   every stored representative deterministically from the SQLite DB (federal
+   roll-call votes — House via api.congress.gov and Senate via voteview.com —
+   plus bill alignment and stance signals).
 2. Preserve the tool's markdown bill links (`congress.gov`) — tier-1 primary
    source for federal bill identity.
 3. Misaligned votes render as Class C items (one per misalignment, capped to

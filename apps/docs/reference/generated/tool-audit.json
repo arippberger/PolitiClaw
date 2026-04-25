@@ -63,7 +63,7 @@
     "name": "politiclaw_score_representative",
     "tier": "core",
     "docsAction": "lead-in-guides",
-    "rationale": "One of the clearest user-value tools: how a rep's House votes line up with declared issues.",
+    "rationale": "One of the clearest user-value tools: how a rep's federal roll-call votes (House and Senate) line up with declared issues.",
     "label": "Did this representative represent the stances you declared?",
     "groupId": "representatives",
     "groupLabel": "Representatives and alignment",

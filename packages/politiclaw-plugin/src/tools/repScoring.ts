@@ -231,7 +231,7 @@ export const scoreRepresentativeTool: AnyAgentTool = {
   name: "politiclaw_score_representative",
   label: "Did this representative represent the stances you declared?",
   description:
-    "Measure the gap between a rep's actual House voting record and the stances the user declared — " +
+    "Measure the gap between a rep's actual federal voting record and the stances the user declared — " +
     "per issue — so the user can see where this rep represents them and where they don't. " +
     "Returns a 3-band pattern label (aligned / mixed / concerning), or 'insufficient data' when " +
     "confidence is too low to classify. " +
