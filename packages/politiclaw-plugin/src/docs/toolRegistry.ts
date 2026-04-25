@@ -13,6 +13,7 @@ import { muteTools } from "../tools/mutes.js";
 import { politiclawTools as preferencesTools } from "../tools/preferences.js";
 import { prepareForElectionTools } from "../tools/prepareForElection.js";
 import { reminderTools } from "../tools/reminder.js";
+import { setApiKeysTools } from "../tools/setApiKeys.js";
 import { repReportTools } from "../tools/repReport.js";
 import { repScoringTools } from "../tools/repScoring.js";
 import { repsTools } from "../tools/reps.js";
@@ -70,6 +71,12 @@ export const POLITICLAW_TOOL_GROUPS: readonly DocsToolGroup[] = [
         "Configuration and preferences",
         "packages/politiclaw-plugin/src/tools/configure.ts",
         configureTools,
+      ),
+      ...makeEntries(
+        "preferences",
+        "Configuration and preferences",
+        "packages/politiclaw-plugin/src/tools/setApiKeys.ts",
+        setApiKeysTools,
       ),
       ...makeEntries(
         "preferences",

@@ -139,16 +139,28 @@ shown the notice already. The tool returns a `signupUrl`, `configPath`, and
 `configKey` along with a ready-to-read prompt. Read it verbatim or rephrase
 lightly — the key points are:
 
-1. The user needs to sign up at `https://api.data.gov/signup/` (free, instant).
-2. They need to paste the key into their OpenClaw host config under
-   `plugins.politiclaw.apiKeys.apiDataGov`.
-3. They need to reload the gateway so the plugin picks it up.
+1. The user signs up at `https://api.data.gov/signup/` (free, instant).
+2. They paste the key back into chat. Don't ask them to edit any files.
+   When they paste it, call `politiclaw_configure` again with
+   `apiDataGov: "<the-key>"` — the tool persists it via
+   `politiclaw_set_api_keys` and the gateway restarts itself to pick it up.
+3. If the user happens to mention any optional upgrade keys in the same
+   message (Geocodio, Open States, OpenSecrets, etc.), pass them in
+   `optionalApiKeys` on the same call so the gateway only restarts once.
+4. After the restart, the user reconnects and can re-run
+   `politiclaw_configure` to see the contract with the new keys live.
 
-Do **not** loop here. The next `politiclaw_configure` call — with any
-arguments, including none — will advance straight to `complete`. If the
-user later confirms they added the key, re-run configure to refresh the
-contract (the inactive jobs will move to active). If they skip it, the
-contract will still be rendered, just with those jobs flagged inactive.
+The user can also skip — pass no key arguments. The next `politiclaw_configure`
+call will advance straight to `complete` with the federal jobs flagged
+inactive. Do not loop on the `api_key` stage.
+
+## The `api_keys_saved` stage
+
+You see this any time the user supplies `apiDataGov` or `optionalApiKeys`.
+The tool returns a `setResult` with `savedKeys`, `restartScheduled`, and
+optionally `restartDelayMs`. Read the prompt verbatim or paraphrase: keys
+saved, gateway restarting in ~Ns, reconnect afterwards. Do not call any
+other tools in this turn — the restart will interrupt them.
 
 ## The `complete` stage
 

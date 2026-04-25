@@ -30,7 +30,13 @@ If anything in this path looks wrong, run `politiclaw_doctor` — see [Troublesh
 
 ## API keys
 
-Configure keys in the gateway under the plugin's `apiKeys` config block. **One key is required; the rest are optional upgrades.**
+**The fastest path: paste the key into chat.** Run `politiclaw_configure`. When the api.data.gov key is missing, the agent walks you through signup and asks you to paste the key (and any optional upgrade keys you have) back into chat. The plugin saves them via `politiclaw_set_api_keys`, which writes through the OpenClaw gateway's `config.patch` method (validated, audited, optimistic concurrency). The gateway then restarts itself once to pick up the new values — reconnect after the restart and the keys are live.
+
+`politiclaw_set_api_keys` is also callable on its own ("save my Geocodio key as `xyz`") for one-off updates after onboarding.
+
+You can still edit `~/.openclaw/openclaw.json` by hand under `plugins.politiclaw.apiKeys.*` if you prefer; both paths land in the same file.
+
+**One key is required; the rest are optional upgrades.**
 
 | Key | Required? | What it unlocks |
 | --- | --- | --- |

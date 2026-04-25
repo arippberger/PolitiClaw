@@ -117,10 +117,10 @@ that there's nothing concrete to suggest, omit the section even in
 One line naming any source that returned `unavailable` or `partial` this
 week, with the actionable fix. Examples:
 
-- "Missed: FEC campaign-finance updates (configure `apiKeys.apiDataGov` to
-  light up)."
-- "Missed: state bills (optional `apiKeys.openStates` or `apiKeys.legiscan`
-  not set)."
+- "Missed: FEC campaign-finance updates (paste your `apiDataGov` key into
+  chat to light up)."
+- "Missed: state bills (optional `openStates` or `legiscan` key not set —
+  paste either into chat to light up)."
 
 If everything ran clean, skip this section.
 
