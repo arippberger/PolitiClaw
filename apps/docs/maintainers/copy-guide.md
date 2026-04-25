@@ -19,7 +19,7 @@ Use this verbatim for the plugin manifest description lead and the homepage hero
 - **Lead with accountability, not lookup.** Name *the user's values* and *their reps' behavior* in the same sentence when possible. Avoid "a tool for looking up bills," "stay informed about Congress," "everything you need to know about politics."
 - **Accountability is always to the user's own declared stances.** Never to an external political agenda. This is how accountability copy coexists with the non-prescriptive rules in monitoring, ballot, and summary skills.
 - **Product copy may be pointed; skill *output* stays factual.** "Holds accountable," "watches the gap," "measures where they represent you" are fine in positioning copy. Skill output still follows the no-cheerleading, no-prescriptive-verbs rules (no "you should," no "vote YES/NO," no "exciting news!").
-- **Preserve explicit scope honesty.** Federal coverage. US House roll-call votes today; Senate ingest pending; no state/local legislation; local-first; draft-only outreach; no send path. Never imply Senate vote coverage, state legislation coverage, or a send-on-your-behalf path that does not exist.
+- **Preserve explicit scope honesty.** Federal coverage: US House roll-call votes (api.congress.gov) and US Senate roll-call votes (voteview.com); no state/local legislation; local-first; draft-only outreach; no send path. Never imply state legislation coverage or a send-on-your-behalf path that does not exist.
 - **Keep the draft-only / user-sends boundary visible** wherever outreach appears.
 
 ## Reconciling accountability with neutrality

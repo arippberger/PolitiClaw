@@ -2,9 +2,9 @@
  * Declarative PolitiClaw cron templates.
  *
  * These describe the default monitoring jobs installed by
- * `politiclaw_setup_monitoring`. Each template carries a stable, namespaced
- * `name` so re-runs are idempotent (we match existing cron jobs by name and
- * upsert in-place).
+ * `politiclaw_configure` (via `reconcileCronJobs`). Each template carries a
+ * stable, namespaced `name` so re-runs are idempotent (we match existing cron
+ * jobs by name and upsert in-place).
  *
  * Implementation posture:
  * - Every job uses `sessionTarget: "isolated"` so the monitoring turn has a
@@ -124,9 +124,9 @@ export const REP_REPORT_TEMPLATE: PolitiClawCronTemplate = {
   name: "politiclaw.rep_report",
   description:
     "Every ~30 days: deterministic representative alignment digest vs. declared " +
-    "issue stances and recorded bill signals (House roll calls only until Senate " +
-    "ingest lands). Calls politiclaw_rep_report; keeps the alignment disclaimer, " +
-    "dissenting-view coverage, and blind-spot callouts intact.",
+    "issue stances and recorded bill signals across House (api.congress.gov) and " +
+    "Senate (voteview.com) roll calls. Calls politiclaw_rep_report; keeps the " +
+    "alignment disclaimer, dissenting-view coverage, and blind-spot callouts intact.",
   schedule: { kind: "every", everyMs: MS_IN_MONTH },
   sessionTarget: "isolated",
   wakeMode: "next-heartbeat",

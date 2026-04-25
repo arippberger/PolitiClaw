@@ -6,7 +6,7 @@ This page is the single canonical surface for what PolitiClaw actually covers to
 
 ### Bills and votes
 
-Federal bills are wired through `api.congress.gov` via the shared `apiDataGov` key, and the scoring path maps bills to declared issue stances. Roll-call vote coverage is House-only today. Senate vote ingest is not wired, so rep scoring, vote alerts, and upcoming-vote snapshots reflect House activity only.
+Federal bills are wired through `api.congress.gov` via the shared `apiDataGov` key, and the scoring path maps bills to declared issue stances. Roll-call vote coverage spans both chambers: House votes through `api.congress.gov` (tier 1) and Senate votes through `voteview.com` (tier 2, zero-key). Rep scoring, vote alerts, and upcoming-vote snapshots reflect both chambers once `politiclaw_ingest_votes` has been run.
 
 ### Representatives
 
@@ -22,7 +22,6 @@ Ballot and election logistics come from Google Civic's `voterInfoQuery`, gated o
 
 ## What is not covered today
 
-- **Senate votes**: Roll-call vote coverage is House-only today. Senate vote ingest is not wired, so rep scoring, vote alerts, and upcoming-vote snapshots reflect House activity only.
 - **State legislatures**: Current coverage is federal only. State bills, state roll-call votes, and state legislators are out of scope for the wired runtime.
 - **Local representatives**: Current rep coverage stops at US House and US Senate. Municipal, county, and state-legislative offices are not resolved.
 - **Down-ballot depth**: Ballots come from Google Civic only, with generic contest shape. Judicial retention detail and ballot-measure plain-language enrichment are not wired.

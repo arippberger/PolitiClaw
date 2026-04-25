@@ -289,8 +289,9 @@ This is the canonical accountability surface. Frame it as an answer to
    every cited vote lines up with the user's stance, explicitly say there is
    no contrary signal in this month's counted votes (do not invent opposition).
 5. Honesty about blind spots: call out bills that matched issues but lack
-   stance signals; note Senate coverage limits until Senate ingest lands.
-   Never use LLM search for vote positions.
+   stance signals; flag any rep with no ingested votes yet (run
+   `politiclaw_ingest_votes` to fill the gap). Never use LLM search for
+   vote positions.
 
 ## 8. Muting
 

@@ -180,9 +180,8 @@ stages again.
 
 ## Anti-patterns
 
-- Don't call lower-level tools (`politiclaw_set_issue_stance`,
-  `politiclaw_set_monitoring_mode`) for first-time setup. Use
-  `politiclaw_configure`.
+- Don't call lower-level tools like `politiclaw_set_issue_stance` for
+  first-time setup. Use `politiclaw_configure`.
 - Don't omit inactive jobs or caveats from the contract block.
 - Don't argue with a stance you disagree with. Record what the user said.
 - Don't persist a stance without confirming the slug and weight back.

@@ -13,7 +13,7 @@ import { withBase } from "vitepress";
 <div class="pc-breadcrumbs">overview<span class="sep">/</span>politiclaw</div>
 
 <section class="pc-hero">
-  <div class="pc-eyebrow">overview <span class="red">·</span> v0.0.1 <span class="blue">·</span> openclaw plugin</div>
+  <div class="pc-eyebrow">overview <span class="red">·</span> v0.0.4 <span class="blue">·</span> openclaw plugin</div>
 
   <h1 class="pc-hero-h1">
     <img :src="withBase('/politiclaw-mark.png')" alt="" class="pc-hero-mark" />
@@ -26,7 +26,7 @@ import { withBase } from "vitepress";
   </div>
 
   <p class="pc-lede">
-    PolitiClaw is a <strong>local-first civic copilot</strong> — an OpenClaw plugin that learns the stances you care about, watches federal legislation and your reps' House votes for you, and flags when their actions align (or don't) with those stances. It drafts letters you send yourself; it never speaks on your behalf and never tells you how to vote. The docs split into a narrative <strong>guide</strong> you read end-to-end and a <strong>reference</strong> generated from the current implementation.
+    PolitiClaw is a <strong>local-first civic copilot</strong> — an OpenClaw plugin that learns the stances you care about, watches federal legislation and your reps' roll-call votes (House and Senate) for you, and flags when their actions align (or don't) with those stances. It drafts letters you send yourself; it never speaks on your behalf and never tells you how to vote. The docs split into a narrative <strong>guide</strong> you read end-to-end and a <strong>reference</strong> generated from the current implementation.
   </p>
 
   <div class="pc-cta">
@@ -36,7 +36,7 @@ import { withBase } from "vitepress";
   </div>
 
   <div class="pc-chips">
-    <span class="pc-chip"><span class="dot"></span> v0.0.1 · local-first</span>
+    <span class="pc-chip"><span class="dot"></span> v0.0.4 · local-first</span>
     <span class="pc-chip">openclaw plugin</span>
     <span class="pc-chip">us federal · google civic ballots</span>
   </div>
@@ -67,7 +67,7 @@ import { withBase } from "vitepress";
 <h2 class="pc-h2">what is politiclaw?</h2>
 
 <p>
-  PolitiClaw is a <strong>local-first civic copilot</strong> that holds your representatives accountable to the values you declare. It learns the stances you care about, watches federal legislation and House votes on your behalf, and flags when your reps' actions align — or don't — with those stances. Ballot prep, candidate finance research, and draft-only outreach all build on the same stance-driven loop. Your queries never touch a third-party political platform.
+  PolitiClaw is a <strong>local-first civic copilot</strong> that holds your representatives accountable to the values you declare. It learns the stances you care about, watches federal legislation and federal roll-call votes (House and Senate) on your behalf, and flags when your reps' actions align — or don't — with those stances. Ballot prep, candidate finance research, and draft-only outreach all build on the same stance-driven loop. Your queries never touch a third-party political platform.
 </p>
 
 <p>
@@ -77,7 +77,7 @@ import { withBase } from "vitepress";
 <div class="pc-callout civic">
   <span class="label">honest scope</span>
   <div class="body">
-    Outreach is <strong>draft-only</strong> — PolitiClaw never sends mail, posts on your behalf, or routes your message through a political platform, so accountability stays in your hands instead of a vendor's. Coverage today is federal: bills and House roll-call votes through api.congress.gov, ballots through Google Civic. Senate roll-call votes, state legislation, and local races are not yet wired; the docs distinguish wired providers from optional upgrades, transport-pending adapters, and schema-only placeholders. For the goal-indexed scope boundaries, see <a href="/reference/source-coverage#what-is-not-covered-today">current coverage</a>.
+    Outreach is <strong>draft-only</strong> — PolitiClaw never sends mail, posts on your behalf, or routes your message through a political platform, so accountability stays in your hands instead of a vendor's. Coverage today is federal: bills and House roll-call votes through api.congress.gov, Senate roll-call votes through voteview.com, ballots through Google Civic. State legislation and local races are not yet wired; the docs distinguish wired providers from optional upgrades, transport-pending adapters, and schema-only placeholders. For the goal-indexed scope boundaries, see <a href="/reference/source-coverage#what-is-not-covered-today">current coverage</a>.
   </div>
 </div>
 </section>
@@ -120,12 +120,12 @@ import { withBase } from "vitepress";
   <div class="pc-card">
     <div class="idx">01</div>
     <div class="ttl">representative accountability</div>
-    <div class="desc">Per-rep and per-issue alignment scoring against your declared stances, driven by deterministic matching of House roll-call votes to the bills you have signal on. Confidence floor preserves "insufficient data" honesty; Senate and state/local accountability are not claimed.</div>
+    <div class="desc">Per-rep and per-issue alignment scoring against your declared stances, driven by deterministic matching of House and Senate roll-call votes to the bills you have signal on. Confidence floor preserves "insufficient data" honesty; state/local accountability is not claimed.</div>
   </div>
   <div class="pc-card">
     <div class="idx">02</div>
-    <div class="ttl">federal bills &amp; house votes</div>
-    <div class="desc">The evidence base. Bills, House roll-call votes, and committee schedules through the shared <code>api.data.gov</code> key against api.congress.gov.</div>
+    <div class="ttl">federal bills &amp; congressional votes</div>
+    <div class="desc">The evidence base. Bills, House roll-call votes, and committee schedules through the shared <code>api.data.gov</code> key against api.congress.gov; Senate roll-call votes through voteview.com (zero-key).</div>
   </div>
   <div class="pc-card">
     <div class="idx">03</div>

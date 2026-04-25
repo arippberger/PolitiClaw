@@ -194,9 +194,10 @@ export type ScoreRepresentativeResult =
  *     set are invisible to this function; call `politiclaw_score_bill` or
  *     `politiclaw_check_upcoming_votes` first to broaden coverage.
  *   - `roll_call_votes` + `member_votes` (keyed on `bioguide_id`) — the
- *     actual vote record. House votes are covered today; Senate roll calls
- *     currently surface as zero-evidence (and therefore "insufficient data")
- *     until Senate ingest exists.
+ *     actual vote record. House votes come from api.congress.gov; Senate
+ *     votes come from voteview.com via the same ingest tool. Both chambers
+ *     score the same way; senators only surface as "insufficient data" if
+ *     `politiclaw_ingest_votes` has not been run for the Senate yet.
  *
  * The function does not make live API calls; everything is read from the
  * plugin DB. Persistence writes one `rep_scores` row per active stance; the

@@ -55,7 +55,7 @@
   },
   {
     "name": "politiclaw.rep_report",
-    "description": "Every ~30 days: deterministic representative alignment digest vs. declared issue stances and recorded bill signals (House roll calls only until Senate ingest lands). Calls politiclaw_rep_report; keeps the alignment disclaimer, dissenting-view coverage, and blind-spot callouts intact.",
+    "description": "Every ~30 days: deterministic representative alignment digest vs. declared issue stances and recorded bill signals across House (api.congress.gov) and Senate (voteview.com) roll calls. Calls politiclaw_rep_report; keeps the alignment disclaimer, dissenting-view coverage, and blind-spot callouts intact.",
     "schedule": {
       "kind": "every",
       "everyMs": 2592000000

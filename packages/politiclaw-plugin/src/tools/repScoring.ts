@@ -239,8 +239,9 @@ export const scoreRepresentativeTool: AnyAgentTool = {
     "stance signals on bills, so the rep's record is counted, not narrated. Confidence below the " +
     `${CONFIDENCE_FLOOR} floor renders as "insufficient data". ` +
     "Procedural motions are excluded by default; pass includeProcedural=true " +
-    "for the raw tally. Senate votes are not yet ingested, so senators will show " +
-    '"insufficient data" until Senate vote coverage exists.',
+    "for the raw tally. House votes come from api.congress.gov (tier 1) and Senate " +
+    "votes come from voteview.com (tier 2, zero-key); a senator will only show " +
+    '"insufficient data" if politiclaw_ingest_votes has not been run for the Senate yet.',
   parameters: ScoreRepresentativeParams,
   async execute(_toolCallId, rawParams) {
     const parsed = ScoreRepresentativeInputSchema.safeParse(rawParams);

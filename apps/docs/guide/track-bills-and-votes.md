@@ -2,7 +2,7 @@
 
 This path is for, "What is happening in Congress, and how much should I care?"
 
-Vote coverage is House-only today — see [current coverage](../reference/source-coverage#what-is-not-covered-today).
+Federal vote coverage spans both chambers today: House votes through `api.congress.gov` and Senate votes through `voteview.com` — see [current coverage](../reference/source-coverage#what-is-not-covered-today).
 
 ## Default tools
 

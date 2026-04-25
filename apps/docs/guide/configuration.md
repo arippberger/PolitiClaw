@@ -7,8 +7,9 @@ PolitiClaw ships a broader config schema than the current runtime actually uses,
 These keys are active in the current runtime:
 
 - `plugins.politiclaw.apiKeys.apiDataGov`
-  - Required for the current federal bill, House vote, committee schedule, and FEC finance paths.
+  - Required for the current federal bill, House roll-call vote, committee schedule, and FEC finance paths.
   - One key covers both api.congress.gov and FEC OpenFEC.
+  - Senate roll-call votes use voteview.com (zero-key) and do not require this key.
 - `plugins.politiclaw.apiKeys.googleCivic`
   - Required for every ballot and election-logistics lookup today. Google Civic is the only wired ballot source.
 - `plugins.politiclaw.apiKeys.geocodio`

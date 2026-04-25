@@ -18,7 +18,7 @@ Each template has a different job. Framed from the user's seat:
 
 ### Rep-vote watch (every 6 hours)
 
-Catches new or materially changed federal bills and committee events that touch issues you declared a stance on. Change-detection-gated: a quiet window produces no message. Pair with [`politiclaw_ingest_house_votes`](../reference/generated/tools/politiclaw_ingest_house_votes) if you want House roll-call context populated.
+Catches new or materially changed federal bills and committee events that touch issues you declared a stance on. Change-detection-gated: a quiet window produces no message. Pair with [`politiclaw_ingest_votes`](../reference/generated/tools/politiclaw_ingest_votes) if you want roll-call context populated for both chambers.
 
 ### Tracked hearings (every 12 hours)
 
@@ -53,9 +53,10 @@ If you want to suppress a specific topic without changing cadence, use [`politic
 You control how loud monitoring is with a single cadence value on `politiclaw_configure`:
 
 - **`off`** — no monitoring jobs installed. PolitiClaw only runs when you ask it something.
-- **`election_proximity`** *(default)* — rep-vote watch, tracked hearings, and the proximity alert. Quiet between cycles; ramps up as an election approaches.
-- **`weekly`** — rep-vote watch, tracked hearings, weekly summary, monthly rep report. No proximity alert.
-- **`both`** — everything above, together.
+- **`quiet_watch`** — rep-vote watch and tracked hearings only. Silent unless tracked bills or hearings materially change.
+- **`weekly_digest`** — rep-vote watch, tracked hearings, weekly summary, and monthly rep report. No proximity alert.
+- **`action_only`** *(default)* — rep-vote watch, tracked hearings, and the proximity alert. Quiet between cycles; ramps up as an election approaches.
+- **`full_copilot`** — everything above, together.
 
 Changing cadence re-reconciles jobs. Templates outside the new cadence are paused, not deleted, so flipping back is instant.
 
@@ -63,8 +64,7 @@ Changing cadence re-reconciles jobs. Templates outside the new cadence are pause
 
 Deliberate limits so the blind spots don't hide:
 
-- **Senate roll calls.** Only House roll calls are ingested today. The rep-report and rep-vote watch flag Senate limits in their own output rather than pretending coverage is complete.
-- **State and local bills.** The federal bill sources are wired; state-level providers are declared in the config schema but not wired into runtime today. See [Generated Source Coverage](../reference/generated/source-coverage) for the full matrix of schema-only providers.
+- **State and local bills.** Federal bill and roll-call sources are wired (House via api.congress.gov, Senate via voteview.com); state-level providers are declared in the config schema but not wired into runtime today. See [Generated Source Coverage](../reference/generated/source-coverage) for the full matrix of schema-only providers.
 - **Finance-driven alerts.** FEC campaign-finance lookups are available on demand via the candidate research tool, but no cron template currently fires finance-delta alerts.
 - **Outgoing transport.** PolitiClaw posts to your own session; it does not send email, push notifications, or messages to third parties. Outreach ends at a draft you send yourself.
 - **Reactive follow-up.** If a rep responds to a letter, PolitiClaw won't notice. The loop is monitoring → draft; it doesn't close around the reply.

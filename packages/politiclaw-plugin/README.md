@@ -34,7 +34,7 @@ Configure keys in the gateway under the plugin's `apiKeys` config block. **One k
 
 | Key | Required? | What it unlocks |
 | --- | --- | --- |
-| `apiDataGov` | **Required** | Federal bills, House and Senate roll-call votes with member positions, and FEC campaign-finance data. One `api.data.gov` key covers both `api.congress.gov` and OpenFEC. Free, instant signup at [api.data.gov/signup](https://api.data.gov/signup/). |
+| `apiDataGov` | **Required** | Federal bills, House roll-call votes with member positions, committee schedules, and FEC campaign-finance data. One `api.data.gov` key covers both `api.congress.gov` and OpenFEC. Senate roll-call votes ingest separately through voteview.com (zero-key, no signup). Free, instant signup at [api.data.gov/signup](https://api.data.gov/signup/). |
 | `geocodio` | Optional | Reps-by-address via API. Without it, the plugin uses a zero-key local shapefile pipeline — Geocodio trades disk footprint for API simplicity. |
 | `openStates` | Optional | State bills and votes with individual member positions. Without it, state bill lookup is narrative-only via LLM search; state vote positions and state change-detection are not available. |
 | `legiscan` | Optional | Alternate state bills source. Free tier covers 30,000 queries/month and can substitute for `openStates`. |

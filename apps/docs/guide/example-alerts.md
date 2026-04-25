@@ -53,7 +53,7 @@ Emitted by `politiclaw.weekly_summary` on the 7-day cadence. Target length is 25
 > - **HR-2211 — Wetlands Regulatory Clarity Act** · status: reported favorably from House Natural Resources, 23–19 · aligns against your `oppose` on `wetlands-rollback` (tier 1, api.congress.gov)
 > - **S. 845 — Clean Energy Manufacturing Tax Credit Extension** · status: introduced · aligns with your `support` on `clean-energy` (tier 1, api.congress.gov)
 >
-> **Upcoming (next 10 days).**
+> **Upcoming (next 7 days).**
 >
 > - House Natural Resources markup on HR-2211 — 2026-04-29, 10:00 ET
 > - House Ways and Means hearing on clean-energy credits — 2026-04-30, 14:00 ET
@@ -93,13 +93,13 @@ Emitted by `politiclaw.rep_report` on the 30-day cadence. The full digest covers
 > - Aligned: voted YES on HR-1234 (affordable-housing waivers; tier 1, api.congress.gov)
 > - Against: voted YES on HR-2211 (wetlands rollback; your `oppose` stance)
 >
-> Blind spots: 3 bills matched your stances but had no stance signal because they did not reach a recorded roll call. Senate coverage limited until Senate ingest lands.
+> Blind spots: 3 bills matched your stances but had no stance signal because they did not reach a recorded roll call.
 >
 > *This alignment is a recorded claim, not a vote recommendation. Verify against the linked bill text before deciding.*
 
 What to notice:
 
-- The counted-votes denominator is explicit ("7 of 9 counted votes") — the skill forbids presenting House-only coverage as a complete record.
+- The counted-votes denominator is explicit ("7 of 9 counted votes") — the skill forbids presenting partial coverage as a complete record.
 - Blind spots are named inline, not buried in a footer.
 - Links resolve to `congress.gov` tier-1 primary sources.
 
