@@ -12,3 +12,4 @@ coverage/
 *.tsbuildinfo
 .githooks/prepare-commit-msg
 apps/docs/.vitepress/cache/
+.vercel/
