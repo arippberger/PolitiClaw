@@ -1,6 +1,18 @@
 # Installation and Verification
 
-## Local Install
+## Install
+
+Install the plugin into a running OpenClaw gateway:
+
+```bash
+openclaw plugins install @politiclaw/politiclaw
+```
+
+Reload the gateway (or restart the OpenClaw app) to pick up the new tools, then jump to [Runtime Verification](#runtime-verification) to confirm everything is wired up.
+
+## Install from source (contributors)
+
+If you are working on the plugin in this workspace, install from a local checkout instead.
 
 From the repository root:
 
@@ -9,9 +21,7 @@ npm install
 openclaw plugins install ./packages/politiclaw-plugin --link
 ```
 
-The linked install is the best fit while the plugin and docs are evolving in the same workspace.
-
-## Workspace Checks
+The linked install reads from the source path, so edits land without reinstalling.
 
 Run the standard checks from the repository root:
 
@@ -27,8 +37,6 @@ If you are changing docs metadata or generated reference pages, also run:
 npm run docs:generate
 npm run docs:check
 ```
-
-## Docs Preview
 
 Start the VitePress app from the workspace root:
 
@@ -47,9 +55,7 @@ After the plugin is installed inside OpenClaw, use the runtime tools to verify t
 
 ## What Counts As Healthy
 
-A healthy local install usually looks like this:
+A healthy install usually looks like this:
 
-- Build, typecheck, and tests pass from the workspace root.
-- The docs generator is clean or has been refreshed.
 - The doctor tool reports working storage and a current schema version.
 - Missing keys show up as actionable configuration gaps, not stack traces.

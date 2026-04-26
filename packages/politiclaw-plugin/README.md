@@ -6,13 +6,15 @@ Political data stays in a plugin-private SQLite database under the gateway's sta
 
 ## Install
 
-From the repository root, install the plugin into a running OpenClaw gateway as a linked source checkout:
+Install the plugin into a running OpenClaw gateway:
 
 ```bash
-openclaw plugins install ./packages/politiclaw-plugin --link
+openclaw plugins install @politiclaw/politiclaw
 ```
 
 Reload the gateway (or restart the OpenClaw app) to pick up the new tools.
+
+Working on the plugin from a local checkout instead? See [Development](#development).
 
 ## First-run checklist — 10 minutes to your first alert
 
@@ -97,6 +99,18 @@ Each check returns `ok`, `warn`, or `fail` with an actionable hint for every non
 Cross-machine caveat: the doctor runs inside the OpenClaw gateway process. If your gateway runs on a different host than where you installed the plugin source, gateway-side errors (missing cron adapter, unreadable state directory) will surface as `fail` in the report and have to be fixed on the gateway host.
 
 ## Development
+
+### Install from a local checkout
+
+From the workspace root:
+
+```bash
+openclaw plugins install ./packages/politiclaw-plugin --link
+```
+
+The `--link` install reads from the source path, so edits land without reinstalling.
+
+### Build and test
 
 From this package directory:
 
