@@ -649,3 +649,102 @@ body {
   .pc-home .pc-card-grid.cols-2 { grid-template-columns: 1fr; }
   .pc-home .pc-step { grid-template-columns: 60px 1fr; gap: 14px; }
 }
+
+/* ---------- Mermaid diagrams ----------
+   Light-mode colors are baked into the SVG by the Mermaid themeVariables
+   in .vitepress/config.mts. The rules below cover (a) typography polish
+   that applies in both themes and (b) dark-mode color overrides, since
+   Mermaid's themeVariables are static and only re-render on full
+   reload — CSS is the right tool for live theme switching. */
+
+.mermaid svg,
+.vp-doc div[class*="mermaid"] svg {
+  font-family: var(--pc-mono);
+  max-width: 100%;
+  height: auto;
+}
+.mermaid svg .edgeLabel,
+.vp-doc div[class*="mermaid"] svg .edgeLabel {
+  font-style: italic;
+  font-size: 12px;
+}
+/* Mermaid renders edge-label backgrounds on a foreignObject > div.labelBkg
+   AND on the span.edgeLabel inside it, then applies a default grey to the
+   span. We want the page bg so the label visually erases the edge line
+   behind it; same selector pair works in both themes via CSS vars. */
+.mermaid svg span.edgeLabel,
+.mermaid svg .labelBkg,
+.mermaid svg foreignObject div.labelBkg {
+  background-color: var(--pc-paper) !important;
+  color: var(--pc-ink) !important;
+}
+
+/* Dark-mode: paint over the baked light fills/strokes/text. */
+html.dark .mermaid svg .node rect,
+html.dark .mermaid svg .node polygon,
+html.dark .mermaid svg .node circle,
+html.dark .mermaid svg .node ellipse,
+html.dark .mermaid svg .node path,
+html.dark .mermaid svg rect.er.entityBox {
+  fill: var(--pc-paper-2) !important;
+  stroke: var(--pc-ink) !important;
+}
+
+html.dark .mermaid svg g.cluster rect,
+html.dark .mermaid svg g.cluster polygon {
+  fill: var(--pc-paper-3) !important;
+  stroke: var(--pc-ink-soft) !important;
+}
+
+html.dark .mermaid svg .nodeLabel,
+html.dark .mermaid svg .edgeLabel,
+html.dark .mermaid svg .label,
+html.dark .mermaid svg .cluster-label,
+html.dark .mermaid svg text,
+html.dark .mermaid svg tspan {
+  color: var(--pc-ink) !important;
+  fill: var(--pc-ink) !important;
+}
+
+html.dark .mermaid svg .flowchart-link,
+html.dark .mermaid svg path.relation,
+html.dark .mermaid svg path.path,
+html.dark .mermaid svg .er.relationshipLine,
+html.dark .mermaid svg marker path {
+  stroke: var(--pc-ink) !important;
+}
+html.dark .mermaid svg marker path {
+  fill: var(--pc-ink) !important;
+}
+
+html.dark .mermaid svg .edgeLabel rect {
+  fill: var(--pc-paper) !important;
+}
+
+/* erDiagram (theme-agnostic via CSS vars).
+   Mermaid v11's ER renderer hardcodes greys (#1f2020 entities,
+   #cccccc rows, #d3d3d3 relationship lines) regardless of
+   themeVariables, so we must override at the CSS layer. Selectors
+   match both <g class="row-rect-odd"> wrappers and the <path>
+   children that actually paint. */
+.mermaid svg .node g.outer-path path,
+.mermaid svg .node g.outer-path {
+  fill: var(--pc-paper-2) !important;
+  stroke: var(--pc-ink) !important;
+}
+.mermaid svg .node .row-rect-odd,
+.mermaid svg .node .row-rect-odd path {
+  fill: var(--pc-paper-2) !important;
+}
+.mermaid svg .node .row-rect-even,
+.mermaid svg .node .row-rect-even path {
+  fill: var(--pc-paper-3) !important;
+}
+.mermaid svg .node g.divider path,
+.mermaid svg .node g.divider line {
+  stroke: var(--pc-rule-2) !important;
+}
+.mermaid svg .edgePaths path,
+.mermaid svg .edge path {
+  stroke: var(--pc-ink) !important;
+}

@@ -73,5 +73,45 @@ export default withMermaid(defineConfig({
       message: "Built for people who want local-first political tooling.",
       copyright: "PolitiClaw"
     }
-  }
+  },
+  // Mermaid theming. Tokens mirror apps/docs/.vitepress/theme/custom.css
+  // (paper / ink / party-red / party-blue). Mermaid bakes these into the
+  // SVG at render time, so the values below are the LIGHT-mode source of
+  // truth; dark-mode overrides live in custom.css under the
+  // "Mermaid diagrams" section, since Mermaid's themeVariables can't
+  // be swapped reactively without a re-init. The `mermaid` field is
+  // declared on UserConfig by vitepress-plugin-mermaid via module
+  // augmentation (see node_modules/vitepress-plugin-mermaid/dist/index.d.ts).
+  mermaid: {
+    theme: "base",
+    themeVariables: {
+      fontFamily:
+        '"Fragment Mono", ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace',
+      fontSize: "13px",
+      background: "transparent",
+      mainBkg: "#faf7f1",
+      primaryColor: "#faf7f1",
+      primaryTextColor: "#1a1614",
+      primaryBorderColor: "#1a1614",
+      secondaryColor: "#e8e2d5",
+      secondaryTextColor: "#1a1614",
+      secondaryBorderColor: "#6b615c",
+      tertiaryColor: "#f1ece3",
+      tertiaryTextColor: "#1a1614",
+      tertiaryBorderColor: "#6b615c",
+      lineColor: "#1a1614",
+      textColor: "#1a1614",
+      titleColor: "#1a1614",
+      nodeBorder: "#1a1614",
+      clusterBkg: "#e8e2d5",
+      clusterBorder: "#6b615c",
+      edgeLabelBackground: "#faf7f1",
+      noteBkgColor: "#faf7f1",
+      noteTextColor: "#1a1614",
+      noteBorderColor: "#1a1614",
+      // erDiagram-specific
+      attributeBackgroundColorOdd: "#faf7f1",
+      attributeBackgroundColorEven: "#e8e2d5",
+    },
+  },
 }));
