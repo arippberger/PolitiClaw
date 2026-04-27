@@ -93,7 +93,7 @@
     },
     {
       "key": "voteSmart",
-      "description": "OPTIONAL UPGRADE. Candidate bios for ballot explanations. Default bios come from LLM search with tier-5 tagging; Vote Smart is a structured upgrade.",
+      "description": "OPTIONAL UPGRADE. Candidate bios for ballot explanations. Default bios come from LLM search and are tagged as low-confidence narrative; Vote Smart provides structured, verified bios.",
       "status": "schema_only",
       "required": false,
       "wiredToday": false,
@@ -196,7 +196,7 @@
           },
           "voteSmart": {
             "type": "string",
-            "description": "OPTIONAL UPGRADE. Candidate bios for ballot explanations. Default bios come from LLM search with tier-5 tagging; Vote Smart is a structured upgrade."
+            "description": "OPTIONAL UPGRADE. Candidate bios for ballot explanations. Default bios come from LLM search and are tagged as low-confidence narrative; Vote Smart provides structured, verified bios."
           },
           "democracyWorks": {
             "type": "string",

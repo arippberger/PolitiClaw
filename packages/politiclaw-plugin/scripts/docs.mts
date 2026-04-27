@@ -84,6 +84,7 @@ const driftedPaths = syncOutputs(outputs, mode === "check");
 const policyIssues = [
   ...collectPublishedDocsPolicyIssues(),
   ...collectTierMislabelIssues(),
+  ...collectManifestAndPackagingIssues(),
 ];
 
 if (driftedPaths.length > 0 || policyIssues.length > 0) {
@@ -949,4 +950,149 @@ function escapeRegExp(value: string): string {
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null;
+}
+
+function collectManifestAndPackagingIssues(): PublishedDocPolicyIssue[] {
+  // Catches the four kinds of drift surfaced over the last few PRs:
+  //   (1) openclaw.plugin.json:version falling behind package.json:version,
+  //   (2) hidden-doc shorthand (tier-N, ADR-N, §N, Phase Na) sneaking back
+  //       into the user-visible manifest, banned by AGENTS.md,
+  //   (3) the openclaw.compat / openclaw.build / openclaw.runtimeExtensions
+  //       fields required by docs.openclaw.ai/plugins/building-plugins
+  //       getting dropped during a refactor,
+  //   (4) source files reverting to the deprecated monolithic
+  //       `from "openclaw/plugin-sdk"` root import.
+  const issues: PublishedDocPolicyIssue[] = [];
+  const manifestPath = join(pluginRoot, "openclaw.plugin.json");
+  const packageJsonPath = join(pluginRoot, "package.json");
+  const manifestRel = relative(repoRoot, manifestPath);
+  const packageJsonRel = relative(repoRoot, packageJsonPath);
+
+  const manifestRaw = safeRead(manifestPath);
+  const packageJsonRaw = safeRead(packageJsonPath);
+  if (manifestRaw === null) {
+    issues.push({ file: manifestRel, message: "could not read plugin manifest" });
+  }
+  if (packageJsonRaw === null) {
+    issues.push({ file: packageJsonRel, message: "could not read package.json" });
+  }
+  if (manifestRaw === null || packageJsonRaw === null) return issues;
+
+  let manifest: unknown;
+  let packageJson: unknown;
+  try {
+    manifest = JSON.parse(manifestRaw);
+  } catch (error) {
+    issues.push({ file: manifestRel, message: `parse error: ${String(error)}` });
+    return issues;
+  }
+  try {
+    packageJson = JSON.parse(packageJsonRaw);
+  } catch (error) {
+    issues.push({ file: packageJsonRel, message: `parse error: ${String(error)}` });
+    return issues;
+  }
+  if (!isRecord(manifest) || !isRecord(packageJson)) return issues;
+
+  const manifestVersion = manifest.version;
+  const packageVersion = packageJson.version;
+  if (
+    typeof manifestVersion === "string" &&
+    typeof packageVersion === "string" &&
+    manifestVersion !== packageVersion
+  ) {
+    issues.push({
+      file: manifestRel,
+      message:
+        `version '${manifestVersion}' does not match package.json version ` +
+        `'${packageVersion}'; bump both together`,
+    });
+  }
+
+  const shorthandPatterns: ReadonlyArray<{ pattern: RegExp; label: string }> = [
+    { pattern: /\bADR-\d+\b/i, label: "ADR-N reference" },
+    { pattern: /\bPhase\s+\d+[a-z]?\b/i, label: "Phase N reference" },
+    { pattern: /§\s*\d+/, label: "section-number reference" },
+    { pattern: /\btier-\d+\b/i, label: "tier-N shorthand" },
+  ];
+  for (const { pattern, label } of shorthandPatterns) {
+    const match = manifestRaw.match(pattern);
+    if (match) {
+      issues.push({
+        file: manifestRel,
+        message:
+          `contains hidden-doc shorthand '${match[0]}' (${label}); the manifest ` +
+          `is user-visible and must be self-contained per AGENTS.md`,
+      });
+    }
+  }
+
+  const openclawBlock = isRecord(packageJson.openclaw) ? packageJson.openclaw : {};
+  const requiredOpenclawPaths: ReadonlyArray<readonly string[]> = [
+    ["compat", "pluginApi"],
+    ["compat", "minGatewayVersion"],
+    ["build", "openclawVersion"],
+    ["build", "pluginSdkVersion"],
+    ["runtimeExtensions"],
+  ];
+  for (const path of requiredOpenclawPaths) {
+    let cursor: unknown = openclawBlock;
+    for (const segment of path) {
+      if (!isRecord(cursor)) {
+        cursor = undefined;
+        break;
+      }
+      cursor = cursor[segment];
+    }
+    if (cursor === undefined || cursor === null || cursor === "") {
+      issues.push({
+        file: packageJsonRel,
+        message:
+          `missing required openclaw.${path.join(".")} per ` +
+          `docs.openclaw.ai/plugins/building-plugins`,
+      });
+    }
+  }
+
+  const monolithicImportPattern = /from\s+["']openclaw\/plugin-sdk["']/;
+  for (const sourceFile of collectTypeScriptFiles(join(pluginRoot, "src"))) {
+    const content = safeRead(sourceFile);
+    if (content === null) continue;
+    if (monolithicImportPattern.test(content)) {
+      issues.push({
+        file: relative(repoRoot, sourceFile),
+        message:
+          "imports from the deprecated monolithic 'openclaw/plugin-sdk' root; " +
+          "use a focused 'openclaw/plugin-sdk/<subpath>' instead",
+      });
+    }
+  }
+
+  return issues;
+}
+
+function collectTypeScriptFiles(root: string): string[] {
+  const results: string[] = [];
+  const stack = [root];
+  while (stack.length > 0) {
+    const current = stack.pop();
+    if (!current) continue;
+    let entries;
+    try {
+      entries = readdirSync(current, { withFileTypes: true });
+    } catch {
+      continue;
+    }
+    for (const entry of entries) {
+      const nextPath = join(current, entry.name);
+      if (entry.isDirectory()) {
+        stack.push(nextPath);
+        continue;
+      }
+      if (entry.isFile() && nextPath.endsWith(".ts")) {
+        results.push(nextPath);
+      }
+    }
+  }
+  return results.sort();
 }
