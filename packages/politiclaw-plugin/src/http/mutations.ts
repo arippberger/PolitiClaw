@@ -10,12 +10,13 @@
  * gateway adds nothing). CSRF is enforced one layer up in `routes.ts`; if a
  * handler runs at all, the cookie+header double-submit already passed.
  *
- * Validation discipline: every body shape is parsed via zod schemas defined
- * here so an invalid request returns 400 with a structured `details` payload
- * rather than a thrown error. Domain helpers may still throw — those land as
- * 500 with a generic message (we do not echo internal stack traces).
+ * Validation discipline: every body shape is parsed via TypeBox schemas
+ * defined here using the safeParse helper from ../validation/typebox.ts.
+ * On failure we return 400 with `details: { messages: string[] }` rather
+ * than a thrown error. Domain helpers may still throw — those land as 500
+ * with a generic message (we do not echo internal stack traces).
  */
-import { z } from "zod";
+import { Type } from "@sinclair/typebox";
 
 import {
   pauseMonitoring,
@@ -49,31 +50,57 @@ import {
   type RequestLetterRedraftResult,
 } from "../domain/letters/index.js";
 import type { PolitiClawDb } from "../storage/sqlite.js";
+import { safeParse } from "../validation/typebox.js";
 
 export type MutationResult =
   | { ok: true; status: 200; body: unknown }
   | { ok: false; status: 400 | 404 | 409 | 500; body: { error: string; message: string; details?: unknown } };
 
-const PreferencesUpdateSchema = z.object({
-  address: z.string().min(1).optional(),
-  zip: z.string().trim().optional(),
-  state: z.string().trim().optional(),
-  district: z.string().trim().optional(),
-  monitoringMode: z.enum(MONITORING_MODE_VALUES).optional(),
-  accountability: z.enum(ACCOUNTABILITY_VALUES).optional(),
-  actionPrompting: z.enum(ACTION_PROMPTING_VALUES).optional(),
-  issueStances: z
-    .array(
-      z.object({
-        issue: z.string().trim().min(1),
-        stance: z.enum(["support", "oppose", "neutral"]),
-        weight: z.number().int().min(1).max(5).optional(),
-      }),
-    )
-    .optional(),
+const MonitoringModeLiteralSchema = Type.Union(
+  MONITORING_MODE_VALUES.map((value) => Type.Literal(value)),
+);
+const AccountabilityLiteralSchema = Type.Union(
+  ACCOUNTABILITY_VALUES.map((value) => Type.Literal(value)),
+);
+const ActionPromptingLiteralSchema = Type.Union(
+  ACTION_PROMPTING_VALUES.map((value) => Type.Literal(value)),
+);
+
+const IssueStanceBodySchema = Type.Object({
+  issue: Type.String({ minLength: 1 }),
+  stance: Type.Union([
+    Type.Literal("support"),
+    Type.Literal("oppose"),
+    Type.Literal("neutral"),
+  ]),
+  weight: Type.Optional(Type.Integer({ minimum: 1, maximum: 5 })),
 });
 
-export type PreferencesUpdateBody = z.infer<typeof PreferencesUpdateSchema>;
+const PreferencesUpdateSchema = Type.Object({
+  address: Type.Optional(Type.String({ minLength: 1 })),
+  zip: Type.Optional(Type.String()),
+  state: Type.Optional(Type.String()),
+  district: Type.Optional(Type.String()),
+  monitoringMode: Type.Optional(MonitoringModeLiteralSchema),
+  accountability: Type.Optional(AccountabilityLiteralSchema),
+  actionPrompting: Type.Optional(ActionPromptingLiteralSchema),
+  issueStances: Type.Optional(Type.Array(IssueStanceBodySchema)),
+});
+
+export type PreferencesUpdateBody = {
+  address?: string;
+  zip?: string;
+  state?: string;
+  district?: string;
+  monitoringMode?: MonitoringMode;
+  accountability?: AccountabilityMode;
+  actionPrompting?: ActionPrompting;
+  issueStances?: Array<{
+    issue: string;
+    stance: "support" | "oppose" | "neutral";
+    weight?: number;
+  }>;
+};
 
 export type PreferencesUpdateResult = {
   preferences: PreferencesRow | null;
@@ -97,15 +124,15 @@ export function handlePreferencesUpdate(
   db: PolitiClawDb,
   raw: unknown,
 ): MutationResult {
-  const parsed = PreferencesUpdateSchema.safeParse(raw);
-  if (!parsed.success) {
+  const parsed = safeParse(PreferencesUpdateSchema, raw);
+  if (!parsed.ok) {
     return {
       ok: false,
       status: 400,
       body: {
         error: "invalid_body",
         message: "preferences body failed validation",
-        details: parsed.error.flatten(),
+        details: { messages: parsed.messages },
       },
     };
   }
@@ -244,11 +271,11 @@ export function handlePreferencesUpdate(
   return { ok: true, status: 200, body: result };
 }
 
-const MonitoringToggleSchema = z.object({
-  enabled: z.boolean(),
+const MonitoringToggleSchema = Type.Object({
+  enabled: Type.Boolean(),
 });
 
-export type MonitoringToggleBody = z.infer<typeof MonitoringToggleSchema>;
+export type MonitoringToggleBody = { enabled: boolean };
 
 /**
  * Bulk-toggle the entire PolitiClaw cron set on or off. Handlers don't touch
@@ -260,15 +287,15 @@ export type MonitoringToggleBody = z.infer<typeof MonitoringToggleSchema>;
 export async function handleMonitoringToggle(
   raw: unknown,
 ): Promise<MutationResult> {
-  const parsed = MonitoringToggleSchema.safeParse(raw);
-  if (!parsed.success) {
+  const parsed = safeParse(MonitoringToggleSchema, raw);
+  if (!parsed.ok) {
     return {
       ok: false,
       status: 400,
       body: {
         error: "invalid_body",
         message: "monitoring toggle body failed validation",
-        details: parsed.error.flatten(),
+        details: { messages: parsed.messages },
       },
     };
   }
@@ -290,18 +317,23 @@ export async function handleMonitoringToggle(
   return { ok: true, status: 200, body: result };
 }
 
-const StanceSignalSchema = z
-  .object({
-    issue: z.string().trim().min(1).optional(),
-    billId: z.string().trim().min(1).optional(),
-    direction: z.enum(["agree", "disagree", "skip"]),
-    weight: z.number().positive().max(10).optional(),
-  })
-  .refine((v) => v.issue !== undefined || v.billId !== undefined, {
-    message: "one of issue or billId is required",
-  });
+const StanceSignalBodySchema = Type.Object({
+  issue: Type.Optional(Type.String({ minLength: 1 })),
+  billId: Type.Optional(Type.String({ minLength: 1 })),
+  direction: Type.Union([
+    Type.Literal("agree"),
+    Type.Literal("disagree"),
+    Type.Literal("skip"),
+  ]),
+  weight: Type.Optional(Type.Number({ exclusiveMinimum: 0, maximum: 10 })),
+});
 
-export type StanceSignalBody = z.infer<typeof StanceSignalSchema>;
+export type StanceSignalBody = {
+  issue?: string;
+  billId?: string;
+  direction: "agree" | "disagree" | "skip";
+  weight?: number;
+};
 
 /**
  * Records a single user stance signal from the dashboard's quick-vote UI.
@@ -312,15 +344,28 @@ export function handleStanceSignalCreate(
   db: PolitiClawDb,
   raw: unknown,
 ): MutationResult {
-  const parsed = StanceSignalSchema.safeParse(raw);
-  if (!parsed.success) {
+  const parsed = safeParse(StanceSignalBodySchema, raw);
+  if (!parsed.ok) {
     return {
       ok: false,
       status: 400,
       body: {
         error: "invalid_body",
         message: "stance signal body failed validation",
-        details: parsed.error.flatten(),
+        details: { messages: parsed.messages },
+      },
+    };
+  }
+  // Cross-field rule: at least one of issue/billId is required. Used to be a
+  // Zod .refine; lives here now since TypeBox schemas don't express it.
+  if (parsed.data.issue === undefined && parsed.data.billId === undefined) {
+    return {
+      ok: false,
+      status: 400,
+      body: {
+        error: "invalid_body",
+        message: "stance signal body failed validation",
+        details: { messages: ["one of issue or billId is required"] },
       },
     };
   }
@@ -394,12 +439,19 @@ export function handleLetterRedraft(
   return { ok: true, status: 200, body: result };
 }
 
-const PackageFeedbackSchema = z.object({
-  verdict: z.enum(["useful", "not_now", "stop"]),
-  note: z.string().trim().min(1).optional(),
+const PackageFeedbackSchema = Type.Object({
+  verdict: Type.Union([
+    Type.Literal("useful"),
+    Type.Literal("not_now"),
+    Type.Literal("stop"),
+  ]),
+  note: Type.Optional(Type.String({ minLength: 1 })),
 });
 
-export type PackageFeedbackBody = z.infer<typeof PackageFeedbackSchema>;
+export type PackageFeedbackBody = {
+  verdict: PackageFeedbackVerdict;
+  note?: string;
+};
 
 export type PackageFeedbackResult = {
   package: ActionPackageRow;
@@ -434,15 +486,15 @@ export function handlePackageFeedback(
       : typeof raw === "object" && !Array.isArray(raw)
         ? { verdict: defaultVerdict, ...(raw as Record<string, unknown>) }
         : raw;
-  const parsed = PackageFeedbackSchema.safeParse(body);
-  if (!parsed.success) {
+  const parsed = safeParse(PackageFeedbackSchema, body);
+  if (!parsed.ok) {
     return {
       ok: false,
       status: 400,
       body: {
         error: "invalid_body",
         message: "package feedback body failed validation",
-        details: parsed.error.flatten(),
+        details: { messages: parsed.messages },
       },
     };
   }
