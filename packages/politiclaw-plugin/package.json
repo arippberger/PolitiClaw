@@ -4,11 +4,17 @@
   "description": "Local-first OpenClaw plugin: a civic copilot that holds your representatives accountable to the values you declare — watches federal legislation and elections for you, flags when your reps' actions align or don't, and drafts letters you send yourself.",
   "license": "MIT",
   "type": "module",
-  "main": "./src/index.ts",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
   "files": [
     "src",
     "!src/**/*.test.ts",
     "!src/**/__fixtures__/**",
+    "dist",
+    "!dist/**/*.test.js",
+    "!dist/**/*.test.d.ts",
+    "!dist/**/*.test.js.map",
+    "!dist/**/__fixtures__/**",
     "skills",
     "openclaw.plugin.json",
     "README.md"
@@ -17,6 +23,7 @@
     "extensions": [
       "./src/index.ts"
     ],
+    "runtimeExtensions": "./dist/index.js",
     "compat": {
       "pluginApi": ">=2026.4.21",
       "minGatewayVersion": "2026.4.21"
@@ -31,6 +38,7 @@
   },
   "scripts": {
     "build": "tsc -p tsconfig.json",
+    "prepublishOnly": "npm run build",
     "dev": "tsx watch src/index.ts",
     "docs:generate": "tsx ./scripts/docs.mts generate",
     "docs:check": "tsx ./scripts/docs.mts check",
