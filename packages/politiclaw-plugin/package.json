@@ -1,6 +1,6 @@
 {
   "name": "@politiclaw/politiclaw",
-  "version": "0.0.7",
+  "version": "0.0.8",
   "description": "Local-first OpenClaw plugin: a civic copilot that holds your representatives accountable to the values you declare — watches federal legislation and elections for you, flags when your reps' actions align or don't, and drafts letters you send yourself.",
   "license": "MIT",
   "type": "module",
