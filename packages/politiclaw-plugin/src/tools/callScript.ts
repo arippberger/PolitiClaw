@@ -1,6 +1,5 @@
 import { Type } from "@sinclair/typebox";
 import type { AnyAgentTool } from "openclaw/plugin-sdk/plugin-entry";
-import { z } from "zod";
 
 import { findOpenByTarget, attachGeneratedCallScript } from "../domain/actionMoments/index.js";
 import {
@@ -11,6 +10,7 @@ import {
 } from "../domain/outreach/callScript.js";
 import { createBillsResolver } from "../sources/bills/index.js";
 import { getPluginConfig, getStorage } from "../storage/context.js";
+import { safeParse } from "../validation/typebox.js";
 
 const DraftCallScriptParams = Type.Object({
   repId: Type.String({
@@ -33,13 +33,6 @@ const DraftCallScriptParams = Type.Object({
         "Optional single sentence the user wants to say in their own words. Appended verbatim after the ask line. Keep it short — the script is capped at 150 words.",
     }),
   ),
-});
-
-const DraftCallScriptInputSchema = z.object({
-  repId: z.string().trim().min(1),
-  issue: z.string().trim().min(1),
-  billId: z.string().trim().min(1).optional(),
-  oneSpecificSentence: z.string().trim().min(1).optional(),
 });
 
 function textResult<T>(text: string, details: T) {
@@ -87,10 +80,10 @@ export const draftCallScriptTool: AnyAgentTool = {
     "(politiclaw_set_issue_stance) and, when citing a bill, plugins.politiclaw.apiKeys.apiDataGov.",
   parameters: DraftCallScriptParams,
   async execute(_toolCallId, rawParams) {
-    const parsed = DraftCallScriptInputSchema.safeParse(rawParams);
-    if (!parsed.success) {
+    const parsed = safeParse(DraftCallScriptParams, rawParams);
+    if (!parsed.ok) {
       return textResult(
-        `Invalid input: ${parsed.error.issues.map((i) => i.message).join("; ")}`,
+        `Invalid input: ${parsed.messages.join("; ")}`,
         { status: "invalid" },
       );
     }

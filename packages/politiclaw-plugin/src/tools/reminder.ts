@@ -1,6 +1,5 @@
 import { Type } from "@sinclair/typebox";
 import type { AnyAgentTool } from "openclaw/plugin-sdk/plugin-entry";
-import { z } from "zod";
 
 import { findOpenByTarget, attachGeneratedReminder } from "../domain/actionMoments/index.js";
 import {
@@ -8,21 +7,32 @@ import {
   type CreateReminderResult,
 } from "../domain/outreach/reminder.js";
 import { getStorage } from "../storage/context.js";
+import { safeParse } from "../validation/typebox.js";
 
+// Discriminated union on `kind`. TypeBox narrows correctly at the type
+// level when a caller checks `parsed.data.anchor.kind === "bill"`, and
+// Value.Check (via safeParse) accepts only the variant whose literal
+// matches at runtime — same selection semantics Zod's
+// .discriminatedUnion("kind", [...]) used to provide.
 const ReminderAnchorParams = Type.Union([
   Type.Object({
     kind: Type.Literal("bill"),
-    billId: Type.String({ description: "Canonical bill id ('119-hr-1234')." }),
+    billId: Type.String({
+      minLength: 1,
+      description: "Canonical bill id ('119-hr-1234').",
+    }),
   }),
   Type.Object({
     kind: Type.Literal("event"),
     eventId: Type.String({
+      minLength: 1,
       description: "Canonical event id from politiclaw_check_upcoming_votes.",
     }),
   }),
   Type.Object({
     kind: Type.Literal("election"),
     electionDate: Type.String({
+      pattern: "^\\d{4}-\\d{2}-\\d{2}$",
       description: "ISO election date (YYYY-MM-DD).",
     }),
   }),
@@ -30,36 +40,22 @@ const ReminderAnchorParams = Type.Union([
 
 const CreateReminderParams = Type.Object({
   title: Type.String({
+    minLength: 1,
     description: "Short user-facing label for the reminder.",
   }),
   deadline: Type.Optional(
     Type.String({
+      minLength: 1,
       description:
         "Optional ISO-8601 date or datetime. When set, the monitoring crons surface the reminder as it comes due.",
     }),
   ),
   anchor: ReminderAnchorParams,
   extraSteps: Type.Optional(
-    Type.Array(Type.String(), {
+    Type.Array(Type.String({ minLength: 1 }), {
       description: "Optional user-supplied checklist items appended verbatim in order.",
     }),
   ),
-});
-
-const AnchorSchema = z.discriminatedUnion("kind", [
-  z.object({ kind: z.literal("bill"), billId: z.string().trim().min(1) }),
-  z.object({ kind: z.literal("event"), eventId: z.string().trim().min(1) }),
-  z.object({
-    kind: z.literal("election"),
-    electionDate: z.string().trim().regex(/^\d{4}-\d{2}-\d{2}$/),
-  }),
-]);
-
-const CreateReminderInputSchema = z.object({
-  title: z.string().trim().min(1),
-  deadline: z.string().trim().min(1).optional(),
-  anchor: AnchorSchema,
-  extraSteps: z.array(z.string().trim().min(1)).optional(),
 });
 
 function textResult<T>(text: string, details: T) {
@@ -89,10 +85,10 @@ export const createReminderTool: AnyAgentTool = {
     "are separate flows.",
   parameters: CreateReminderParams,
   async execute(_toolCallId, rawParams) {
-    const parsed = CreateReminderInputSchema.safeParse(rawParams);
-    if (!parsed.success) {
+    const parsed = safeParse(CreateReminderParams, rawParams);
+    if (!parsed.ok) {
       return textResult(
-        `Invalid input: ${parsed.error.issues.map((i) => i.message).join("; ")}`,
+        `Invalid input: ${parsed.messages.join("; ")}`,
         { status: "invalid" },
       );
     }

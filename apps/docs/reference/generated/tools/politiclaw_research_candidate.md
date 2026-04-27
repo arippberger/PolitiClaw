@@ -25,14 +25,18 @@ Research a federal candidate (President, Senate, House) via FEC OpenFEC plus an 
   "type": "object",
   "properties": {
     "candidateId": {
+      "minLength": 1,
       "description": "FEC candidate id (e.g. `H8CA12345`). Preferred when known — routes straight to the totals endpoint.",
       "type": "string"
     },
     "name": {
+      "minLength": 1,
       "description": "Free-text candidate name query. Used when `candidateId` is absent; returns up to 5 FEC candidate matches for disambiguation.",
       "type": "string"
     },
     "cycle": {
+      "minimum": 1900,
+      "maximum": 2100,
       "description": "Optional four-digit election cycle (e.g. 2024) to filter searches to active candidates for that cycle.",
       "type": "integer"
     },
@@ -54,6 +58,7 @@ Research a federal candidate (President, Senate, House) via FEC OpenFEC plus an 
       ]
     },
     "state": {
+      "pattern": "^[A-Za-z]{2}$",
       "description": "Optional two-letter state filter (uppercased before the FEC call).",
       "type": "string"
     }

@@ -31,6 +31,7 @@ import { identifyMyReps, type IdentifyResult } from "../domain/reps/index.js";
 import { createRepsResolver } from "../sources/reps/index.js";
 import { getPluginConfig, getStorage } from "../storage/context.js";
 import { getGatewayCronAdapter } from "../cron/gatewayAdapter.js";
+import { parse } from "../validation/typebox.js";
 import {
   buildStartOnboardingResult,
   renderChoicePrompt,
@@ -594,7 +595,7 @@ export function createConfigureTool(deps: ConfigureToolDeps = {}): AnyAgentTool 
       for (const row of input.issueStances ?? []) {
         const normalized = normalizeFreeformIssue(row.issue);
         const issue = normalized ? normalized.slug : row.issue;
-        const validated = IssueStanceSchema.parse({ ...row, issue });
+        const validated = parse(IssueStanceSchema, { ...row, issue });
         upsertIssueStance(db, validated);
         saved.stancesAdded += 1;
       }
@@ -606,7 +607,7 @@ export function createConfigureTool(deps: ConfigureToolDeps = {}): AnyAgentTool 
       //    without an address yet.
       let monitoringSetThisCall = false;
       if (preferences && input.monitoringMode) {
-        const parsed = MonitoringModeSchema.parse(input.monitoringMode);
+        const parsed = parse(MonitoringModeSchema, input.monitoringMode);
         if (preferences.monitoringMode !== parsed) {
           preferences = setMonitoringMode(db, parsed);
         }
@@ -620,7 +621,7 @@ export function createConfigureTool(deps: ConfigureToolDeps = {}): AnyAgentTool 
       // 4. Accountability — same preferences-required guard as monitoring.
       let accountabilitySetThisCall = false;
       if (preferences && input.accountability) {
-        const parsed = AccountabilityModeSchema.parse(input.accountability);
+        const parsed = parse(AccountabilityModeSchema, input.accountability);
         if (preferences.accountability !== parsed) {
           preferences = setAccountability(db, parsed);
         }

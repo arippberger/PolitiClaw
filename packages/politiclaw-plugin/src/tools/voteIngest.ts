@@ -1,6 +1,5 @@
 import { Type } from "@sinclair/typebox";
 import type { AnyAgentTool } from "openclaw/plugin-sdk/plugin-entry";
-import { z } from "zod";
 
 import {
   ingestVotes,
@@ -10,6 +9,7 @@ import {
 import { createVotesResolver } from "../sources/votes/index.js";
 import type { VoteChamber } from "../sources/votes/types.js";
 import { getPluginConfig, getStorage } from "../storage/context.js";
+import { safeParse } from "../validation/typebox.js";
 
 const DEFAULT_CONGRESS = 119;
 const DEFAULT_LIMIT = 20;
@@ -59,15 +59,6 @@ const IngestVotesParams = Type.Object({
         "When true, re-fetch detail+members for every listed vote even when its update_date is unchanged. Use for schema backfills or to pick up Voteview corrections (Voteview does not expose an update timestamp).",
     }),
   ),
-});
-
-const IngestVotesInputSchema = z.object({
-  chamber: z.enum(["House", "Senate", "Both"]).optional(),
-  congress: z.number().int().positive().optional(),
-  session: z.number().int().min(1).max(2).optional(),
-  limit: z.number().int().min(1).max(100).optional(),
-  offset: z.number().int().min(0).optional(),
-  force: z.boolean().optional(),
 });
 
 function textResult<T>(text: string, details: T) {
@@ -156,10 +147,10 @@ export const ingestVotesTool: AnyAgentTool = {
     "Sweep primary roll-call sources and persist recent votes (plus per-member positions keyed by bioguide id) into the plugin-private DB. House: api.congress.gov `/house-vote` (tier 1, requires plugins.politiclaw.apiKeys.apiDataGov). Senate: voteview.com `/api/search` + `/api/download` (tier 2, zero-key). Idempotent: unchanged entries (by update_date when available, by memberCount>0 otherwise) skip the detail fetch. Use chamber='Both' (default) to ingest both chambers in one call.",
   parameters: IngestVotesParams,
   async execute(_toolCallId, rawParams) {
-    const parsed = IngestVotesInputSchema.safeParse(rawParams);
-    if (!parsed.success) {
+    const parsed = safeParse(IngestVotesParams, rawParams);
+    if (!parsed.ok) {
       return textResult(
-        `Invalid input: ${parsed.error.issues.map((i) => i.message).join("; ")}`,
+        `Invalid input: ${parsed.messages.join("; ")}`,
         { status: "invalid" },
       );
     }

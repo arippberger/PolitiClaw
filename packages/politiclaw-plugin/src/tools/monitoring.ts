@@ -1,6 +1,5 @@
 import { Type } from "@sinclair/typebox";
 import type { AnyAgentTool } from "openclaw/plugin-sdk/plugin-entry";
-import { z } from "zod";
 
 import type { ActionPackageRow } from "../domain/actionMoments/index.js";
 import {
@@ -19,6 +18,7 @@ import { createUpcomingVotesResolver } from "../sources/upcomingVotes/index.js";
 import { congressGovPublicBillUrl } from "../sources/bills/types.js";
 import type { StanceMatch } from "../domain/scoring/alignment.js";
 import { getPluginConfig, getStorage } from "../storage/context.js";
+import { safeParse } from "../validation/typebox.js";
 
 const DEFAULT_CONGRESS = 119;
 
@@ -69,15 +69,6 @@ const CheckUpcomingVotesParams = Type.Object({
   ),
 });
 
-const CheckUpcomingVotesInputSchema = z.object({
-  congress: z.number().int().positive().optional(),
-  billType: z.string().trim().min(1).optional(),
-  fromDateTime: z.string().trim().min(1).optional(),
-  toDateTime: z.string().trim().min(1).optional(),
-  chamber: z.enum(["House", "Senate", "Joint"]).optional(),
-  limit: z.number().int().min(1).max(50).optional(),
-  refresh: z.boolean().optional(),
-});
 
 function textResult<T>(text: string, details: T) {
   return { content: [{ type: "text" as const, text }], details };
@@ -565,10 +556,10 @@ export const checkUpcomingVotesTool: AnyAgentTool = {
     "returns an empty delta. Requires plugins.politiclaw.apiKeys.apiDataGov.",
   parameters: CheckUpcomingVotesParams,
   async execute(_toolCallId, rawParams) {
-    const parsed = CheckUpcomingVotesInputSchema.safeParse(rawParams);
-    if (!parsed.success) {
+    const parsed = safeParse(CheckUpcomingVotesParams, rawParams);
+    if (!parsed.ok) {
       return textResult(
-        `Invalid input: ${parsed.error.issues.map((i) => i.message).join("; ")}`,
+        `Invalid input: ${parsed.messages.join("; ")}`,
         { status: "invalid" },
       );
     }

@@ -1,4 +1,5 @@
 import type { PolitiClawDb } from "../../storage/sqlite.js";
+import { parse } from "../../validation/typebox.js";
 import {
   ACTION_PROMPTING_VALUES,
   AccountabilityModeSchema,
@@ -11,6 +12,7 @@ import {
   type AccountabilityMode,
   type ActionPrompting,
   type IssueStance,
+  type IssueStanceInput,
   type IssueStanceRow,
   type MonitoringMode,
   type Preferences,
@@ -18,6 +20,22 @@ import {
   type StanceSignal,
 } from "./types.js";
 import { DEFAULT_ACCOUNTABILITY } from "./accountability.js";
+
+const DEFAULT_STANCE_SIGNAL_WEIGHT = 1.0;
+const DEFAULT_ISSUE_STANCE_WEIGHT = 3;
+
+function normalizePreferencesInput(input: Preferences): Preferences {
+  return {
+    ...input,
+    zip: input.zip?.trim(),
+    state: input.state?.trim().toUpperCase(),
+    district: input.district?.trim(),
+  };
+}
+
+function normalizeIssueKey(issue: string): string {
+  return issue.trim().toLowerCase().replace(/\s+/g, "-");
+}
 
 export {
   ACTION_PROMPTING_VALUES,
@@ -33,6 +51,7 @@ export type {
   AccountabilityMode,
   ActionPrompting,
   IssueStance,
+  IssueStanceInput,
   IssueStanceRow,
   MonitoringMode,
   Preferences,
@@ -78,7 +97,7 @@ export function getPreferences(db: PolitiClawDb): PreferencesRow | null {
 }
 
 export function upsertPreferences(db: PolitiClawDb, input: Preferences): PreferencesRow {
-  const parsed = PreferencesSchema.parse(input);
+  const parsed = parse(PreferencesSchema, normalizePreferencesInput(input));
   const existing = db
     .prepare(
       "SELECT monitoring_mode, accountability, action_prompting FROM preferences WHERE id = 1",
@@ -159,7 +178,7 @@ export function setMonitoringMode(
   db: PolitiClawDb,
   mode: MonitoringMode,
 ): PreferencesRow {
-  const parsed = MonitoringModeSchema.parse(mode);
+  const parsed = parse(MonitoringModeSchema, mode);
   const existing = requirePrefsRow(db, "monitoring mode");
   const now = Date.now();
   db.prepare(
@@ -175,7 +194,7 @@ export function setAccountability(
   db: PolitiClawDb,
   mode: AccountabilityMode,
 ): PreferencesRow {
-  const parsed = AccountabilityModeSchema.parse(mode);
+  const parsed = parse(AccountabilityModeSchema, mode);
   const existing = requirePrefsRow(db, "accountability");
   const now = Date.now();
   db.prepare(
@@ -191,7 +210,7 @@ export function setActionPrompting(
   db: PolitiClawDb,
   value: ActionPrompting,
 ): PreferencesRow {
-  const parsed = ActionPromptingSchema.parse(value);
+  const parsed = parse(ActionPromptingSchema, value);
   const existing = requirePrefsRow(db, "action prompting");
   const now = Date.now();
   db.prepare(
@@ -204,7 +223,16 @@ export function setActionPrompting(
 }
 
 export function recordStanceSignal(db: PolitiClawDb, input: StanceSignal): number {
-  const parsed = StanceSignalSchema.parse(input);
+  const normalized: StanceSignal = {
+    ...input,
+    issue: input.issue?.trim(),
+    billId: input.billId?.trim(),
+  };
+  const parsed = parse(StanceSignalSchema, normalized);
+  if (parsed.issue === undefined && parsed.billId === undefined) {
+    throw new Error("one of issue or billId is required");
+  }
+  const weight = parsed.weight ?? DEFAULT_STANCE_SIGNAL_WEIGHT;
   const now = Date.now();
   const res = db
     .prepare(
@@ -215,7 +243,7 @@ export function recordStanceSignal(db: PolitiClawDb, input: StanceSignal): numbe
       issue: parsed.issue ?? null,
       bill_id: parsed.billId ?? null,
       direction: parsed.direction,
-      weight: parsed.weight,
+      weight,
       source: parsed.source,
       created_at: now,
     });
@@ -232,8 +260,13 @@ export type StanceSignalRow = {
   createdAt: number;
 };
 
-export function upsertIssueStance(db: PolitiClawDb, input: IssueStance): IssueStanceRow {
-  const parsed = IssueStanceSchema.parse(input);
+export function upsertIssueStance(db: PolitiClawDb, input: IssueStanceInput): IssueStanceRow {
+  const normalized: IssueStanceInput = {
+    ...input,
+    issue: normalizeIssueKey(input.issue),
+  };
+  const parsed = parse(IssueStanceSchema, normalized);
+  const weight = parsed.weight ?? DEFAULT_ISSUE_STANCE_WEIGHT;
   const now = Date.now();
   db.prepare(
     `INSERT INTO issue_stances (issue, stance, weight, updated_at)
@@ -245,10 +278,10 @@ export function upsertIssueStance(db: PolitiClawDb, input: IssueStance): IssueSt
   ).run({
     issue: parsed.issue,
     stance: parsed.stance,
-    weight: parsed.weight,
+    weight,
     updated_at: now,
   });
-  return { ...parsed, updatedAt: now };
+  return { ...parsed, weight, updatedAt: now };
 }
 
 export function listIssueStances(db: PolitiClawDb): IssueStanceRow[] {
@@ -266,8 +299,9 @@ export function listIssueStances(db: PolitiClawDb): IssueStanceRow[] {
 }
 
 export function deleteIssueStance(db: PolitiClawDb, issue: string): boolean {
-  const normalized = issue.trim().toLowerCase().replace(/\s+/g, "-");
-  const result = db.prepare(`DELETE FROM issue_stances WHERE issue = ?`).run(normalized);
+  const result = db
+    .prepare(`DELETE FROM issue_stances WHERE issue = ?`)
+    .run(normalizeIssueKey(issue));
   return result.changes > 0;
 }
 

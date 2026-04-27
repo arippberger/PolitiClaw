@@ -1,6 +1,5 @@
 import { Type } from "@sinclair/typebox";
 import type { AnyAgentTool } from "openclaw/plugin-sdk/plugin-entry";
-import { z } from "zod";
 
 import {
   getActionPackage,
@@ -10,6 +9,7 @@ import {
   type PackageFeedbackVerdict,
 } from "../domain/actionMoments/index.js";
 import { getStorage } from "../storage/context.js";
+import { safeParse } from "../validation/typebox.js";
 
 const ListActionMomentsParams = Type.Object({
   limit: Type.Optional(
@@ -19,10 +19,6 @@ const ListActionMomentsParams = Type.Object({
       description: "Max packages to return. Defaults to 25.",
     }),
   ),
-});
-
-const ListActionMomentsInputSchema = z.object({
-  limit: z.number().int().min(1).max(100).optional(),
 });
 
 const DismissPackageParams = Type.Object({
@@ -44,12 +40,6 @@ const DismissPackageParams = Type.Object({
   ),
 });
 
-const DismissPackageInputSchema = z.object({
-  packageId: z.number().int().positive(),
-  verdict: z.enum(["useful", "not_now", "stop"]),
-  note: z.string().trim().min(1).optional(),
-});
-
 function textResult<T>(text: string, details: T) {
   return { content: [{ type: "text" as const, text }], details };
 }
@@ -69,10 +59,10 @@ export const listActionMomentsTool: AnyAgentTool = {
     "with politiclaw_dismiss_action_package.",
   parameters: ListActionMomentsParams,
   execute: async (_toolCallId, rawParams) => {
-    const parsed = ListActionMomentsInputSchema.safeParse(rawParams ?? {});
-    if (!parsed.success) {
+    const parsed = safeParse(ListActionMomentsParams, rawParams ?? {});
+    if (!parsed.ok) {
       return textResult(
-        `Invalid input: ${parsed.error.issues.map((i) => i.message).join("; ")}`,
+        `Invalid input: ${parsed.messages.join("; ")}`,
         { status: "invalid" },
       );
     }
@@ -96,10 +86,10 @@ export const dismissActionPackageTool: AnyAgentTool = {
     "politiclaw_mute unless the user explicitly wants to silence the bill/rep/issue.",
   parameters: DismissPackageParams,
   execute: async (_toolCallId, rawParams) => {
-    const parsed = DismissPackageInputSchema.safeParse(rawParams);
-    if (!parsed.success) {
+    const parsed = safeParse(DismissPackageParams, rawParams);
+    if (!parsed.ok) {
       return textResult(
-        `Invalid input: ${parsed.error.issues.map((i) => i.message).join("; ")}`,
+        `Invalid input: ${parsed.messages.join("; ")}`,
         { status: "invalid" },
       );
     }

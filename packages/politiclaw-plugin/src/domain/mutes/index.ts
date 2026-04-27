@@ -1,4 +1,5 @@
 import type { PolitiClawDb } from "../../storage/sqlite.js";
+import { parse } from "../../validation/typebox.js";
 import {
   MUTE_KINDS,
   MuteInputSchema,
@@ -34,7 +35,12 @@ function hydrate(row: RawMuteRow): MuteRow {
  * target refreshes the reason and `muted_at` timestamp rather than erroring.
  */
 export function addMute(db: PolitiClawDb, input: MuteInput): MuteRow {
-  const parsed = MuteInputSchema.parse(input);
+  const normalized: MuteInput = {
+    ...input,
+    ref: input.ref.trim(),
+    reason: input.reason?.trim() || undefined,
+  };
+  const parsed = parse(MuteInputSchema, normalized);
   const normalizedRef = normalizeRef(parsed.kind, parsed.ref);
   const now = Date.now();
   db.prepare(
@@ -61,7 +67,7 @@ export function removeMute(
   db: PolitiClawDb,
   input: { kind: MuteKind; ref: string },
 ): boolean {
-  const kind = MuteKindSchema.parse(input.kind);
+  const kind = parse(MuteKindSchema, input.kind);
   const ref = normalizeRef(kind, input.ref);
   const result = db
     .prepare(`DELETE FROM mute_list WHERE kind = ? AND ref = ?`)
@@ -86,7 +92,7 @@ export function listMutes(db: PolitiClawDb): MuteRow[] {
  * round-tripping to SQLite for every candidate row.
  */
 export function listMutedRefs(db: PolitiClawDb, kind: MuteKind): Set<string> {
-  const parsed = MuteKindSchema.parse(kind);
+  const parsed = parse(MuteKindSchema, kind);
   const rows = db
     .prepare(`SELECT ref FROM mute_list WHERE kind = ?`)
     .all(parsed) as Array<{ ref: string }>;
@@ -97,7 +103,7 @@ export function isMuted(
   db: PolitiClawDb,
   input: { kind: MuteKind; ref: string },
 ): boolean {
-  const kind = MuteKindSchema.parse(input.kind);
+  const kind = parse(MuteKindSchema, input.kind);
   const ref = normalizeRef(kind, input.ref);
   const row = db
     .prepare(`SELECT 1 FROM mute_list WHERE kind = ? AND ref = ? LIMIT 1`)

@@ -1,4 +1,4 @@
-import { z } from "zod";
+import { type Static, Type } from "@sinclair/typebox";
 
 /**
  * Accountability mode controls how proactive PolitiClaw is when a tracked
@@ -8,9 +8,13 @@ import { z } from "zod";
  */
 export const ACCOUNTABILITY_VALUES = ["self_serve", "nudge_me", "draft_for_me"] as const;
 
-export const AccountabilityModeSchema = z.enum(ACCOUNTABILITY_VALUES);
+export const AccountabilityModeSchema = Type.Union([
+  Type.Literal("self_serve"),
+  Type.Literal("nudge_me"),
+  Type.Literal("draft_for_me"),
+]);
 
-export type AccountabilityMode = z.infer<typeof AccountabilityModeSchema>;
+export type AccountabilityMode = Static<typeof AccountabilityModeSchema>;
 
 export const ACCOUNTABILITY_EXPLAINERS: Record<AccountabilityMode, string> = {
   self_serve:

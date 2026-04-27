@@ -1,6 +1,5 @@
 import { Type } from "@sinclair/typebox";
 import type { AnyAgentTool } from "openclaw/plugin-sdk/plugin-entry";
-import { z } from "zod";
 
 import {
   ALIGNMENT_DISCLAIMER,
@@ -15,9 +14,11 @@ import {
 import type { StoredRep } from "../domain/reps/index.js";
 import { congressGovPublicBillUrl } from "../sources/bills/types.js";
 import { getStorage } from "../storage/context.js";
+import { safeParse } from "../validation/typebox.js";
 
 const ScoreRepresentativeParams = Type.Object({
   repId: Type.String({
+    minLength: 1,
     description:
       "Stable rep id (bioguide when available). Call politiclaw_get_my_reps first to look it up.",
   }),
@@ -27,11 +28,6 @@ const ScoreRepresentativeParams = Type.Object({
         "When true, procedural roll calls (motions-to-adjourn, previous-question, etc.) are INCLUDED in the tally. Default is false.",
     }),
   ),
-});
-
-const ScoreRepresentativeInputSchema = z.object({
-  repId: z.string().trim().min(1),
-  includeProcedural: z.boolean().optional(),
 });
 
 function textResult<T>(text: string, details: T) {
@@ -244,10 +240,10 @@ export const scoreRepresentativeTool: AnyAgentTool = {
     '"insufficient data" if politiclaw_ingest_votes has not been run for the Senate yet.',
   parameters: ScoreRepresentativeParams,
   async execute(_toolCallId, rawParams) {
-    const parsed = ScoreRepresentativeInputSchema.safeParse(rawParams);
-    if (!parsed.success) {
+    const parsed = safeParse(ScoreRepresentativeParams, rawParams);
+    if (!parsed.ok) {
       return textResult(
-        `Invalid input: ${parsed.error.issues.map((i) => i.message).join("; ")}`,
+        `Invalid input: ${parsed.messages.join("; ")}`,
         { status: "invalid" },
       );
     }

@@ -1,6 +1,5 @@
 import { Type } from "@sinclair/typebox";
 import type { AnyAgentTool } from "openclaw/plugin-sdk/plugin-entry";
-import { z } from "zod";
 
 import {
   ALIGNMENT_DISCLAIMER,
@@ -13,6 +12,7 @@ import {
 import { createBillsResolver } from "../sources/bills/index.js";
 import type { BillRef } from "../sources/bills/types.js";
 import { getPluginConfig, getStorage } from "../storage/context.js";
+import { safeParse } from "../validation/typebox.js";
 
 /**
  * Test seam: production currently has no LLM transport wired, so by default
@@ -53,21 +53,6 @@ const ScoreBillParams = Type.Object({
     Type.Boolean({ description: "When true, bypass the bill-detail cache and re-fetch." }),
   ),
 });
-
-const ScoreBillInputSchema = z
-  .object({
-    billId: z.string().trim().min(1).optional(),
-    congress: z.number().int().positive().optional(),
-    billType: z.string().trim().min(1).optional(),
-    number: z.string().trim().min(1).optional(),
-    refresh: z.boolean().optional(),
-  })
-  .refine(
-    (input) =>
-      Boolean(input.billId) ||
-      (input.congress !== undefined && input.billType && input.number),
-    { message: "provide billId, or congress + billType + number" },
-  );
 
 function textResult<T>(text: string, details: T) {
   return { content: [{ type: "text" as const, text }], details };
@@ -194,14 +179,16 @@ export const scoreBillTool: AnyAgentTool = {
     "plugins.politiclaw.apiKeys.apiDataGov for the bill source.",
   parameters: ScoreBillParams,
   async execute(_toolCallId, rawParams) {
-    const parsed = ScoreBillInputSchema.safeParse(rawParams);
-    if (!parsed.success) {
+    const parsed = safeParse(ScoreBillParams, rawParams);
+    if (!parsed.ok) {
       return textResult(
-        `Invalid input: ${parsed.error.issues.map((i) => i.message).join("; ")}`,
+        `Invalid input: ${parsed.messages.join("; ")}`,
         { status: "invalid" },
       );
     }
 
+    // Cross-field "billId, or congress+billType+number" was a Zod refine;
+    // parseBillRef returns null for either-shape failures and we report it.
     const ref = parseBillRef(parsed.data);
     if (!ref) {
       return textResult(

@@ -1,9 +1,9 @@
 import { describe, expect, it } from "vitest";
 import { openMemoryDb } from "../../storage/sqlite.js";
+import { parse } from "../../validation/typebox.js";
 import {
   deleteIssueStance,
   getPreferences,
-  IssueStanceSchema,
   listIssueStances,
   listStanceSignals,
   recordStanceSignal,
@@ -11,26 +11,27 @@ import {
   upsertIssueStance,
   upsertPreferences,
   MonitoringModeSchema,
-  PreferencesSchema,
-  StanceSignalSchema,
 } from "./index.js";
 
-describe("PreferencesSchema", () => {
+describe("upsertPreferences", () => {
   it("requires a non-empty address", () => {
-    expect(() => PreferencesSchema.parse({ address: "" })).toThrow();
+    const db = openMemoryDb();
+    expect(() => upsertPreferences(db, { address: "" })).toThrow();
   });
 
   it("uppercases and validates a 2-letter state code", () => {
-    const p = PreferencesSchema.parse({ address: "123 Main", state: "ca" });
-    expect(p.state).toBe("CA");
+    const db = openMemoryDb();
+    upsertPreferences(db, { address: "123 Main", state: "ca" });
+    expect(getPreferences(db)?.state).toBe("CA");
   });
 
   it("rejects a 3-letter state code", () => {
-    expect(() => PreferencesSchema.parse({ address: "123 Main", state: "CAL" })).toThrow();
+    const db = openMemoryDb();
+    expect(() =>
+      upsertPreferences(db, { address: "123 Main", state: "CAL" }),
+    ).toThrow();
   });
-});
 
-describe("upsertPreferences", () => {
   it("inserts and overwrites the single-row preferences table", () => {
     const db = openMemoryDb();
     expect(getPreferences(db)).toBeNull();
@@ -53,25 +54,29 @@ describe("upsertPreferences", () => {
   });
 });
 
-describe("StanceSignalSchema", () => {
+describe("recordStanceSignal", () => {
   it("requires either issue or billId", () => {
+    const db = openMemoryDb();
     expect(() =>
-      StanceSignalSchema.parse({ direction: "agree", source: "onboarding" }),
-    ).toThrow();
+      recordStanceSignal(db, { direction: "agree", source: "onboarding" }),
+    ).toThrow(/issue or billId/);
   });
 
-  it("defaults weight to 1.0", () => {
-    const s = StanceSignalSchema.parse({
+  it("defaults weight to 1.0 when omitted", () => {
+    const db = openMemoryDb();
+    recordStanceSignal(db, {
       direction: "agree",
       source: "onboarding",
       issue: "climate",
     });
-    expect(s.weight).toBe(1.0);
+    const rows = listStanceSignals(db);
+    expect(rows[0]?.weight).toBe(1.0);
   });
 
   it("rejects negative weights", () => {
+    const db = openMemoryDb();
     expect(() =>
-      StanceSignalSchema.parse({
+      recordStanceSignal(db, {
         direction: "agree",
         source: "onboarding",
         issue: "climate",
@@ -79,9 +84,7 @@ describe("StanceSignalSchema", () => {
       }),
     ).toThrow();
   });
-});
 
-describe("recordStanceSignal", () => {
   it("writes the signal and returns its id", () => {
     const db = openMemoryDb();
     const id = recordStanceSignal(db, {
@@ -110,32 +113,33 @@ describe("recordStanceSignal", () => {
   });
 });
 
-describe("IssueStanceSchema", () => {
+describe("upsertIssueStance", () => {
   it("normalizes the issue slug to lowercase kebab-case", () => {
-    const parsed = IssueStanceSchema.parse({
+    const db = openMemoryDb();
+    upsertIssueStance(db, {
       issue: "Affordable Housing",
       stance: "support",
       weight: 4,
     });
-    expect(parsed.issue).toBe("affordable-housing");
+    expect(listIssueStances(db)[0]?.issue).toBe("affordable-housing");
   });
 
   it("rejects weights outside 1-5", () => {
+    const db = openMemoryDb();
     expect(() =>
-      IssueStanceSchema.parse({ issue: "x", stance: "support", weight: 6 }),
+      upsertIssueStance(db, { issue: "x", stance: "support", weight: 6 }),
     ).toThrow();
     expect(() =>
-      IssueStanceSchema.parse({ issue: "x", stance: "support", weight: 0 }),
+      upsertIssueStance(db, { issue: "x", stance: "support", weight: 0 }),
     ).toThrow();
   });
 
   it("defaults weight to 3 when omitted", () => {
-    const parsed = IssueStanceSchema.parse({ issue: "climate", stance: "support" });
-    expect(parsed.weight).toBe(3);
+    const db = openMemoryDb();
+    upsertIssueStance(db, { issue: "climate", stance: "support" });
+    expect(listIssueStances(db)[0]?.weight).toBe(3);
   });
-});
 
-describe("upsertIssueStance", () => {
   it("inserts and updates by issue slug", () => {
     const db = openMemoryDb();
     upsertIssueStance(db, { issue: "climate", stance: "support", weight: 5 });
@@ -182,12 +186,12 @@ describe("MonitoringModeSchema", () => {
       "action_only",
       "full_copilot",
     ] as const) {
-      expect(MonitoringModeSchema.parse(mode)).toBe(mode);
+      expect(parse(MonitoringModeSchema, mode)).toBe(mode);
     }
   });
 
   it("rejects unknown values", () => {
-    expect(() => MonitoringModeSchema.parse("shouty")).toThrow();
+    expect(() => parse(MonitoringModeSchema, "shouty")).toThrow();
   });
 });
 

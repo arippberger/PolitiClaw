@@ -25,6 +25,7 @@ Measure the gap between a rep's actual federal voting record and the stances the
   ],
   "properties": {
     "repId": {
+      "minLength": 1,
       "description": "Stable rep id (bioguide when available). Call politiclaw_get_my_reps first to look it up.",
       "type": "string"
     },

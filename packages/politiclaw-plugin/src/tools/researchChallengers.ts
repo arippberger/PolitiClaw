@@ -1,6 +1,5 @@
 import { Type } from "@sinclair/typebox";
 import type { AnyAgentTool } from "openclaw/plugin-sdk/plugin-entry";
-import { z } from "zod";
 
 import type {
   CompareChallengersResult,
@@ -12,6 +11,7 @@ import { ALIGNMENT_DISCLAIMER } from "../domain/scoring/index.js";
 import { createFinanceResolver } from "../sources/finance/index.js";
 import type { FederalCandidateFinancialTotals } from "../sources/finance/index.js";
 import { getPluginConfig, getStorage } from "../storage/context.js";
+import { safeParse } from "../validation/typebox.js";
 
 const ResearchChallengersParams = Type.Object({
   repId: Type.Optional(
@@ -26,11 +26,6 @@ const ResearchChallengersParams = Type.Object({
         "Optional four-digit election cycle (e.g. 2026). Defaults to the current year if even, otherwise next year.",
     }),
   ),
-});
-
-const ResearchChallengersInputSchema = z.object({
-  repId: z.string().trim().min(1).optional(),
-  cycle: z.number().int().min(1900).max(2100).optional(),
 });
 
 function textResult<T>(text: string, details: T) {
@@ -138,10 +133,10 @@ export const researchChallengersTool: AnyAgentTool = {
     "plugins.politiclaw.apiKeys.apiDataGov. Call politiclaw_get_my_reps first if no reps are stored.",
   parameters: ResearchChallengersParams,
   async execute(_toolCallId, rawParams) {
-    const parsed = ResearchChallengersInputSchema.safeParse(rawParams);
-    if (!parsed.success) {
+    const parsed = safeParse(ResearchChallengersParams, rawParams);
+    if (!parsed.ok) {
       return textResult(
-        `Invalid input: ${parsed.error.issues.map((issue) => issue.message).join("; ")}`,
+        `Invalid input: ${parsed.messages.join("; ")}`,
         { status: "invalid" },
       );
     }

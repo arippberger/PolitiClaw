@@ -1,11 +1,11 @@
 import { Type } from "@sinclair/typebox";
 import type { AnyAgentTool } from "openclaw/plugin-sdk/plugin-entry";
-import { z } from "zod";
 
 import { generateRepReport } from "../domain/reports/repReport.js";
 import type { GenerateRepReportResult, RepReportRow } from "../domain/reports/repReport.js";
 import { computeRepPattern, renderScoreRepresentativeOutput, type RepPattern } from "./repScoring.js";
 import { getStorage } from "../storage/context.js";
+import { safeParse } from "../validation/typebox.js";
 
 const RepReportParams = Type.Object({
   includeProcedural: Type.Optional(
@@ -14,10 +14,6 @@ const RepReportParams = Type.Object({
         "When true, procedural roll calls (House cloture-style motions and Senate cloture / motion-to-proceed / motion-to-table questions) are INCLUDED in scoring (same semantics as politiclaw_score_representative). Default is false.",
     }),
   ),
-});
-
-const RepReportInputSchema = z.object({
-  includeProcedural: z.boolean().optional(),
 });
 
 function textResult<T>(text: string, details: T) {
@@ -84,10 +80,10 @@ export const repReportTool: AnyAgentTool = {
     "and stored reps. Intended for periodic digests (see politiclaw.rep_report cron template).",
   parameters: RepReportParams,
   async execute(_toolCallId, rawParams) {
-    const parsed = RepReportInputSchema.safeParse(rawParams);
-    if (!parsed.success) {
+    const parsed = safeParse(RepReportParams, rawParams);
+    if (!parsed.ok) {
       return textResult(
-        `Invalid input: ${parsed.error.issues.map((issue) => issue.message).join("; ")}`,
+        `Invalid input: ${parsed.messages.join("; ")}`,
         { status: "invalid" },
       );
     }

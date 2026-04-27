@@ -1,6 +1,5 @@
 import { Type } from "@sinclair/typebox";
 import type { AnyAgentTool } from "openclaw/plugin-sdk/plugin-entry";
-import { z } from "zod";
 
 import { explainMyBallot } from "../domain/ballot/explain.js";
 import type {
@@ -13,6 +12,7 @@ import { ALIGNMENT_DISCLAIMER } from "../domain/scoring/index.js";
 import { createBallotResolver } from "../sources/ballot/index.js";
 import { createWebSearchResolver } from "../sources/webSearch/index.js";
 import { getPluginConfig, getStorage } from "../storage/context.js";
+import { safeParse } from "../validation/typebox.js";
 
 const ExplainMyBallotParams = Type.Object({
   refresh: Type.Optional(
@@ -21,10 +21,6 @@ const ExplainMyBallotParams = Type.Object({
         "When true, bypass the cached ballot snapshot and re-query voterInfoQuery.",
     }),
   ),
-});
-
-const ExplainMyBallotInputSchema = z.object({
-  refresh: z.boolean().optional(),
 });
 
 /**
@@ -160,10 +156,10 @@ export const explainMyBallotTool: AnyAgentTool = {
     "address, and plugins.politiclaw.apiKeys.googleCivic.",
   parameters: ExplainMyBallotParams,
   async execute(_toolCallId, rawParams) {
-    const parsed = ExplainMyBallotInputSchema.safeParse(rawParams);
-    if (!parsed.success) {
+    const parsed = safeParse(ExplainMyBallotParams, rawParams);
+    if (!parsed.ok) {
       return textResult(
-        `Invalid input: ${parsed.error.issues.map((issue) => issue.message).join("; ")}`,
+        `Invalid input: ${parsed.messages.join("; ")}`,
         { status: "invalid" },
       );
     }

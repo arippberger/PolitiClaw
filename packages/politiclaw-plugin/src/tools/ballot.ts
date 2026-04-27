@@ -1,6 +1,5 @@
 import { Type } from "@sinclair/typebox";
 import type { AnyAgentTool } from "openclaw/plugin-sdk/plugin-entry";
-import { z } from "zod";
 
 import { getBallotSnapshot } from "../domain/ballot/index.js";
 import type { GetBallotSnapshotResult } from "../domain/ballot/index.js";
@@ -8,6 +7,7 @@ import { ALIGNMENT_DISCLAIMER } from "../domain/scoring/index.js";
 import { createBallotResolver } from "../sources/ballot/index.js";
 import type { NormalizedBallotContest } from "../sources/ballot/types.js";
 import { getPluginConfig, getStorage } from "../storage/context.js";
+import { safeParse } from "../validation/typebox.js";
 
 const GetMyBallotParams = Type.Object({
   refresh: Type.Optional(
@@ -16,10 +16,6 @@ const GetMyBallotParams = Type.Object({
         "When true, bypass the cached Google Civic snapshot and re-query voterInfoQuery.",
     }),
   ),
-});
-
-const GetMyBallotInputSchema = z.object({
-  refresh: z.boolean().optional(),
 });
 
 function textResult<T>(text: string, details: T) {
@@ -128,10 +124,10 @@ export const getMyBallotTool: AnyAgentTool = {
     "Coverage labels are honest: this tool lists what Google returns today and marks each race PARTIAL unless fuller structured coverage is available.",
   parameters: GetMyBallotParams,
   async execute(_toolCallId, rawParams) {
-    const parsed = GetMyBallotInputSchema.safeParse(rawParams);
-    if (!parsed.success) {
+    const parsed = safeParse(GetMyBallotParams, rawParams);
+    if (!parsed.ok) {
       return textResult(
-        `Invalid input: ${parsed.error.issues.map((issue) => issue.message).join("; ")}`,
+        `Invalid input: ${parsed.messages.join("; ")}`,
         { status: "invalid" },
       );
     }

@@ -11,6 +11,7 @@ import {
   type MuteRow,
 } from "../domain/mutes/index.js";
 import { getStorage } from "../storage/context.js";
+import { parse } from "../validation/typebox.js";
 
 const MuteParams = Type.Object({
   kind: Type.Union(
@@ -43,6 +44,16 @@ function textResult<T>(text: string, details: T) {
   return { content: [{ type: "text" as const, text }], details };
 }
 
+function normalizeMuteRefs(raw: unknown): unknown {
+  if (typeof raw !== "object" || raw === null) return raw;
+  const cast = raw as { ref?: unknown; reason?: unknown };
+  return {
+    ...raw,
+    ref: typeof cast.ref === "string" ? cast.ref.trim() : cast.ref,
+    reason: typeof cast.reason === "string" ? cast.reason.trim() : cast.reason,
+  };
+}
+
 function renderMuteLine(row: MuteRow): string {
   const base = `- [${row.kind}] ${row.ref}`;
   return row.reason ? `${base} — ${row.reason}` : base;
@@ -57,7 +68,10 @@ export const muteTool: AnyAgentTool = {
     "Use when the user says they have seen enough about a topic; they can always unmute later.",
   parameters: MuteParams,
   async execute(_toolCallId, rawParams) {
-    const parsed = MuteInputSchema.parse(rawParams);
+    // Trim ref/reason before validation so a whitespace-only ref fails
+    // validation rather than slipping through to addMute. Mirrors the
+    // pre-migration Zod .trim().min(1) behavior.
+    const parsed = parse(MuteInputSchema, normalizeMuteRefs(rawParams));
     const { db } = getStorage();
     const row = addMute(db, parsed);
     const reasonSuffix = row.reason ? ` (reason: ${row.reason})` : "";
@@ -76,7 +90,7 @@ export const unmuteTool: AnyAgentTool = {
     "Returns a no-op acknowledgement if nothing was muted under that (kind, ref).",
   parameters: UnmuteParams,
   async execute(_toolCallId, rawParams) {
-    const { kind, ref } = UnmuteInputSchema.parse(rawParams);
+    const { kind, ref } = parse(UnmuteInputSchema, normalizeMuteRefs(rawParams));
     const { db } = getStorage();
     const removed = removeMute(db, { kind, ref });
     return textResult(

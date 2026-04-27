@@ -1,4 +1,4 @@
-import { z } from "zod";
+import { type Static, Type } from "@sinclair/typebox";
 
 import { AccountabilityModeSchema, type AccountabilityMode } from "./accountability.js";
 
@@ -13,32 +13,48 @@ export const MONITORING_MODE_VALUES = [
   "full_copilot",
 ] as const;
 
-export const MonitoringModeSchema = z.enum(MONITORING_MODE_VALUES);
+export const MonitoringModeSchema = Type.Union([
+  Type.Literal("off"),
+  Type.Literal("quiet_watch"),
+  Type.Literal("weekly_digest"),
+  Type.Literal("action_only"),
+  Type.Literal("full_copilot"),
+]);
 
-export type MonitoringMode = z.infer<typeof MonitoringModeSchema>;
+export type MonitoringMode = Static<typeof MonitoringModeSchema>;
 
 export const ACTION_PROMPTING_VALUES = ["off", "on"] as const;
 
-export const ActionPromptingSchema = z.enum(ACTION_PROMPTING_VALUES);
+export const ActionPromptingSchema = Type.Union([
+  Type.Literal("off"),
+  Type.Literal("on"),
+]);
 
-export type ActionPrompting = z.infer<typeof ActionPromptingSchema>;
+export type ActionPrompting = Static<typeof ActionPromptingSchema>;
 
-export const PreferencesSchema = z.object({
-  address: z.string().min(1, "address is required"),
-  zip: z.string().trim().optional(),
-  state: z
-    .string()
-    .trim()
-    .transform((s) => s.toUpperCase())
-    .refine((s) => s === "" || /^[A-Z]{2}$/.test(s), "state must be a 2-letter code")
-    .optional(),
-  district: z.string().trim().optional(),
-  monitoringMode: MonitoringModeSchema.optional(),
-  accountability: AccountabilityModeSchema.optional(),
-  actionPrompting: ActionPromptingSchema.optional(),
+/**
+ * Schema for user preferences. Validates the *normalized* shape:
+ * `zip`, `state`, and `district` are expected pre-trimmed, and `state`
+ * is expected pre-uppercased. The normalization step lives in
+ * `upsertPreferences` (see ./index.ts) so the schema can be a plain
+ * value-validator without TypeBox transform plumbing.
+ *
+ * `state` accepts either a 2-letter uppercase code or the empty string
+ * (the empty string is what a "user typed only spaces" path normalizes to).
+ */
+export const PreferencesSchema = Type.Object({
+  address: Type.String({ minLength: 1 }),
+  zip: Type.Optional(Type.String()),
+  state: Type.Optional(
+    Type.Union([Type.String({ pattern: "^[A-Z]{2}$" }), Type.Literal("")]),
+  ),
+  district: Type.Optional(Type.String()),
+  monitoringMode: Type.Optional(MonitoringModeSchema),
+  accountability: Type.Optional(AccountabilityModeSchema),
+  actionPrompting: Type.Optional(ActionPromptingSchema),
 });
 
-export type Preferences = z.infer<typeof PreferencesSchema>;
+export type Preferences = Static<typeof PreferencesSchema>;
 
 export type PreferencesRow = Preferences & {
   monitoringMode: MonitoringMode;
@@ -47,35 +63,62 @@ export type PreferencesRow = Preferences & {
   updatedAt: number;
 };
 
-export const StanceSignalSchema = z
-  .object({
-    issue: z.string().trim().min(1).optional(),
-    billId: z.string().trim().min(1).optional(),
-    direction: z.enum(["agree", "disagree", "skip"]),
-    weight: z.number().positive().default(1.0),
-    source: z.enum(["onboarding", "monitoring", "dashboard"]),
-  })
-  .refine((v) => v.issue !== undefined || v.billId !== undefined, {
-    message: "one of issue or billId is required",
-  });
+const StanceDirectionSchema = Type.Union([
+  Type.Literal("agree"),
+  Type.Literal("disagree"),
+  Type.Literal("skip"),
+]);
 
-export type StanceSignal = z.infer<typeof StanceSignalSchema>;
+const StanceSourceSchema = Type.Union([
+  Type.Literal("onboarding"),
+  Type.Literal("monitoring"),
+  Type.Literal("dashboard"),
+]);
+
+/**
+ * Schema for stance-signal input *after* the caller has trimmed `issue`
+ * and `billId`. The cross-field rule "one of issue or billId required"
+ * is enforced in `recordStanceSignal` since TypeBox doesn't express
+ * cross-field invariants in the schema. `weight` defaults to 1.0 in the
+ * caller when undefined.
+ */
+export const StanceSignalSchema = Type.Object({
+  issue: Type.Optional(Type.String({ minLength: 1 })),
+  billId: Type.Optional(Type.String({ minLength: 1 })),
+  direction: StanceDirectionSchema,
+  weight: Type.Optional(Type.Number({ exclusiveMinimum: 0 })),
+  source: StanceSourceSchema,
+});
+
+export type StanceSignal = Static<typeof StanceSignalSchema>;
+
+const IssueStanceStanceSchema = Type.Union([
+  Type.Literal("support"),
+  Type.Literal("oppose"),
+  Type.Literal("neutral"),
+]);
 
 /**
  * User-declared position on a policy issue. Drives bill alignment scoring
  * and representative scoring. Distinct from {@link StanceSignal}, which is a
  * single interaction event.
+ *
+ * Schema validates the *normalized* shape: callers MUST trim and dashify
+ * `issue` (lowercase, whitespace -> '-') before parsing. `weight` defaults
+ * to 3 in the caller when undefined.
  */
-export const IssueStanceSchema = z.object({
-  issue: z
-    .string()
-    .trim()
-    .min(1, "issue is required")
-    .transform((value) => value.toLowerCase().replace(/\s+/g, "-")),
-  stance: z.enum(["support", "oppose", "neutral"]),
-  weight: z.number().int().min(1).max(5).default(3),
+export const IssueStanceSchema = Type.Object({
+  issue: Type.String({ minLength: 1 }),
+  stance: IssueStanceStanceSchema,
+  weight: Type.Optional(Type.Integer({ minimum: 1, maximum: 5 })),
 });
 
-export type IssueStance = z.infer<typeof IssueStanceSchema>;
+/** Caller-provided shape: `weight` is optional and defaults to 3 in
+ *  `upsertIssueStance` when undefined. */
+export type IssueStanceInput = Static<typeof IssueStanceSchema>;
+
+/** Post-default form, which is what scoring code and storage rows read.
+ *  `weight` is always defined here. */
+export type IssueStance = Omit<IssueStanceInput, "weight"> & { weight: number };
 
 export type IssueStanceRow = IssueStance & { updatedAt: number };

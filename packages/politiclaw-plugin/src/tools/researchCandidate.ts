@@ -1,6 +1,5 @@
-import { Type } from "@sinclair/typebox";
+import { type Static, Type } from "@sinclair/typebox";
 import type { AnyAgentTool } from "openclaw/plugin-sdk/plugin-entry";
-import { z } from "zod";
 
 import { ALIGNMENT_DISCLAIMER } from "../domain/scoring/index.js";
 import type { AdapterResult } from "../sources/common/types.js";
@@ -16,22 +15,27 @@ import type {
   WebSearchResolver,
 } from "../sources/webSearch/index.js";
 import { getPluginConfig } from "../storage/context.js";
+import { safeParse } from "../validation/typebox.js";
 
 const ResearchCandidateParams = Type.Object({
   candidateId: Type.Optional(
     Type.String({
+      minLength: 1,
       description:
         "FEC candidate id (e.g. `H8CA12345`). Preferred when known — routes straight to the totals endpoint.",
     }),
   ),
   name: Type.Optional(
     Type.String({
+      minLength: 1,
       description:
         "Free-text candidate name query. Used when `candidateId` is absent; returns up to 5 FEC candidate matches for disambiguation.",
     }),
   ),
   cycle: Type.Optional(
     Type.Integer({
+      minimum: 1900,
+      maximum: 2100,
       description:
         "Optional four-digit election cycle (e.g. 2024) to filter searches to active candidates for that cycle.",
     }),
@@ -43,34 +47,13 @@ const ResearchCandidateParams = Type.Object({
   ),
   state: Type.Optional(
     Type.String({
+      pattern: "^[A-Za-z]{2}$",
       description: "Optional two-letter state filter (uppercased before the FEC call).",
     }),
   ),
 });
 
-const ResearchCandidateInputSchema = z
-  .object({
-    candidateId: z.string().trim().min(1).optional(),
-    name: z.string().trim().min(1).optional(),
-    cycle: z
-      .number()
-      .int()
-      .min(1900)
-      .max(2100)
-      .optional(),
-    office: z.enum(["H", "S", "P"]).optional(),
-    state: z
-      .string()
-      .trim()
-      .length(2)
-      .transform((value) => value.toUpperCase())
-      .optional(),
-  })
-  .refine((input) => Boolean(input.candidateId ?? input.name), {
-    message: "Pass either `candidateId` or `name`.",
-  });
-
-type ResearchCandidateInput = z.infer<typeof ResearchCandidateInputSchema>;
+type ResearchCandidateInput = Static<typeof ResearchCandidateParams>;
 
 function textResult<T>(text: string, details: T) {
   return { content: [{ type: "text" as const, text }], details };
@@ -265,15 +248,24 @@ export const researchCandidateTool: AnyAgentTool = {
     "(same key as api.congress.gov).",
   parameters: ResearchCandidateParams,
   async execute(_toolCallId, rawParams) {
-    const parsed = ResearchCandidateInputSchema.safeParse(rawParams);
-    if (!parsed.success) {
+    const parsed = safeParse(ResearchCandidateParams, rawParams);
+    if (!parsed.ok) {
       return textResult(
-        `Invalid input: ${parsed.error.issues.map((issue) => issue.message).join("; ")}`,
+        `Invalid input: ${parsed.messages.join("; ")}`,
         { status: "invalid" },
       );
     }
-
-    const input: ResearchCandidateInput = parsed.data;
+    // Cross-field rule (was a Zod refine): one of candidateId or name required.
+    if (!parsed.data.candidateId && !parsed.data.name) {
+      return textResult("Pass either `candidateId` or `name`.", {
+        status: "invalid",
+      });
+    }
+    // Normalize state to uppercase (was a Zod .transform).
+    const input: ResearchCandidateInput = {
+      ...parsed.data,
+      state: parsed.data.state?.toUpperCase(),
+    };
     const configuration = getPluginConfig();
     const resolver = createFinanceResolver({
       apiDataGovKey: configuration.apiKeys?.apiDataGov,

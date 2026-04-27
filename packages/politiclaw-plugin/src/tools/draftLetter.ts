@@ -1,6 +1,5 @@
 import { Type } from "@sinclair/typebox";
 import type { AnyAgentTool } from "openclaw/plugin-sdk/plugin-entry";
-import { z } from "zod";
 
 import {
   attachGeneratedLetter,
@@ -15,6 +14,7 @@ import {
 } from "../domain/letters/index.js";
 import { createBillsResolver } from "../sources/bills/index.js";
 import { getPluginConfig, getStorage } from "../storage/context.js";
+import { safeParse } from "../validation/typebox.js";
 
 const DraftLetterParams = Type.Object({
   repId: Type.String({
@@ -37,13 +37,6 @@ const DraftLetterParams = Type.Object({
         "Optional one-sentence personal hook appended verbatim above the closing. Keep short — the draft is already near its word ceiling.",
     }),
   ),
-});
-
-const DraftLetterInputSchema = z.object({
-  repId: z.string().trim().min(1),
-  issue: z.string().trim().min(1),
-  billId: z.string().trim().min(1).optional(),
-  customNote: z.string().trim().min(1).optional(),
 });
 
 function textResult<T>(text: string, details: T) {
@@ -99,10 +92,10 @@ export const draftLetterTool: AnyAgentTool = {
     "plugins.politiclaw.apiKeys.apiDataGov for bill lookup.",
   parameters: DraftLetterParams,
   async execute(_toolCallId, rawParams) {
-    const parsed = DraftLetterInputSchema.safeParse(rawParams);
-    if (!parsed.success) {
+    const parsed = safeParse(DraftLetterParams, rawParams);
+    if (!parsed.ok) {
       return textResult(
-        `Invalid input: ${parsed.error.issues.map((i) => i.message).join("; ")}`,
+        `Invalid input: ${parsed.messages.join("; ")}`,
         { status: "invalid" },
       );
     }

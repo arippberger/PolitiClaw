@@ -11,6 +11,7 @@ import {
   StanceSignalSchema,
 } from "../domain/preferences/index.js";
 import { getStorage } from "../storage/context.js";
+import { parse } from "../validation/typebox.js";
 
 const RecordStanceSignalParams = Type.Object({
   direction: Type.Union([Type.Literal("agree"), Type.Literal("disagree"), Type.Literal("skip")]),
@@ -63,7 +64,7 @@ export const recordStanceSignalTool: AnyAgentTool = {
     "For first-time setup or full reconfiguration, prefer politiclaw_configure.",
   parameters: RecordStanceSignalParams,
   async execute(_toolCallId, rawParams) {
-    const validated = StanceSignalSchema.parse(rawParams);
+    const validated = parse(StanceSignalSchema, rawParams);
     const { db } = getStorage();
     const id = recordStanceSignal(db, validated);
     return textResult(`Recorded ${validated.direction} signal (#${id}).`, { id });
@@ -80,7 +81,7 @@ export const setIssueStanceTool: AnyAgentTool = {
     "For first-time setup or full reconfiguration, prefer politiclaw_configure.",
   parameters: SetIssueStanceParams,
   async execute(_toolCallId, rawParams) {
-    const validated = IssueStanceSchema.parse(rawParams);
+    const validated = parse(IssueStanceSchema, rawParams);
     const { db } = getStorage();
     const row = upsertIssueStance(db, validated);
     return textResult(

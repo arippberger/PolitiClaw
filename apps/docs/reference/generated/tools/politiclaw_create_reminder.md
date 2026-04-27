@@ -28,10 +28,12 @@ Persist a reminder with a slot-filled checklist anchored to a bill, upcoming com
   ],
   "properties": {
     "title": {
+      "minLength": 1,
       "description": "Short user-facing label for the reminder.",
       "type": "string"
     },
     "deadline": {
+      "minLength": 1,
       "description": "Optional ISO-8601 date or datetime. When set, the monitoring crons surface the reminder as it comes due.",
       "type": "string"
     },
@@ -49,6 +51,7 @@ Persist a reminder with a slot-filled checklist anchored to a bill, upcoming com
               "type": "string"
             },
             "billId": {
+              "minLength": 1,
               "description": "Canonical bill id ('119-hr-1234').",
               "type": "string"
             }
@@ -66,6 +69,7 @@ Persist a reminder with a slot-filled checklist anchored to a bill, upcoming com
               "type": "string"
             },
             "eventId": {
+              "minLength": 1,
               "description": "Canonical event id from politiclaw_check_upcoming_votes.",
               "type": "string"
             }
@@ -83,6 +87,7 @@ Persist a reminder with a slot-filled checklist anchored to a bill, upcoming com
               "type": "string"
             },
             "electionDate": {
+              "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
               "description": "ISO election date (YYYY-MM-DD).",
               "type": "string"
             }
@@ -94,6 +99,7 @@ Persist a reminder with a slot-filled checklist anchored to a bill, upcoming com
       "description": "Optional user-supplied checklist items appended verbatim in order.",
       "type": "array",
       "items": {
+        "minLength": 1,
         "type": "string"
       }
     }

@@ -1,11 +1,11 @@
 import { Type } from "@sinclair/typebox";
 import type { AnyAgentTool } from "openclaw/plugin-sdk/plugin-entry";
-import { z } from "zod";
 
 import { getBillDetail, searchBills, type StoredBill } from "../domain/bills/index.js";
 import { createBillsResolver } from "../sources/bills/index.js";
 import type { BillRef } from "../sources/bills/types.js";
 import { getPluginConfig, getStorage } from "../storage/context.js";
+import { safeParse } from "../validation/typebox.js";
 
 const DEFAULT_CONGRESS = 119;
 const BILL_TYPES = [
@@ -66,31 +66,6 @@ const GetBillDetailsParams = Type.Object({
   refresh: Type.Optional(Type.Boolean()),
 });
 
-const SearchBillsInputSchema = z.object({
-  congress: z.number().int().positive().optional(),
-  billType: z.string().trim().min(1).optional(),
-  titleContains: z.string().trim().min(1).optional(),
-  fromDateTime: z.string().trim().min(1).optional(),
-  toDateTime: z.string().trim().min(1).optional(),
-  limit: z.number().int().min(1).max(50).optional(),
-  refresh: z.boolean().optional(),
-});
-
-const GetBillDetailsInputSchema = z
-  .object({
-    billId: z.string().trim().min(1).optional(),
-    congress: z.number().int().positive().optional(),
-    billType: z.string().trim().min(1).optional(),
-    number: z.string().trim().min(1).optional(),
-    refresh: z.boolean().optional(),
-  })
-  .refine(
-    (input) =>
-      Boolean(input.billId) ||
-      (input.congress !== undefined && input.billType && input.number),
-    { message: "provide billId, or congress + billType + number" },
-  );
-
 function textResult<T>(text: string, details: T) {
   return { content: [{ type: "text" as const, text }], details };
 }
@@ -142,9 +117,9 @@ export const searchBillsTool: AnyAgentTool = {
     "Cached for 6h; pass refresh=true to re-fetch.",
   parameters: SearchBillsParams,
   async execute(_toolCallId, rawParams) {
-    const parsed = SearchBillsInputSchema.safeParse(rawParams);
-    if (!parsed.success) {
-      return textResult(`Invalid input: ${parsed.error.issues.map((i) => i.message).join("; ")}`, {
+    const parsed = safeParse(SearchBillsParams, rawParams);
+    if (!parsed.ok) {
+      return textResult(`Invalid input: ${parsed.messages.join("; ")}`, {
         status: "invalid",
       });
     }
@@ -209,14 +184,17 @@ export const getBillDetailsTool: AnyAgentTool = {
     "Requires plugins.politiclaw.apiKeys.apiDataGov.",
   parameters: GetBillDetailsParams,
   async execute(_toolCallId, rawParams) {
-    const parsed = GetBillDetailsInputSchema.safeParse(rawParams);
-    if (!parsed.success) {
+    const parsed = safeParse(GetBillDetailsParams, rawParams);
+    if (!parsed.ok) {
       return textResult(
-        `Invalid input: ${parsed.error.issues.map((i) => i.message).join("; ")}`,
+        `Invalid input: ${parsed.messages.join("; ")}`,
         { status: "invalid" },
       );
     }
 
+    // The cross-field rule "billId, or congress + billType + number" is
+    // covered implicitly: parseBillRef returns null whenever neither shape
+    // is present, and we report the same actionable message below.
     const ref = parseBillRef(parsed.data);
     if (!ref) {
       return textResult(

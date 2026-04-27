@@ -1,22 +1,30 @@
-import { z } from "zod";
+import { type Static, Type } from "@sinclair/typebox";
 
 export const MUTE_KINDS = ["bill", "rep", "issue"] as const;
 
-export const MuteKindSchema = z.enum(MUTE_KINDS);
+export const MuteKindSchema = Type.Union([
+  Type.Literal("bill"),
+  Type.Literal("rep"),
+  Type.Literal("issue"),
+]);
 
-export type MuteKind = z.infer<typeof MuteKindSchema>;
+export type MuteKind = Static<typeof MuteKindSchema>;
 
-export const MuteInputSchema = z.object({
+/**
+ * Schema for mute input *after* the caller has trimmed `ref` and `reason`.
+ * Trim happens in `addMute` (see ./index.ts).
+ */
+export const MuteInputSchema = Type.Object({
   kind: MuteKindSchema,
-  ref: z.string().trim().min(1, "ref is required"),
-  reason: z.string().trim().min(1).optional(),
+  ref: Type.String({ minLength: 1 }),
+  reason: Type.Optional(Type.String({ minLength: 1 })),
 });
 
-export type MuteInput = z.infer<typeof MuteInputSchema>;
+export type MuteInput = Static<typeof MuteInputSchema>;
 
-export const UnmuteInputSchema = MuteInputSchema.omit({ reason: true });
+export const UnmuteInputSchema = Type.Omit(MuteInputSchema, ["reason"]);
 
-export type UnmuteInput = z.infer<typeof UnmuteInputSchema>;
+export type UnmuteInput = Static<typeof UnmuteInputSchema>;
 
 export type MuteRow = {
   kind: MuteKind;
