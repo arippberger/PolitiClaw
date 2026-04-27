@@ -45,6 +45,7 @@ export default withMermaid(defineConfig({
         items: [
           { text: "Tools", link: "/reference/tools" },
           { text: "Tool Audit", link: "/reference/tool-audit" },
+          { text: "Quick Commands", link: "/reference/commands" },
           { text: "Config Schema", link: "/reference/config-schema" },
           { text: "Coverage & Limits", link: "/reference/source-coverage" },
           { text: "Cron Jobs", link: "/reference/cron-jobs" },

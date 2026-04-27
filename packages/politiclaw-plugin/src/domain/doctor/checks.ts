@@ -186,14 +186,14 @@ function checkPreferences(db: PolitiClawDb): DoctorCheck {
   }
 }
 
-type ApiKeyFlag = {
+export type ApiKeyFlag = {
   key: keyof NonNullable<PluginConfigSnapshot["apiKeys"]>;
   label: string;
   required: boolean;
   unlocks: string;
 };
 
-const API_KEY_FLAGS: readonly ApiKeyFlag[] = [
+export const API_KEY_FLAGS: readonly ApiKeyFlag[] = [
   {
     key: "apiDataGov",
     label: "api.data.gov",
