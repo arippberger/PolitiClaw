@@ -10,7 +10,7 @@ This page is generated from `openclaw.plugin.json` plus the explicit runtime sou
 | `apiKeys.legiscan` | no | `schema_only` | no | OPTIONAL UPGRADE. State bills fallback or primary source. Free tier 30,000 queries/month. Covers federal and state in one key if the user prefers unified access. |
 | `apiKeys.openSecrets` | no | `schema_only` | no | OPTIONAL UPGRADE. Federal campaign-finance derived analytics such as industry rollups and revolving-door context. Non-commercial use only. Without a key, narrative context falls back to LLM search, but never for dollar amounts. |
 | `apiKeys.followTheMoney` | no | `schema_only` | no | OPTIONAL UPGRADE. State-level campaign finance. Without this, state finance data is explicitly not covered. |
-| `apiKeys.voteSmart` | no | `schema_only` | no | OPTIONAL UPGRADE. Candidate bios for ballot explanations. Default bios come from LLM search with tier-5 tagging; Vote Smart is a structured upgrade. |
+| `apiKeys.voteSmart` | no | `schema_only` | no | OPTIONAL UPGRADE. Candidate bios for ballot explanations. Default bios come from LLM search and are tagged as low-confidence narrative; Vote Smart provides structured, verified bios. |
 | `apiKeys.democracyWorks` | no | `schema_only` | no | OPTIONAL UPGRADE. Ballot logistics such as dates, deadlines, and polling places. Partner-gated; requires an application. Default uses Google Civic voterInfoQuery (free, less reliable). |
 | `apiKeys.cicero` | no | `schema_only` | no | OPTIONAL UPGRADE (paid). Local municipal, county, and school-board representative coverage. This is the only local source; without it, local reps are explicitly not covered. |
 | `apiKeys.ballotReady` | no | `schema_only` | no | OPTIONAL UPGRADE (commercial). Structured down-ballot data. Default scope covers federal, statewide, and six secretary-of-state feeds; BallotReady lights up fuller down-ballot coverage. |
@@ -80,7 +80,7 @@ OPTIONAL UPGRADE. State-level campaign finance. Without this, state finance data
 
 ## apiKeys.voteSmart
 
-OPTIONAL UPGRADE. Candidate bios for ballot explanations. Default bios come from LLM search with tier-5 tagging; Vote Smart is a structured upgrade.
+OPTIONAL UPGRADE. Candidate bios for ballot explanations. Default bios come from LLM search and are tagged as low-confidence narrative; Vote Smart provides structured, verified bios.
 
 - Runtime status: `schema_only`
 - Required: no
