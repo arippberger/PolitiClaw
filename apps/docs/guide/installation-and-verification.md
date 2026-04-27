@@ -3,11 +3,11 @@
 ```mermaid
 flowchart LR
   start([Start]) --> path{"Install path"}
-  path -->|"User"| npmInstall["openclaw plugins install<br/>@politiclaw/politiclaw"]
-  path -->|"Contributor"| linkInstall["openclaw plugins install<br/>./packages/politiclaw-plugin --link"]
-  linkInstall --> checks["npm run build<br/>npm run typecheck<br/>npm run test"]
+  path -->|"User (npm)"| npmInstall["openclaw plugins install<br/>@politiclaw/politiclaw"]
+  path -->|"Contributor (--link)"| checks["npm run build<br/>npm run typecheck<br/>npm run test"]
+  checks --> linkInstall["openclaw plugins install --link<br/>(local checkout)"]
   npmInstall --> reload["Reload gateway"]
-  checks --> reload
+  linkInstall --> reload
   reload --> doctor["politiclaw_doctor"]
   doctor --> configure["politiclaw_configure<br/>address=..."]
   configure --> reps["politiclaw_get_my_reps<br/>(optional verification)"]

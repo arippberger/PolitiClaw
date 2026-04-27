@@ -663,6 +663,13 @@ body {
   max-width: 100%;
   height: auto;
 }
+/* Breathing room between a heading and the diagram below, plus a
+   click-to-enlarge affordance (handled by lightbox.ts). */
+.vp-doc .mermaid {
+  margin-top: 1.75rem;
+  margin-bottom: 1.75rem;
+  cursor: zoom-in;
+}
 .mermaid svg .edgeLabel,
 .vp-doc div[class*="mermaid"] svg .edgeLabel {
   font-style: italic;
@@ -747,4 +754,62 @@ html.dark .mermaid svg .edgeLabel rect {
 .mermaid svg .edgePaths path,
 .mermaid svg .edge path {
   stroke: var(--pc-ink) !important;
+}
+
+/* ---------- Mermaid lightbox (click-to-enlarge) ----------
+   Wired by .vitepress/theme/lightbox.ts. The modal lives at
+   document.body level so it sits above VPNavBar; backdrop click,
+   close button, and Esc all dismiss. */
+.mermaid-lightbox {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: none;
+  align-items: center;
+  justify-content: center;
+}
+.mermaid-lightbox.open {
+  display: flex;
+}
+.mermaid-lightbox-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(15, 11, 10, 0.85);
+}
+.mermaid-lightbox-content {
+  position: relative;
+  z-index: 1;
+  width: min(95vw, 1400px);
+  max-height: 92vh;
+  background: var(--pc-paper);
+  border: 1px solid var(--pc-rule-2);
+  padding: 32px 24px 24px;
+  overflow: auto;
+  box-shadow: 0 12px 48px rgba(0, 0, 0, 0.4);
+}
+.mermaid-lightbox-svg-container {
+  width: 100%;
+}
+.mermaid-lightbox-svg-container svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  max-height: none;
+  font-family: var(--pc-mono);
+}
+.mermaid-lightbox-close {
+  position: absolute;
+  top: 4px;
+  right: 12px;
+  background: transparent;
+  border: none;
+  font-size: 28px;
+  line-height: 1;
+  cursor: pointer;
+  color: var(--pc-ink);
+  font-family: var(--pc-mono);
+  padding: 4px 8px;
+}
+.mermaid-lightbox-close:hover {
+  color: var(--pc-red);
 }
