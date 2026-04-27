@@ -1,5 +1,6 @@
 import { definePluginEntry } from "openclaw/plugin-sdk/plugin-entry";
 
+import { REGISTERED_POLITICLAW_COMMANDS } from "./commands/index.js";
 import { getGatewayCronAdapter } from "./cron/gatewayAdapter.js";
 import { REGISTERED_POLITICLAW_TOOLS } from "./docs/toolRegistry.js";
 import { createDashboardRoute } from "./http/routes.js";
@@ -29,6 +30,13 @@ export default definePluginEntry({
     );
     for (const tool of REGISTERED_POLITICLAW_TOOLS) api.registerTool(tool);
 
+    // Auto-reply commands. These bypass the LLM entirely and return canned
+    // text the user can use to navigate the plugin without burning model
+    // tokens — help, status, doctor, keys, version. The data inside each
+    // command is sourced from the same metadata the docs generator reads,
+    // so wording stays in sync with the published reference automatically.
+    for (const command of REGISTERED_POLITICLAW_COMMANDS) api.registerCommand(command);
+
     // Dashboard. Served under `/politiclaw/*` on the
     // gateway's HTTP surface. Auth is "plugin" (no gateway-side auth);
     // exposure is local-only by default — document the remote-exposure
@@ -48,7 +56,9 @@ export default definePluginEntry({
     api.logger.info(
       "PolitiClaw: registered " +
         `${REGISTERED_POLITICLAW_TOOLS.length} tools ` +
-        `(${REGISTERED_POLITICLAW_TOOLS.map((tool) => tool.name).join(", ")})` +
+        `(${REGISTERED_POLITICLAW_TOOLS.map((tool) => tool.name).join(", ")}), ` +
+        `${REGISTERED_POLITICLAW_COMMANDS.length} commands ` +
+        `(${REGISTERED_POLITICLAW_COMMANDS.map((cmd) => `/${cmd.name}`).join(", ")})` +
         ", dashboard at /politiclaw",
     );
   },
