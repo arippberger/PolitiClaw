@@ -1,5 +1,5 @@
 import { Type } from "@sinclair/typebox";
-import type { AnyAgentTool } from "openclaw/plugin-sdk";
+import type { AnyAgentTool } from "openclaw/plugin-sdk/plugin-entry";
 
 import { identifyMyReps } from "../domain/reps/index.js";
 import { createRepsResolver } from "../sources/reps/index.js";

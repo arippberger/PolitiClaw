@@ -1,5 +1,5 @@
 import { Type } from "@sinclair/typebox";
-import type { AnyAgentTool } from "openclaw/plugin-sdk";
+import type { AnyAgentTool } from "openclaw/plugin-sdk/plugin-entry";
 
 import { runDoctor, type DoctorCheck, type DoctorReport } from "../domain/doctor/index.js";
 import { getGatewayCronAdapter } from "../cron/gatewayAdapter.js";

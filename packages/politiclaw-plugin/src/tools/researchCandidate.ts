@@ -1,5 +1,5 @@
 import { Type } from "@sinclair/typebox";
-import type { AnyAgentTool } from "openclaw/plugin-sdk";
+import type { AnyAgentTool } from "openclaw/plugin-sdk/plugin-entry";
 import { z } from "zod";
 
 import { ALIGNMENT_DISCLAIMER } from "../domain/scoring/index.js";

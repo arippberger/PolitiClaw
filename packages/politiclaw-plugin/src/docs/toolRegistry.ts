@@ -1,4 +1,4 @@
-import type { AnyAgentTool } from "openclaw/plugin-sdk";
+import type { AnyAgentTool } from "openclaw/plugin-sdk/plugin-entry";
 
 import { actionMomentsTools } from "../tools/actionMoments.js";
 import { ballotTools } from "../tools/ballot.js";
