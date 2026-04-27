@@ -1,5 +1,30 @@
 # Architecture
 
+```mermaid
+graph TB
+  entry["src/index.ts<br/>plugin entry & wiring"]
+  subgraph surface["Tool surface"]
+    tools["src/tools/<br/>tool handlers"]
+    http["src/http/<br/>local-only dashboard"]
+    cron["src/cron/<br/>monitoring templates"]
+  end
+  domain["src/domain/<br/>preferences · reps · bills · ballot<br/>scoring · letters · monitoring"]
+  sources["src/sources/<br/>provider adapters"]
+  storage["src/storage/<br/>SQLite + migrations + KV"]
+  skills["skills/<br/>companion prompts"]
+
+  entry --> tools
+  entry --> http
+  entry --> cron
+  entry --> skills
+  tools --> domain
+  http --> domain
+  cron --> domain
+  domain --> sources
+  domain --> storage
+  cron -. "schedules invoke tools via gateway API" .-> tools
+```
+
 ## Current Runtime Shape
 
 The current plugin is centered on tool registration plus a few supporting layers:

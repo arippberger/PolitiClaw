@@ -1,6 +1,7 @@
 import { defineConfig } from "vitepress";
+import { withMermaid } from "vitepress-plugin-mermaid";
 
-export default defineConfig({
+export default withMermaid(defineConfig({
   title: "PolitiClaw",
   description:
     "Living documentation for the PolitiClaw OpenClaw plugin.",
@@ -73,4 +74,4 @@ export default defineConfig({
       copyright: "PolitiClaw"
     }
   }
-});
+}));

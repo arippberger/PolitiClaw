@@ -1,5 +1,20 @@
 # Tool Surface Policy
 
+```mermaid
+graph TB
+  tier1["Tier 1 — core user-facing<br/>maps to common user goals"]
+  tier2["Tier 2 — advanced / power-user<br/>narrower or procedural"]
+  tier3["Tier 3 — internal / operator-facing<br/>setup, plumbing, background"]
+
+  tier1 --> tools1["politiclaw_doctor<br/>politiclaw_configure<br/>politiclaw_set_api_keys<br/>politiclaw_set_issue_stance<br/>politiclaw_prepare_me_for_my_next_election<br/>politiclaw_get_my_reps<br/>politiclaw_score_representative<br/>politiclaw_search_bills<br/>politiclaw_score_bill<br/>politiclaw_research_candidate<br/>politiclaw_draft_letter"]
+  tier2 --> tools2["politiclaw_get_bill_details<br/>politiclaw_rep_report<br/>politiclaw_explain_my_ballot<br/>politiclaw_check_upcoming_votes<br/>politiclaw_research_challengers<br/>politiclaw_list_issue_stances · delete_issue_stance<br/>politiclaw_create_reminder<br/>politiclaw_mute · unmute · list_mutes"]
+  tier3 --> tools3["politiclaw_record_stance_signal<br/>politiclaw_ingest_votes<br/>politiclaw_get_my_ballot"]
+
+  tier1 -. "default entry points" .-> nav1[/"Guides + onboarding"/]
+  tier2 -. "follow-up moves" .-> nav2[/"Advanced sections"/]
+  tier3 -. "generated reference only" .-> nav3[/"Reference + maintainer docs"/]
+```
+
 ## Why this exists
 
 PolitiClaw currently exposes a broad runtime tool surface. That is useful for agents and maintainers, but it is too noisy for most humans if every tool is presented as a first-class entry point.

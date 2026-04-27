@@ -4,6 +4,264 @@ This page is generated from a real in-memory SQLite database after migrations ru
 
 Migration count: 17.
 
+## Schema overview
+
+```mermaid
+erDiagram
+  action_package_feedback {
+    INTEGER id PK
+    INTEGER package_id FK
+    INTEGER created_at
+    TEXT verdict
+    TEXT note
+  }
+  action_packages {
+    INTEGER id PK
+    INTEGER created_at
+    TEXT trigger_class
+    TEXT package_kind
+    TEXT outreach_mode
+    TEXT bill_id
+    TEXT rep_id
+    TEXT issue
+    TEXT election_date
+    TEXT decision_hash
+    TEXT summary
+    TEXT status
+    INTEGER status_at
+    INTEGER generated_letter_id
+    INTEGER generated_call_script_id
+    INTEGER generated_reminder_id
+    TEXT source_adapter_id
+    INTEGER source_tier
+  }
+  alert_history {
+    INTEGER id PK
+    INTEGER created_at
+    TEXT kind
+    TEXT ref_id
+    TEXT change_reason
+    TEXT summary
+    TEXT source_adapter_id
+    INTEGER source_tier
+  }
+  alert_settings {
+    TEXT key PK
+    TEXT value
+  }
+  ballot_explanations {
+    INTEGER id PK
+    TEXT election_day
+    TEXT stance_snapshot_hash
+    TEXT narrative_text
+    TEXT coverage_json
+    INTEGER computed_at
+    TEXT source_adapter_id
+    INTEGER source_tier
+  }
+  ballots {
+    TEXT address_hash PK
+    TEXT normalized_input_json
+    TEXT election_json
+    TEXT contests_json
+    TEXT logistics_json
+    INTEGER fetched_at
+    INTEGER ttl_ms
+    TEXT source_adapter_id
+    INTEGER source_tier
+    TEXT raw_response_json
+  }
+  bill_alignment {
+    TEXT bill_id PK,FK
+    TEXT stance_snapshot_hash PK
+    REAL relevance
+    REAL confidence
+    TEXT matched_json
+    TEXT rationale
+    INTEGER computed_at
+    TEXT source_adapter_id
+    INTEGER source_tier
+  }
+  bills {
+    TEXT id PK
+    INTEGER congress
+    TEXT bill_type
+    TEXT number
+    TEXT title
+    TEXT origin_chamber
+    TEXT introduced_date
+    TEXT latest_action_date
+    TEXT latest_action_text
+    TEXT policy_area
+    TEXT subjects_json
+    TEXT summary_text
+    TEXT sponsors_json
+    TEXT update_date
+    TEXT source_url
+    INTEGER last_synced
+    TEXT source_adapter_id
+    INTEGER source_tier
+    TEXT raw
+  }
+  call_scripts {
+    INTEGER id PK
+    TEXT rep_id
+    TEXT rep_name
+    TEXT rep_office
+    TEXT issue
+    TEXT bill_id
+    TEXT opening_line
+    TEXT ask_line
+    TEXT one_specific_line
+    TEXT closing_line
+    TEXT phone_number
+    TEXT stance_snapshot_hash
+    INTEGER word_count
+    INTEGER created_at
+  }
+  issue_stances {
+    TEXT issue PK
+    INTEGER weight
+    TEXT stance
+    INTEGER updated_at
+  }
+  kv_store {
+    TEXT key PK
+    TEXT value
+    INTEGER updated_at
+  }
+  letters {
+    INTEGER id PK
+    TEXT rep_id
+    TEXT rep_name
+    TEXT rep_office
+    TEXT issue
+    TEXT bill_id
+    TEXT subject
+    TEXT body
+    TEXT citations_json
+    TEXT stance_snapshot_hash
+    INTEGER word_count
+    INTEGER created_at
+    INTEGER redraft_requested_at
+  }
+  member_votes {
+    TEXT vote_id PK,FK
+    TEXT bioguide_id PK
+    TEXT position
+    TEXT first_name
+    TEXT last_name
+    TEXT party
+    TEXT state
+  }
+  mute_list {
+    TEXT kind PK
+    TEXT ref PK
+    TEXT reason
+    INTEGER muted_at
+  }
+  preferences {
+    INTEGER id PK
+    TEXT address
+    TEXT zip
+    TEXT state
+    TEXT district
+    TEXT monitoring_mode
+    INTEGER updated_at
+    TEXT accountability
+    TEXT action_prompting
+  }
+  reminders {
+    INTEGER id PK
+    TEXT title
+    TEXT deadline
+    TEXT anchor_bill_id
+    TEXT anchor_event_id
+    TEXT anchor_election_date
+    TEXT steps_json
+    INTEGER created_at
+  }
+  rep_scores {
+    TEXT rep_id PK,FK
+    TEXT stance_snapshot_hash PK
+    TEXT issue PK
+    INTEGER aligned_count
+    INTEGER conflicted_count
+    INTEGER considered_count
+    REAL relevance
+    REAL confidence
+    REAL alignment_score
+    TEXT rationale
+    TEXT cited_bills_json
+    INTEGER procedural_excluded
+    INTEGER computed_at
+    TEXT source_adapter_id
+    INTEGER source_tier
+  }
+  reps {
+    TEXT id PK
+    TEXT name
+    TEXT office
+    TEXT party
+    TEXT jurisdiction
+    TEXT district
+    TEXT state
+    TEXT contact
+    INTEGER last_synced
+    TEXT source_adapter_id
+    INTEGER source_tier
+    TEXT raw
+  }
+  roll_call_votes {
+    TEXT id PK
+    TEXT chamber
+    INTEGER congress
+    INTEGER session
+    INTEGER roll_call_number
+    TEXT start_date
+    TEXT update_date
+    TEXT vote_type
+    TEXT result
+    TEXT vote_question
+    TEXT bill_id
+    TEXT amendment_id
+    TEXT amendment_author
+    TEXT legislation_url
+    TEXT source_url
+    INTEGER is_procedural
+    TEXT source_adapter_id
+    INTEGER source_tier
+    INTEGER synced_at
+  }
+  schema_version {
+    INTEGER version PK
+  }
+  snapshots {
+    TEXT entity_kind PK
+    TEXT entity_id PK
+    INTEGER hash_input_version
+    TEXT content_hash
+    INTEGER first_seen_at
+    INTEGER last_seen_at
+    INTEGER last_changed_at
+    TEXT source_adapter_id
+    INTEGER source_tier
+  }
+  stance_signals {
+    INTEGER id PK
+    TEXT issue
+    TEXT bill_id
+    TEXT direction
+    REAL weight
+    TEXT source
+    INTEGER created_at
+  }
+  action_packages ||--o{ action_package_feedback : "package_id -> action_packages.id"
+  bills ||--o{ bill_alignment : "bill_id -> bills.id"
+  roll_call_votes ||--o{ member_votes : "vote_id -> roll_call_votes.id"
+  reps ||--o{ rep_scores : "rep_id -> reps.id"
+```
+
 ## Migrations
 
 - `packages/politiclaw-plugin/src/storage/migrations/0001_init.sql`

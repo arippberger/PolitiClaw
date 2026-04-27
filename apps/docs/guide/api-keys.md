@@ -2,6 +2,29 @@
 
 This page is the single source on which provider keys PolitiClaw uses, what each unlocks, and how to set them. For the runtime status table (which keys are wired today versus declared in schema only), the authoritative source is [Generated Source Coverage](../reference/generated/source-coverage).
 
+```mermaid
+graph TB
+  apiDataGov["apiDataGov<br/>required for federal data"]
+  googleCivic["googleCivic<br/>required for ballot tools"]
+  geocodio["geocodio<br/>optional upgrade"]
+  zeroKey["Zero-key paths<br/>always available"]
+
+  apiDataGov --> bills["Federal bill search & detail"]
+  apiDataGov --> house["House roll-call vote ingest"]
+  apiDataGov --> committee["Committee schedule"]
+  apiDataGov --> fec["FEC OpenFEC candidate finance"]
+
+  googleCivic --> ballot["Ballot snapshots"]
+  googleCivic --> contests["Contest framing"]
+  googleCivic --> polling["Polling-place lookup"]
+  googleCivic --> dates["Election dates"]
+
+  geocodio --> repsApi["Faster reps-by-address"]
+
+  zeroKey --> senate["Senate roll-call votes<br/>via voteview.com"]
+  zeroKey --> shapefile["Reps via local shapefile<br/>(geocodio fallback)"]
+```
+
 ## Which key unlocks what
 
 Three keys cover the wired runtime today.

@@ -89,24 +89,14 @@ import { withBase } from "vitepress";
   The plugin registers three things with your OpenClaw gateway: a pool of <strong>provider adapters</strong> (api.data.gov for federal bills, House votes, and FEC finance; voteview.com for Senate votes; Google Civic for ballots; Geocodio as an optional rep-lookup upgrade), a <strong>tool bundle</strong> the agent can call (<code>politiclaw_doctor</code>, <code>politiclaw_configure</code>, <code>politiclaw_set_api_keys</code>, <code>politiclaw_get_my_reps</code>, <code>politiclaw_prepare_me_for_my_next_election</code>, …), and a set of <strong>cron templates</strong> the gateway schedules for monitoring.
 </p>
 
-<div class="pc-arch">  your message
-      │
-      ▼
-┌──────────────────────┐      ┌──────────────────┐
-│  <span class="h">openclaw gateway</span>    │◀────▶│  <span class="r">politiclaw</span>       │
-│  router · sessions   │      │  tools + cron    │
-└──────────────────────┘      └────────┬─────────┘
-            ▲                          │
-            │                   ┌──────┴───────┐
-            │                   ▼              ▼
-            │            ┌────────────┐ ┌────────────┐
-            │            │ <span class="b">providers</span>  │ │ local      │
-            │            │ api.data,  │ │ storage    │
-            │            │ civic,     │ │ sqlite +   │
-            │            │ geocodio   │ │ shapefiles │
-            │            └────────────┘ └────────────┘
-            │
-   agent response + generated references</div>
+```mermaid
+graph TB
+  user([your message]) --> gateway
+  gateway[openclaw gateway<br/>router · sessions] <--> politiclaw[politiclaw<br/>tools + cron]
+  politiclaw --> providers[providers<br/>api.data.gov · voteview<br/>google civic · geocodio · fec]
+  politiclaw --> storage[local storage<br/>sqlite + shapefiles]
+  gateway --> response([agent response +<br/>generated references])
+```
 
 <p class="pc-legend">
   <strong>providers</strong>: external network sources reached only when a tool needs a provider-backed answer (api.congress.gov, voteview.com, Google Civic, Geocodio, FEC). <strong>local storage</strong>: plugin-owned files on your machine (SQLite database for structured records; cached shapefiles for the zero-key reps-by-address path).

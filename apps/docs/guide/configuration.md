@@ -2,6 +2,21 @@
 
 PolitiClaw ships a broader config schema than the current runtime actually uses, so this guide separates live settings from declared-only placeholders. For the keys themselves — what each unlocks, how to obtain them, how to set them, and what the gateway-restart implication is — see [API Keys](./api-keys).
 
+```mermaid
+graph LR
+  subgraph live["Wired today (live runtime)"]
+    apiDataGov["apiDataGov<br/>federal bills, votes, finance"]
+    googleCivic["googleCivic<br/>ballot, election dates"]
+    geocodio["geocodio<br/>optional reps upgrade"]
+  end
+  subgraph schemaOnly["Declared in schema only<br/>(not supported at runtime)"]
+    others["additional provider keys<br/>see authoritative status below"]
+  end
+  truth[/"Generated source coverage<br/>= authoritative status"/]
+  live -. "implemented / optional_upgrade" .-> truth
+  schemaOnly -. "schema_only / transport_pending" .-> truth
+```
+
 ## Wired Today
 
 These keys are active in the current runtime:

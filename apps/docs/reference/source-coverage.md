@@ -2,6 +2,33 @@
 
 This page is the single canonical surface for what PolitiClaw actually covers today. The per-provider matrix lives on the [generated source coverage page](./generated/source-coverage); this page indexes coverage by user goal and names the blind spots directly.
 
+```mermaid
+graph LR
+  subgraph providers["Providers"]
+    apiCongress["api.congress.gov<br/>tier 1"]
+    voteview["voteview.com<br/>tier 2 zero-key"]
+    fec["FEC OpenFEC<br/>tier 1"]
+    civic["Google Civic<br/>tier 2"]
+    geocodio["Geocodio<br/>optional"]
+    shape["Local shapefile<br/>zero-key"]
+  end
+  subgraph goals["User goals"]
+    bills["Bills & votes"]
+    reps["Representatives"]
+    ballots["Ballots & elections"]
+    candidates["Candidate research"]
+  end
+
+  apiCongress --> bills
+  voteview --> bills
+  geocodio --> reps
+  shape --> reps
+  civic --> ballots
+  fec --> candidates
+
+  notwired[/"Not wired today:<br/>state legislatures · local reps<br/>down-ballot depth"/]
+```
+
 ## Coverage by user goal
 
 ### Bills and votes

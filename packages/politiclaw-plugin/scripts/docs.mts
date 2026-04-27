@@ -55,6 +55,11 @@ type StorageTableDoc = {
     dflt_value: string | null;
     pk: number;
   }>;
+  foreignKeys: Array<{
+    from: string;
+    toTable: string;
+    toColumn: string;
+  }>;
 };
 
 type StorageIndexDoc = {
@@ -85,6 +90,7 @@ const policyIssues = [
   ...collectPublishedDocsPolicyIssues(),
   ...collectTierMislabelIssues(),
   ...collectManifestAndPackagingIssues(),
+  ...collectAsciiDiagramIssues(),
 ];
 
 if (driftedPaths.length > 0 || policyIssues.length > 0) {
@@ -287,11 +293,30 @@ function readStorageDocs(): { tables: StorageTableDoc[]; indexes: StorageIndexDo
       )
       .all() as Array<{ name: string; sql: string }>;
 
-    const tableDocs: StorageTableDoc[] = tables.map((table) => ({
-      name: table.name,
-      sql: table.sql,
-      columns: db.pragma(`table_info(${quoteSqliteIdentifier(table.name)})`) as StorageTableDoc["columns"],
-    }));
+    const tableDocs: StorageTableDoc[] = tables.map((table) => {
+      const foreignKeyRows = db.pragma(
+        `foreign_key_list(${quoteSqliteIdentifier(table.name)})`,
+      ) as Array<{
+        id: number;
+        seq: number;
+        table: string;
+        from: string;
+        to: string;
+        on_update: string;
+        on_delete: string;
+        match: string;
+      }>;
+      return {
+        name: table.name,
+        sql: table.sql,
+        columns: db.pragma(`table_info(${quoteSqliteIdentifier(table.name)})`) as StorageTableDoc["columns"],
+        foreignKeys: foreignKeyRows.map((row) => ({
+          from: row.from,
+          toTable: row.table,
+          toColumn: row.to,
+        })),
+      };
+    });
 
     const indexes = db
       .prepare(
@@ -612,9 +637,35 @@ function renderStorageSchemaPage(
     "",
     `Migration count: ${migrationFiles.length}.`,
     "",
-    "## Migrations",
+    "## Schema overview",
     "",
+    "```mermaid",
+    "erDiagram",
   ];
+
+  for (const table of storageDocs.tables) {
+    const fkFromColumns = new Set(table.foreignKeys.map((fk) => fk.from));
+    lines.push(`  ${table.name} {`);
+    for (const column of table.columns) {
+      const columnType = (column.type || "TEXT").replace(/\s+/g, "_");
+      const markers: string[] = [];
+      if (column.pk > 0) markers.push("PK");
+      if (fkFromColumns.has(column.name)) markers.push("FK");
+      const markerSuffix = markers.length > 0 ? ` ${markers.join(",")}` : "";
+      lines.push(`    ${columnType} ${column.name}${markerSuffix}`);
+    }
+    lines.push("  }");
+  }
+  for (const table of storageDocs.tables) {
+    for (const fk of table.foreignKeys) {
+      lines.push(
+        `  ${fk.toTable} ||--o{ ${table.name} : "${fk.from} -> ${fk.toTable}.${fk.toColumn}"`,
+      );
+    }
+  }
+  lines.push("```", "");
+
+  lines.push("## Migrations", "");
 
   for (const migrationFile of migrationFiles) {
     lines.push(`- \`packages/politiclaw-plugin/src/storage/migrations/${migrationFile}\``);
@@ -1064,6 +1115,52 @@ function collectManifestAndPackagingIssues(): PublishedDocPolicyIssue[] {
         message:
           "imports from the deprecated monolithic 'openclaw/plugin-sdk' root; " +
           "use a focused 'openclaw/plugin-sdk/<subpath>' instead",
+      });
+    }
+  }
+
+  return issues;
+}
+
+function collectAsciiDiagramIssues(): PublishedDocPolicyIssue[] {
+  // Catches box-drawing-char ASCII diagrams that should be Mermaid blocks.
+  // Mermaid was wired into VitePress in the same change that added this
+  // assertion; from then on, every shipped diagram in apps/docs/ should
+  // live in a fenced ```mermaid block.
+  const issues: PublishedDocPolicyIssue[] = [];
+  const generatedDocsPrefix = generatedRoot + sep;
+  // Only the unambiguous diagram-defining glyphs. Arrow chars like → are
+  // intentionally excluded because they appear constantly in prose
+  // breadcrumbs ("API Keys → googleCivic") and CTA buttons. A line is only
+  // a diagram when it has actual box corners or connectors.
+  const boxDrawingPattern = /[─│┌┐└┘├┤┬┴┼]/;
+
+  for (const markdownFile of collectMarkdownFiles(docsRoot)) {
+    if (markdownFile.startsWith(generatedDocsPrefix)) continue;
+    const relativePath = relative(repoRoot, markdownFile);
+    const content = readFileSync(markdownFile, "utf8");
+    const lines = content.split("\n");
+
+    let inFence = false;
+    let firstHitLine: number | null = null;
+    for (let lineIndex = 0; lineIndex < lines.length; lineIndex += 1) {
+      const line = lines[lineIndex] ?? "";
+      if (line.trimStart().startsWith("```")) {
+        inFence = !inFence;
+        continue;
+      }
+      if (inFence) continue;
+      if (boxDrawingPattern.test(line)) {
+        firstHitLine = lineIndex + 1;
+        break;
+      }
+    }
+    if (firstHitLine !== null) {
+      issues.push({
+        file: relativePath,
+        message:
+          `line ${firstHitLine} contains ASCII box-and-arrow diagram chars; ` +
+          "use a fenced `mermaid` block instead",
       });
     }
   }

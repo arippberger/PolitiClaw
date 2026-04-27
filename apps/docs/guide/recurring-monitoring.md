@@ -38,18 +38,14 @@ Posts only at 30, 14, 7, and 1 day before an election on your saved ballot. One 
 
 ## When the first message arrives
 
-```
-day 0 ─── install (politiclaw_configure)
-   │
-   ├── 6h ──── first rep-vote watch (silent if no tracked-issue movement)
-   │
-   ├── 12h ─── first tracked-hearings sweep (silent if no upcoming agendas)
-   │
-   ├── 24h ─── first election-proximity check (silent unless 30/14/7/1d out)
-   │
-   ├── 7d ──── first weekly summary (always speaks; "quiet week" line if empty)
-   │
-   └── 30d ─── first rep report
+```mermaid
+flowchart LR
+  install["Day 0<br/>install<br/>(politiclaw_configure)"]
+  install --> v6h["+6h<br/>first rep-vote watch<br/><i>silent if quiet</i>"]
+  install --> v12h["+12h<br/>first tracked-hearings sweep<br/><i>silent if no upcoming agendas</i>"]
+  install --> v24h["+24h<br/>first election-proximity check<br/><i>silent unless 30/14/7/1d out</i>"]
+  install --> v7d["+7d<br/>first weekly summary<br/><i>always speaks; 'quiet week' if empty</i>"]
+  install --> v30d["+30d<br/>first rep report"]
 ```
 
 Cron jobs fire on their own intervals starting from when you enabled them — they do not run immediately. If you want a read while you wait, use [`politiclaw_check_upcoming_votes`](../reference/generated/tools/politiclaw_check_upcoming_votes) for an on-demand snapshot.

@@ -4,10 +4,14 @@ Accountability here isn't a single feature. It's a loop: you declare what you ca
 
 ## The accountability loop
 
-```
-  your stances ──▶ score bills ──▶ record signals ──▶ periodic digest ──▶ draft letter ──▶ you send
-        ▲                                                                        │
-        └────────────── refine stances after reading what moved ◀────────────────┘
+```mermaid
+flowchart LR
+  stances["Your stances"] --> score["Score bills"]
+  score --> signals["Record signals"]
+  signals --> digest["Periodic digest"]
+  digest --> draft["Draft letter"]
+  draft --> send["You send"]
+  send -. "refine stances after reading what moved" .-> stances
 ```
 
 Each arrow is a tool or cron job, not a marketing promise:

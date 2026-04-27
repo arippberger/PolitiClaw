@@ -1,5 +1,26 @@
 # Privacy and Storage
 
+```mermaid
+graph LR
+  user([You])
+  subgraph localBoundary["Your machine (local-first)"]
+    sqlite[("SQLite DB<br/>preferences · stances · reps<br/>bills · votes · letters · mutes")]
+    kv[("KV table<br/>onboarding · alert flags")]
+    shape[("Shapefile cache<br/>zero-key reps")]
+  end
+  subgraph extBoundary["External (only on tool demand)"]
+    apiData["api.data.gov<br/>congress.gov + FEC"]
+    voteview["voteview.com<br/>Senate votes (no key)"]
+    civic["Google Civic<br/>ballot only"]
+    geocodio["Geocodio<br/>optional rep API"]
+  end
+  cron["Cron jobs<br/>(gateway API)"]
+  user <--> localBoundary
+  localBoundary <-. "provider call" .-> extBoundary
+  cron --> localBoundary
+  cron --> extBoundary
+```
+
 ## Local-First Boundary
 
 PolitiClaw keeps its structured state in plugin-owned local storage. The current runtime uses:

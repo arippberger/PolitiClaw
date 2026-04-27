@@ -2,6 +2,26 @@
 
 Use this page when multiple tools can answer a similar need and you want to know which one should be the default front door.
 
+```mermaid
+flowchart TD
+  start{"What do you want to do?"}
+  start -->|"Set up / save stances"| configure["politiclaw_configure"]
+  start -->|"Prepare for an election"| prep["politiclaw_prepare_me_for_my_next_election"]
+  start -->|"Manage monitoring"| configureMonitor["politiclaw_configure"]
+  start -->|"Research a candidate"| candidate["politiclaw_research_candidate"]
+  start -->|"Reps and bills"| repsBills["politiclaw_get_my_reps<br/>politiclaw_search_bills<br/>politiclaw_score_*"]
+
+  configure -. "edit one stance later" .-> stance["politiclaw_set_issue_stance"]
+  configure -. "save one API key" .-> setkeys["politiclaw_set_api_keys"]
+  prep -. "contest framing only" .-> explain["politiclaw_explain_my_ballot"]
+  prep -. "raw ballot snapshot" .-> ballot["politiclaw_get_my_ballot"]
+  configureMonitor -. "one-off snapshot" .-> upcoming["politiclaw_check_upcoming_votes"]
+  configureMonitor -. "suppress a topic" .-> mute["politiclaw_mute / unmute"]
+  candidate -. "incumbent vs challenger" .-> challenger["politiclaw_research_challengers"]
+  repsBills -. "single bill details" .-> bill["politiclaw_get_bill_details"]
+  repsBills -. "combined report" .-> report["politiclaw_rep_report"]
+```
+
 ## Getting set up
 
 ### Default entry point

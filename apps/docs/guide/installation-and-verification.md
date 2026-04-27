@@ -1,5 +1,18 @@
 # Installation and Verification
 
+```mermaid
+flowchart LR
+  start([Start]) --> path{"Install path"}
+  path -->|"User"| npmInstall["openclaw plugins install<br/>@politiclaw/politiclaw"]
+  path -->|"Contributor"| linkInstall["openclaw plugins install<br/>./packages/politiclaw-plugin --link"]
+  linkInstall --> checks["npm run build<br/>npm run typecheck<br/>npm run test"]
+  npmInstall --> reload["Reload gateway"]
+  checks --> reload
+  reload --> doctor["politiclaw_doctor"]
+  doctor --> configure["politiclaw_configure<br/>address=..."]
+  configure --> reps["politiclaw_get_my_reps<br/>(optional verification)"]
+```
+
 ## Install
 
 Install the plugin into a running OpenClaw gateway:
