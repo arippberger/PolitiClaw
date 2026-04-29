@@ -663,11 +663,11 @@ body {
   max-width: 100%;
   height: auto;
 }
-/* Breathing room between a heading and the diagram below, plus a
+/* Breathing room between surrounding prose and each diagram, plus a
    click-to-enlarge affordance (handled by lightbox.ts). */
 .vp-doc .mermaid {
-  margin-top: 1.75rem;
-  margin-bottom: 1.75rem;
+  margin-top: 2.75rem;
+  margin-bottom: 3rem;
   cursor: zoom-in;
 }
 .mermaid svg .edgeLabel,
