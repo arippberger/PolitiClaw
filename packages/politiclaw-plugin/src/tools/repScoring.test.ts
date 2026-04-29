@@ -50,7 +50,7 @@ function seedScenario(
   opts: {
     bioguide: string;
     repName: string;
-    stance: { issue: string; stance: "support" | "oppose"; weight: number };
+    stance: { issue: string; stance: "support" | "oppose"; weight: number; note?: string };
     bills: Array<{
       billId: string;
       signalDirection: "agree" | "disagree";
@@ -172,7 +172,12 @@ describe("politiclaw_score_representative tool", () => {
     seedScenario(db, {
       bioguide: "B000002",
       repName: "Rep Aligned",
-      stance: { issue: "housing", stance: "support", weight: 4 },
+      stance: {
+        issue: "housing",
+        stance: "support",
+        weight: 4,
+        note: "deeply affordable infill near transit",
+      },
       bills: [
         { billId: "119-hr-10", signalDirection: "agree", repPosition: "Yea" },
         { billId: "119-hr-11", signalDirection: "agree", repPosition: "Yea" },
@@ -191,6 +196,7 @@ describe("politiclaw_score_representative tool", () => {
     expect(text).toContain("Representative Rep Aligned");
     expect(text).toContain("US House, CA-12");
     expect(text).toContain("housing");
+    expect(text).toContain("your note: deeply affordable infill near transit");
     expect(text).toContain("100% aligned");
     expect(text).toContain("[119-hr-10]");
     expect(text).toContain("https://www.congress.gov/bill/119/house-bill/10");

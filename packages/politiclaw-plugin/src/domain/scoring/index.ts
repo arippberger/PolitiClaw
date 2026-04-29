@@ -70,6 +70,7 @@ export async function scoreBill(
     issue: row.issue,
     stance: row.stance,
     weight: row.weight,
+    ...(row.note ? { note: row.note } : {}),
   }));
 
   const detail = await getBillDetail(db, resolver, ref, { refresh: opts.refresh });
@@ -213,6 +214,7 @@ export function scoreRepresentative(
     issue: row.issue,
     stance: row.stance,
     weight: row.weight,
+    ...(row.note ? { note: row.note } : {}),
   }));
   if (stances.length === 0) {
     return {
