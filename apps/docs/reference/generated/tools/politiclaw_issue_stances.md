@@ -17,7 +17,7 @@ Manage the user's declared positions on policy issues. These drive bill alignmen
 | `stance` | no | `"support" \| "oppose" \| "neutral"` | Required for action='set'. The user's declared position on the issue. |
 | `weight` | no | `integer` | Optional (action='set' only). How strongly the user cares (1-5). Defaults to 3. |
 | `note` | no | `string` | Optional (action='set' only). Short paraphrase of the user's specific concern within this issue bucket (e.g. 'BWCA wilderness federal protections' for the 'public-lands-and-natural-resources' slug). Surfaced in letters, call scripts, and rep reports. |
-| `sourceText` | no | `string` | Optional (action='set' only). Verbatim user phrasing that prompted this stance, preserved for letter drafting and call scripts. |
+| `sourceText` | no | `string` | Optional (action='set' only). Verbatim user phrasing that prompted this stance, persisted alongside the row for later drafting context. Not yet consumed by any rendering path. |
 
 ## Raw Schema
 
@@ -77,7 +77,7 @@ Manage the user's declared positions on policy issues. These drive bill alignmen
       "type": "string"
     },
     "sourceText": {
-      "description": "Optional (action='set' only). Verbatim user phrasing that prompted this stance, preserved for letter drafting and call scripts.",
+      "description": "Optional (action='set' only). Verbatim user phrasing that prompted this stance, persisted alongside the row for later drafting context. Not yet consumed by any rendering path.",
       "type": "string"
     }
   }

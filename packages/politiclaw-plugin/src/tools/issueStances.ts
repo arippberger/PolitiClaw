@@ -52,7 +52,7 @@ const IssueStancesParams = Type.Object({
   sourceText: Type.Optional(
     Type.String({
       description:
-        "Optional (action='set' only). Verbatim user phrasing that prompted this stance, preserved for letter drafting and call scripts.",
+        "Optional (action='set' only). Verbatim user phrasing that prompted this stance, persisted alongside the row for later drafting context. Not yet consumed by any rendering path.",
     }),
   ),
 });

@@ -338,7 +338,7 @@
         "name": "sourceText",
         "required": false,
         "type": "string",
-        "description": "Optional (action='set' only). Verbatim user phrasing that prompted this stance, preserved for letter drafting and call scripts."
+        "description": "Optional (action='set' only). Verbatim user phrasing that prompted this stance, persisted alongside the row for later drafting context. Not yet consumed by any rendering path."
       }
     ],
     "rawSchema": {
@@ -396,7 +396,7 @@
           "type": "string"
         },
         "sourceText": {
-          "description": "Optional (action='set' only). Verbatim user phrasing that prompted this stance, preserved for letter drafting and call scripts.",
+          "description": "Optional (action='set' only). Verbatim user phrasing that prompted this stance, persisted alongside the row for later drafting context. Not yet consumed by any rendering path.",
           "type": "string"
         }
       }
