@@ -17,6 +17,10 @@ import {
   getPreferences,
   listIssueStances,
 } from "../domain/preferences/index.js";
+import {
+  getOnboardingCheckpoint,
+  setOnboardingCheckpoint,
+} from "../domain/onboarding/checkpoint.js";
 import type { IdentifyResult } from "../domain/reps/index.js";
 import { createConfigureTool, type ConfigureResult } from "./configure.js";
 import type { ApiKeyName, SetApiKeysResult } from "./setApiKeys.js";
@@ -90,11 +94,14 @@ function emptyCronAdapter(): GatewayCronAdapter {
 }
 
 describe("politiclaw_configure", () => {
+  let kv: Kv;
+
   beforeEach(() => {
     resetStorageConfigForTests();
     resetGatewayCronAdapterForTests();
     const db = openMemoryDb();
-    setStorageForTests({ db, kv: new Kv(db) });
+    kv = new Kv(db);
+    setStorageForTests({ db, kv });
     setPluginConfigForTests({ apiKeys: { apiDataGov: "test-key" } });
     setGatewayCronAdapterForTests(emptyCronAdapter());
   });
@@ -125,6 +132,7 @@ describe("politiclaw_configure", () => {
         accountabilityChanged: false,
       });
       expect(text).toContain("needs your street address");
+      expect(getOnboardingCheckpoint(kv)?.stage).toBe("address");
     });
 
     it("saves address inline and advances to issues", async () => {
@@ -557,6 +565,40 @@ describe("politiclaw_configure", () => {
       const details = detailsFrom<ConfigureResult>(res as { details: ConfigureResult });
       expect(details.stage).toBe("complete");
     });
+
+    it("prepends resume text from a checkpoint and clears it on complete", async () => {
+      setOnboardingCheckpoint(kv, {
+        stage: "api_key",
+        reason: "api_keys_restart",
+        savedKeys: ["apiDataGov"],
+        lastPromptSummary: "resume setup after the gateway restarts",
+      });
+      const tool = createConfigureTool({
+        identifyReps: vi.fn(async () => okReps()),
+        createResolver: vi.fn(() => ({}) as never),
+        reconcileMonitoring: vi.fn(async () => ({ outcomes: [] })),
+      });
+
+      const res = await tool.execute!(
+        "call-1",
+        {
+          address: "123 Main St",
+          state: "CA",
+          issueStances: [{ issue: "climate", stance: "support" }],
+          monitoringMode: "weekly_digest",
+          accountability: "self_serve",
+        },
+        undefined,
+        undefined,
+      );
+      const text = textFrom(res as { content: Array<{ type: string; text: string }> });
+      const details = detailsFrom<ConfigureResult>(res as { details: ConfigureResult });
+
+      expect(details.stage).toBe("complete");
+      expect(details.resume?.message).toContain("Resuming setup");
+      expect(text).toContain("Resuming setup");
+      expect(getOnboardingCheckpoint(kv)).toBeNull();
+    });
   });
 
   describe("monitoring stage labels", () => {
@@ -644,6 +686,39 @@ describe("politiclaw_configure", () => {
       );
       expect(text).toContain("Saved: apiDataGov");
       expect(text).toContain("restart");
+    });
+
+    it("stores an API-key restart checkpoint before saving keys", async () => {
+      const { fn } = fakeSetApiKeys();
+      const tool = createConfigureTool({
+        identifyReps: vi.fn(async () => okReps()),
+        createResolver: vi.fn(() => ({}) as never),
+        reconcileMonitoring: vi.fn(async () => ({ outcomes: [] })),
+        setApiKeys: fn,
+      });
+
+      const res = await tool.execute!(
+        "call-1",
+        {
+          address: "123 Main St",
+          state: "CA",
+          issueStances: [{ issue: "climate", stance: "support" }],
+          monitoringMode: "weekly_digest",
+          accountability: "self_serve",
+          apiDataGov: "the-key",
+        },
+        undefined,
+        undefined,
+      );
+
+      const details = detailsFrom<ConfigureResult>(
+        res as { details: ConfigureResult },
+      );
+      const checkpoint = getOnboardingCheckpoint(kv);
+      expect(details.stage).toBe("api_keys_saved");
+      expect(checkpoint?.reason).toBe("api_keys_restart");
+      expect(checkpoint?.stage).toBe("complete");
+      expect(checkpoint?.savedKeys).toEqual(["apiDataGov"]);
     });
 
     it("merges optional keys into a single setApiKeys call", async () => {

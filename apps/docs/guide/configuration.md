@@ -50,6 +50,6 @@ For most users, the simplest order is:
 1. Add `apiDataGov`.
 2. Decide whether you need `googleCivic` for ballot workflows.
 3. Decide whether you want `geocodio`, or whether the local shapefile path is enough.
-4. Re-run [`politiclaw_doctor`](../reference/generated/tools/politiclaw_doctor) after changing config.
+4. Run `/politiclaw-doctor` after changing config.
 
 For walkthroughs of how to save keys with [`politiclaw_configure`](../reference/generated/tools/politiclaw_configure) and what the gateway-restart side effect looks like, read [API Keys](./api-keys).

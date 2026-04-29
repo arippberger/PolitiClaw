@@ -24,4 +24,4 @@ Most ballot flows depend on:
 - [`politiclaw_get_my_reps`](../reference/generated/tools/politiclaw_get_my_reps)
 - issue stances from [`politiclaw_configure`](../reference/generated/tools/politiclaw_configure) or [`politiclaw_issue_stances`](../reference/generated/tools/politiclaw_issue_stances)
 
-If anything seems broken, start with [`politiclaw_doctor`](../reference/generated/tools/politiclaw_doctor).
+If anything seems broken, start with `/politiclaw-doctor`.

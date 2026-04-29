@@ -16,7 +16,23 @@ export const doctorCommand: OpenClawPluginCommandDefinition = {
   acceptsArgs: false,
   requireAuth: false,
   handler: async () => {
-    const { db } = getStorage();
+    let db: ReturnType<typeof getStorage>["db"];
+    try {
+      ({ db } = getStorage());
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      return {
+        text: [
+          "PolitiClaw doctor — install/package check failed before storage opened.",
+          "",
+          `Storage initialization error: ${message}`,
+          "",
+          "This usually means the packaged plugin is missing runtime files or the OpenClaw gateway did not initialize the plugin state directory.",
+          "Verify the plugin is enabled, restart the OpenClaw gateway, then run /politiclaw-version.",
+          "If this came from an npm package, reinstall or upgrade PolitiClaw and run /politiclaw-doctor again.",
+        ].join("\n"),
+      };
+    }
     const config = getPluginConfig();
     const report = await runDoctor({ db, config });
 

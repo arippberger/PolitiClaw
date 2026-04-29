@@ -6,7 +6,7 @@ For the controls reference — switching cadence, muting topics, running an imme
 
 ## What recurring monitoring means here
 
-Once you've run [`politiclaw_configure`](../reference/generated/tools/politiclaw_configure) with an address and at least one issue stance, PolitiClaw installs a small set of cron templates onto your OpenClaw gateway. They run on their own schedules, on your machine, from then on.
+Once you've asked the agent to call [`politiclaw_configure`](../reference/generated/tools/politiclaw_configure) with an address and at least one issue stance, PolitiClaw installs a small set of cron templates onto your OpenClaw gateway. They run on their own schedules, on your machine, from then on.
 
 You don't have to manage them. You don't have to re-ask the same question every week. You don't have to remember which bill you were tracking. The templates do their deterministic work (fetch, hash, detect changes, score against your declared stances) and then hand a structured delta to a monitoring skill that decides whether you need to hear about it.
 

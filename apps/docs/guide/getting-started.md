@@ -22,10 +22,10 @@ It lives in this monorepo as an OpenClaw plugin plus a VitePress docs app. The d
 The shortest path from install to a real answer:
 
 1. Install the plugin — `openclaw plugins install @politiclaw/politiclaw` for the npm path, or follow the local-checkout path in [Installation and Verification](./installation-and-verification) if you are working in this workspace.
-2. Run [`politiclaw_configure`](../reference/generated/tools/politiclaw_configure) with your address.
-3. Run [`politiclaw_doctor`](../reference/generated/tools/politiclaw_doctor) to catch missing configuration or storage problems early.
+2. Run `/politiclaw-setup` and copy its prompt into your agent. `politiclaw_configure` is an agent tool, not a shell command.
+3. Run `/politiclaw-doctor` to catch missing configuration or storage problems early.
 4. If `politiclaw_configure` returns an issue-setup handoff, follow it to save at least one stance.
-5. Re-run [`politiclaw_configure`](../reference/generated/tools/politiclaw_configure) any time you want to refresh reps or change monitoring cadence.
+5. Ask the agent to call [`politiclaw_configure`](../reference/generated/tools/politiclaw_configure) any time you want to refresh reps or change monitoring cadence.
 
 From there, most users branch into either bill tracking, ballot prep, or monitoring. When several tools seem to overlap, use [Entry Points by Goal](./entry-points-by-goal) to find the default front door before jumping into lower-level reference pages.
 

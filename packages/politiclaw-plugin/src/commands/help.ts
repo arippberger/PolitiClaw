@@ -33,6 +33,7 @@ export const helpCommand: OpenClawPluginCommandDefinition = {
       ...coreTools,
       "",
       "Quick commands (no agent invocation):",
+      "  /politiclaw-setup — next setup step and copyable agent prompt",
       "  /politiclaw-status — saved address, stances, monitoring mode",
       "  /politiclaw-doctor — health check across schema, prefs, keys, cron",
       "  /politiclaw-keys — supported API keys and what each unlocks",

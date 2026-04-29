@@ -2,7 +2,7 @@
 
 ## Start With Doctor
 
-When the runtime looks wrong, begin with [`politiclaw_doctor`](../reference/generated/tools/politiclaw_doctor). It checks storage, schema version, preferences, key presence, cached reps, and monitoring status in one place.
+When the runtime looks wrong, begin with `/politiclaw-doctor`. It checks storage, schema version, preferences, key presence, cached reps, and monitoring status in one place.
 
 ## The plugin does not install from the repo root
 
@@ -25,7 +25,17 @@ Set `plugins.entries.politiclaw.config.apiKeys.googleCivic`. It is required for 
 
 ## Representative Lookup Falls Back Or Fails
 
-If you are using the zero-key path, run [`politiclaw_configure`](../reference/generated/tools/politiclaw_configure) once with your address and retry. If you prefer the API path, add `plugins.entries.politiclaw.config.apiKeys.geocodio` (see [API Keys → `geocodio`](./api-keys#geocodio)).
+If you are using the zero-key path, run `/politiclaw-setup` and ask your agent to call [`politiclaw_configure`](../reference/generated/tools/politiclaw_configure) with your address. If you prefer the API path, add `plugins.entries.politiclaw.config.apiKeys.geocodio` (see [API Keys → `geocodio`](./api-keys#geocodio)).
+
+## Plugin Installed But Tool Unavailable
+
+If OpenClaw says `politiclaw_configure` is unavailable, remember that it is an agent tool, not a shell command. Restart the OpenClaw gateway, verify PolitiClaw is enabled in the plugin registry, then run `/politiclaw-version`.
+
+If `/politiclaw-version` works but the agent still cannot see the tool, run `/politiclaw-doctor`. A packaged install that is missing migrations or dashboard assets should now report a storage/package diagnostic instead of failing generically.
+
+## Gateway Restarted During Key Save
+
+Saving API keys intentionally restarts the gateway so provider adapters pick up the new config. Reconnect, run `/politiclaw-setup`, then continue with the prompt it prints. The setup checkpoint stores only the next stage and saved key names; API key values and address text are not duplicated there.
 
 ## Candidate Bio Or Ballot Narrative Looks Thin
 

@@ -42,4 +42,13 @@ describe("politiclaw-doctor command", () => {
     const text = textOf(await doctorCommand.handler(fakeCtx));
     expect(text).toContain("politiclaw_configure");
   });
+
+  it("renders a package diagnostic when storage cannot initialize", async () => {
+    resetStorageConfigForTests();
+
+    const text = textOf(await doctorCommand.handler(fakeCtx));
+    expect(text).toContain("install/package check failed");
+    expect(text).toContain("Storage initialization error:");
+    expect(text).toContain("/politiclaw-version");
+  });
 });

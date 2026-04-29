@@ -1,6 +1,7 @@
 import type { PluginCommandContext } from "openclaw/plugin-sdk/plugin-entry";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 
+import { setOnboardingCheckpoint } from "../domain/onboarding/checkpoint.js";
 import { upsertIssueStance, upsertPreferences } from "../domain/preferences/index.js";
 import {
   configureStorage,
@@ -19,11 +20,13 @@ function textOf(result: unknown): string {
 }
 
 let db: PolitiClawDb;
+let kv: Kv;
 
 beforeEach(() => {
   db = openMemoryDb();
+  kv = new Kv(db);
   configureStorage(() => "/tmp/politiclaw-tests");
-  setStorageForTests({ db, kv: new Kv(db) });
+  setStorageForTests({ db, kv });
   setPluginConfigForTests({ apiKeys: {} });
 });
 
@@ -35,7 +38,7 @@ describe("politiclaw-status command", () => {
   it("nudges the user to configure when no address is saved", async () => {
     const text = textOf(await statusCommand.handler(fakeCtx));
     expect(text).toContain("No address saved");
-    expect(text).toContain("politiclaw_configure");
+    expect(text).toContain("/politiclaw-setup");
     expect(text).toContain("Issue stances: 0");
     expect(text).toContain("API keys configured: 0/");
   });
@@ -58,5 +61,18 @@ describe("politiclaw-status command", () => {
     expect(text).toContain("Monitoring mode: weekly_digest");
     expect(text).toContain("Issue stances: 2");
     expect(text).toContain("API keys configured: 2/");
+  });
+
+  it("includes onboarding checkpoint state when setup is mid-flow", async () => {
+    setOnboardingCheckpoint(kv, {
+      stage: "monitoring",
+      reason: "setup_progress",
+      lastPromptSummary: "choose monitoring cadence",
+    });
+
+    const text = textOf(await statusCommand.handler(fakeCtx));
+    expect(text).toContain("Setup checkpoint:");
+    expect(text).toContain("monitoring");
+    expect(text).toContain("/politiclaw-setup");
   });
 });

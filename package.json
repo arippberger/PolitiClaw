@@ -18,7 +18,8 @@
     "docs:preview": "npm run preview --workspace @politiclaw/docs",
     "typecheck": "npm run typecheck --workspace @politiclaw/politiclaw",
     "lint": "npm run lint --workspace @politiclaw/politiclaw",
-    "test": "npm run test --workspace @politiclaw/politiclaw"
+    "test": "npm run test --workspace @politiclaw/politiclaw",
+    "release:check": "npm run docs:check && npm run typecheck && npm test && npm run build && npm run smoke:runtime --workspace @politiclaw/politiclaw && npm run pack:check --workspace @politiclaw/politiclaw"
   },
   "engines": {
     "node": ">=20"

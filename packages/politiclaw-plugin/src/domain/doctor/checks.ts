@@ -76,7 +76,7 @@ function checkAccountabilityIntensity(db: PolitiClawDb): DoctorCheck {
         label: "Monitoring mode & accountability",
         status: "warn",
         summary: "No preferences row yet — monitoring and accountability defaults are not in effect.",
-        actionable: "Run politiclaw_configure to set them.",
+        actionable: "Ask the agent to call politiclaw_configure to set them.",
       };
     }
     const accountabilityLabel = ACCOUNTABILITY_LABELS[prefs.accountability];
@@ -162,7 +162,7 @@ function checkPreferences(db: PolitiClawDb): DoctorCheck {
         status: "warn",
         summary: "No preferences on file.",
         actionable:
-          "Run politiclaw_configure with at least an address to unlock reps, ballot, and monitoring.",
+          "Ask the agent to call politiclaw_configure with at least an address to unlock reps, ballot, and monitoring.",
       };
     }
     if (!prefs.state || !prefs.zip) {
@@ -172,7 +172,7 @@ function checkPreferences(db: PolitiClawDb): DoctorCheck {
         status: "warn",
         summary: "Preferences missing state or zip.",
         actionable:
-          "Re-run politiclaw_configure with state and zip so ballot/reps adapters can route correctly.",
+          "Ask the agent to call politiclaw_configure with state and zip so ballot/reps adapters can route correctly.",
       };
     }
     return {
@@ -291,7 +291,7 @@ async function checkCron(adapter?: GatewayCronAdapter): Promise<DoctorCheck> {
         status: "warn",
         summary: "No PolitiClaw cron jobs installed.",
         actionable:
-          "Run politiclaw_configure to install the default cadence.",
+          "Ask the agent to call politiclaw_configure to install the default cadence.",
       };
     }
     const disabled = ours.filter((job) => !job.enabled);
@@ -302,7 +302,7 @@ async function checkCron(adapter?: GatewayCronAdapter): Promise<DoctorCheck> {
         status: "warn",
         summary: `${ours.length} cron job(s) installed but all paused.`,
         actionable:
-          "Run politiclaw_configure to re-enable or re-apply the saved cadence.",
+          "Ask the agent to call politiclaw_configure to re-enable or re-apply the saved cadence.",
       };
     }
     if (disabled.length > 0) {

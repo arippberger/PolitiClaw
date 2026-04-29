@@ -26,6 +26,14 @@ import {
   renderMonitoringContract,
   type MonitoringContract,
 } from "../domain/preferences/contract.js";
+import {
+  clearOnboardingCheckpoint,
+  describeOnboardingCheckpoint,
+  getOnboardingCheckpoint,
+  setOnboardingCheckpoint,
+  summarizeConfigureStage,
+  type OnboardingCheckpoint,
+} from "../domain/onboarding/checkpoint.js";
 import { normalizeFreeformIssue } from "../domain/preferences/normalize.js";
 import { identifyMyReps, type IdentifyResult } from "../domain/reps/index.js";
 import { createRepsResolver } from "../sources/reps/index.js";
@@ -84,6 +92,11 @@ export type ConfigureStage =
   | "api_key"
   | "api_keys_saved"
   | "complete";
+
+export type ConfigureResumeSummary = {
+  checkpoint: OnboardingCheckpoint;
+  message: string;
+};
 
 const OPTIONAL_API_KEY_NAMES = [
   "geocodio",
@@ -233,6 +246,7 @@ export type ConfigureResult =
       prompt: string;
       preferences: null;
       savedThisCall: SavedThisCall;
+      resume?: ConfigureResumeSummary | null;
     }
   | {
       stage: "issues";
@@ -242,6 +256,7 @@ export type ConfigureResult =
       issueSetup: StartOnboardingResult;
       currentIssueStances: IssueStanceRow[];
       savedThisCall: SavedThisCall;
+      resume?: ConfigureResumeSummary | null;
     }
   | {
       stage: "monitoring";
@@ -251,6 +266,7 @@ export type ConfigureResult =
       currentMonitoringMode: MonitoringMode;
       options: Array<{ label: MonitoringMode; humanLabel: string; explainer: string }>;
       savedThisCall: SavedThisCall;
+      resume?: ConfigureResumeSummary | null;
     }
   | {
       stage: "accountability";
@@ -260,6 +276,7 @@ export type ConfigureResult =
       currentAccountability: AccountabilityMode;
       options: Array<{ label: AccountabilityMode; humanLabel: string; explainer: string }>;
       savedThisCall: SavedThisCall;
+      resume?: ConfigureResumeSummary | null;
     }
   | {
       stage: "api_key";
@@ -269,6 +286,7 @@ export type ConfigureResult =
       configPath: string;
       configKey: string;
       savedThisCall: SavedThisCall;
+      resume?: ConfigureResumeSummary | null;
     }
   | {
       stage: "api_keys_saved";
@@ -276,6 +294,7 @@ export type ConfigureResult =
       preferences: PreferencesRow | null;
       setResult: SetApiKeysResult;
       savedThisCall: SavedThisCall;
+      resume?: ConfigureResumeSummary | null;
     }
   | {
       stage: "complete";
@@ -286,6 +305,7 @@ export type ConfigureResult =
       monitoringError: string | null;
       monitoringContract: MonitoringContract;
       savedThisCall: SavedThisCall;
+      resume?: ConfigureResumeSummary | null;
     };
 
 export type SavedThisCall = {
@@ -306,6 +326,36 @@ export type ConfigureToolDeps = {
 
 function textResult<T>(text: string, details: T) {
   return { content: [{ type: "text" as const, text }], details };
+}
+
+function buildResumeSummary(
+  checkpoint: OnboardingCheckpoint | null,
+): ConfigureResumeSummary | null {
+  if (!checkpoint) return null;
+  return {
+    checkpoint,
+    message: `Resuming setup. ${describeOnboardingCheckpoint(checkpoint)}`,
+  };
+}
+
+function withResumePrompt(
+  prompt: string,
+  resume: ConfigureResumeSummary | null,
+): string {
+  return resume ? `${resume.message}\n\n${prompt}` : prompt;
+}
+
+function checkpointStageForState(args: {
+  preferences: PreferencesRow | null;
+  currentIssueStances: readonly IssueStanceRow[];
+  monitoringCaptured: boolean;
+  accountabilityCaptured: boolean;
+}): ConfigureStage {
+  if (!args.preferences) return "address";
+  if (args.currentIssueStances.length === 0) return "issues";
+  if (!args.monitoringCaptured) return "monitoring";
+  if (!args.accountabilityCaptured) return "accountability";
+  return "complete";
 }
 
 function formatRepLocation(rep: {
@@ -481,7 +531,7 @@ function renderCompletePrompt(
   const lines: string[] = [renderMonitoringContract(contract)];
   if (monitoringError) {
     lines.push("");
-    lines.push(`(Monitoring reconciliation failed: ${monitoringError}. Saved settings remain in place; re-run politiclaw_configure to retry.)`);
+    lines.push(`(Monitoring reconciliation failed: ${monitoringError}. Saved settings remain in place; ask the agent to call politiclaw_configure to retry.)`);
   }
   return lines.join("\n");
 }
@@ -544,12 +594,30 @@ export function createConfigureTool(deps: ConfigureToolDeps = {}): AnyAgentTool 
       const pluginConfig = getPluginConfig();
       const suppliedKeys = collectSuppliedKeys(input);
       const hasSuppliedKeys = Object.keys(suppliedKeys).length > 0;
+      const resume = hasSuppliedKeys
+        ? null
+        : buildResumeSummary(getOnboardingCheckpoint(kv));
 
       const saved: SavedThisCall = {
         address: false,
         stancesAdded: 0,
         monitoringChanged: false,
         accountabilityChanged: false,
+      };
+
+      const finish = <T extends ConfigureResult>(result: T) => {
+        if (result.stage === "complete") {
+          clearOnboardingCheckpoint(kv);
+        } else if (result.stage !== "api_keys_saved") {
+          setOnboardingCheckpoint(kv, {
+            stage: result.stage,
+            reason: "setup_progress",
+            lastPromptSummary: summarizeConfigureStage(result.stage),
+          });
+        }
+        const prompt = withResumePrompt(result.prompt, resume);
+        const details = { ...result, prompt, resume };
+        return textResult(prompt, details);
       };
 
       // 1. Address — save first, since downstream stages assume preferences exist.
@@ -582,7 +650,7 @@ export function createConfigureTool(deps: ConfigureToolDeps = {}): AnyAgentTool 
           preferences: null,
           savedThisCall: saved,
         };
-        return textResult(result.prompt, result);
+        return finish(result);
       }
 
       // 2. Issue stances — save anything passed inline before deciding the cursor.
@@ -632,6 +700,11 @@ export function createConfigureTool(deps: ConfigureToolDeps = {}): AnyAgentTool 
         kv.set(ACCOUNTABILITY_KV_FLAG, Date.now());
       }
 
+      const monitoringCaptured =
+        monitoringSetThisCall || kv.get<number>(MONITORING_KV_FLAG) !== undefined;
+      const accountabilityCaptured =
+        accountabilitySetThisCall || kv.get<number>(ACCOUNTABILITY_KV_FLAG) !== undefined;
+
       // 4b. API keys: persist them only after the rest of this call's
       //     onboarding fields have been written. The gateway will restart
       //     to pick up the new config and the current session ends — any
@@ -640,7 +713,21 @@ export function createConfigureTool(deps: ConfigureToolDeps = {}): AnyAgentTool 
       //     non-key work that happened this call rather than reporting all
       //     fields as unsaved.
       if (hasSuppliedKeys) {
+        setOnboardingCheckpoint(kv, {
+          stage: checkpointStageForState({
+            preferences: preferences ?? null,
+            currentIssueStances,
+            monitoringCaptured,
+            accountabilityCaptured,
+          }),
+          reason: "api_keys_restart",
+          savedKeys: Object.keys(suppliedKeys) as ApiKeyName[],
+          lastPromptSummary: "resume setup after the gateway restarts",
+        });
         const setResult = await setApiKeys(suppliedKeys);
+        if (setResult.status === "error" || !setResult.restartScheduled) {
+          clearOnboardingCheckpoint(kv);
+        }
         const result: ConfigureResult = {
           stage: "api_keys_saved",
           prompt: renderApiKeysSavedPrompt(setResult),
@@ -648,7 +735,7 @@ export function createConfigureTool(deps: ConfigureToolDeps = {}): AnyAgentTool 
           setResult,
           savedThisCall: saved,
         };
-        return textResult(result.prompt, result);
+        return finish(result);
       }
 
       // Invariant: from here on, preferences is always set. The two ways
@@ -662,11 +749,6 @@ export function createConfigureTool(deps: ConfigureToolDeps = {}): AnyAgentTool 
       }
 
       // 5. Decide the next stage.
-      const monitoringCaptured =
-        monitoringSetThisCall || kv.get<number>(MONITORING_KV_FLAG) !== undefined;
-      const accountabilityCaptured =
-        accountabilitySetThisCall || kv.get<number>(ACCOUNTABILITY_KV_FLAG) !== undefined;
-
       // Lazy reps resolution — only when needed (issues / complete stages).
       let reps: IdentifyResult | null = null;
       const ensureReps = async (): Promise<IdentifyResult> => {
@@ -702,7 +784,7 @@ export function createConfigureTool(deps: ConfigureToolDeps = {}): AnyAgentTool 
           currentIssueStances,
           savedThisCall: saved,
         };
-        return textResult(result.prompt, result);
+        return finish(result);
       }
 
       if (!monitoringCaptured) {
@@ -720,7 +802,7 @@ export function createConfigureTool(deps: ConfigureToolDeps = {}): AnyAgentTool 
           options,
           savedThisCall: saved,
         };
-        return textResult(result.prompt, result);
+        return finish(result);
       }
 
       if (!accountabilityCaptured) {
@@ -738,7 +820,7 @@ export function createConfigureTool(deps: ConfigureToolDeps = {}): AnyAgentTool 
           options,
           savedThisCall: saved,
         };
-        return textResult(result.prompt, result);
+        return finish(result);
       }
 
       // 5b. api.data.gov key — show once, don't loop. The user can paste
@@ -758,7 +840,7 @@ export function createConfigureTool(deps: ConfigureToolDeps = {}): AnyAgentTool 
           configKey: "apiDataGov",
           savedThisCall: saved,
         };
-        return textResult(result.prompt, result);
+        return finish(result);
       }
 
       // 6. Complete — reconcile cron only if something cron-affecting changed
@@ -792,7 +874,7 @@ export function createConfigureTool(deps: ConfigureToolDeps = {}): AnyAgentTool 
         monitoringContract: contract,
         savedThisCall: saved,
       };
-      return textResult(result.prompt, result);
+      return finish(result);
     },
   };
 }

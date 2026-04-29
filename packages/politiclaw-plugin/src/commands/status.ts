@@ -2,6 +2,10 @@ import type { OpenClawPluginCommandDefinition } from "openclaw/plugin-sdk/plugin
 
 import { API_KEY_FLAGS } from "../domain/doctor/checks.js";
 import {
+  describeOnboardingCheckpoint,
+  getOnboardingCheckpoint,
+} from "../domain/onboarding/checkpoint.js";
+import {
   ACCOUNTABILITY_LABELS,
   getPreferences,
   listIssueStances,
@@ -15,10 +19,11 @@ export const statusCommand: OpenClawPluginCommandDefinition = {
   acceptsArgs: false,
   requireAuth: false,
   handler: () => {
-    const { db } = getStorage();
+    const { db, kv } = getStorage();
     const prefs = getPreferences(db);
     const stances = listIssueStances(db);
     const keys = getPluginConfig().apiKeys ?? {};
+    const checkpoint = getOnboardingCheckpoint(kv);
 
     const presentKeys = API_KEY_FLAGS.filter(
       (flag) =>
@@ -36,12 +41,16 @@ export const statusCommand: OpenClawPluginCommandDefinition = {
       lines.push(`  Action prompting: ${prefs.actionPrompting}`);
     } else {
       lines.push("  No address saved yet.");
-      lines.push("  Run politiclaw_configure to start.");
+      lines.push("  Use /politiclaw-setup for the next setup prompt.");
     }
     lines.push(`  Issue stances: ${stances.length}`);
     lines.push(
       `  API keys configured: ${presentKeys}/${API_KEY_FLAGS.length} known`,
     );
+    if (checkpoint) {
+      lines.push(`  Setup checkpoint: ${describeOnboardingCheckpoint(checkpoint)}`);
+      lines.push("  Next: use /politiclaw-setup to resume cleanly.");
+    }
     return { text: lines.join("\n") };
   },
 };
