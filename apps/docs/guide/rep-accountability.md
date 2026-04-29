@@ -26,7 +26,7 @@ Each arrow is a tool or cron job, not a marketing promise:
 
 Alignment here is a recorded claim, not a gut rating.
 
-- **Input is your declared stance set.** If you didn't say you care about a topic, the scorer does not invent a preference for you.
+- **Input is your declared stance set.** If you didn't say you care about a topic, the scorer does not invent a preference for you. Stance `note` fields preserve the concrete concern inside a broader issue bucket so reports can say more than the slug alone.
 - **Evidence comes from primary sources.** Bill text, status, roll-call votes, and committee activity flow from `api.congress.gov` via the shared `api.data.gov` key. See [Generated Source Coverage](../reference/generated/source-coverage).
 - **Scoring carries a confidence floor.** When the scorer can't quote the bill's own text to justify a direction, it reports `direction unclear` rather than guessing.
 - **The alignment disclaimer stays attached.** `politiclaw_check_upcoming_votes` emits it whenever scores appear. The monitoring skill is explicit: don't strip it.

@@ -76,13 +76,18 @@ set.
    "Sounds like you support stronger gun-policy restrictions, and it
    matters a lot — record that as `support` on `gun-policy`, weight 4
    out of 5?"
-4. Map free text to a canonical slug when possible. If it doesn't fit,
+4. Map free text to a canonical slug when possible. The canonical set is
+   mostly Library of Congress Policy Area slugs, plus narrower buckets for
+   issues that need more precision. If it doesn't fit,
    flag it: "That's not one of PolitiClaw's canonical issues — I can
    save it as a custom slug, but automated bill matching may be weaker."
 5. Persist by calling `politiclaw_configure` with `{ stage: "issues",
-   issueStances: [{ issue, stance, weight }] }`. One stance at a time
-   is fine; the tool will keep returning `stage: "issues"` until the
-   user says they're done.
+   issueStances: [{ issue, stance, weight, note, sourceText }] }`.
+   Use `note` for the short specific concern inside the bucket (for
+   example, "BWCA wilderness federal protections" under
+   `public-lands-and-natural-resources`) and `sourceText` for the user's
+   verbatim phrase. One stance at a time is fine; the tool will keep
+   returning `stage: "issues"` until the user says they're done.
 6. Stop when the user runs out — three solid stances beat twelve
    half-considered ones.
 
@@ -100,7 +105,9 @@ suggested labels.
    as neutral."
 5. Read back the full list before committing.
 6. Commit by calling `politiclaw_configure` with the full
-   `issueStances[]` array.
+   `issueStances[]` array, including `note` and `sourceText` when the
+   user supplied nuance that should later appear in letters, call scripts,
+   rep reports, or the monitoring contract.
 
 ## The `monitoring` stage
 

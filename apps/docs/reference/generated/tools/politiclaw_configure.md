@@ -137,6 +137,14 @@ One front-door tool that walks the user through PolitiClaw setup end-to-end: add
             "maximum": 5,
             "description": "How strongly the user cares (1-5). Defaults to 3.",
             "type": "integer"
+          },
+          "note": {
+            "description": "Short paraphrase of the user's specific concern within this issue bucket. Surfaced in letters, call scripts, rep reports, and the monitoring contract.",
+            "type": "string"
+          },
+          "sourceText": {
+            "description": "Verbatim user phrasing that prompted this stance, preserved for later drafting context.",
+            "type": "string"
           }
         }
       }

@@ -168,6 +168,18 @@ const ConfigureParams = Type.Object({
             description: "How strongly the user cares (1-5). Defaults to 3.",
           }),
         ),
+        note: Type.Optional(
+          Type.String({
+            description:
+              "Short paraphrase of the user's specific concern within this issue bucket. Surfaced in letters, call scripts, rep reports, and the monitoring contract.",
+          }),
+        ),
+        sourceText: Type.Optional(
+          Type.String({
+            description:
+              "Verbatim user phrasing that prompted this stance, preserved for later drafting context.",
+          }),
+        ),
       }),
       { additionalProperties: false },
     ),
@@ -232,7 +244,13 @@ type ConfigureInput = {
   district?: string;
   issueMode?: "conversation" | "quiz";
   mode?: "conversation" | "quiz";
-  issueStances?: Array<{ issue: string; stance: "support" | "oppose" | "neutral"; weight?: number }>;
+  issueStances?: Array<{
+    issue: string;
+    stance: "support" | "oppose" | "neutral";
+    weight?: number;
+    note?: string;
+    sourceText?: string;
+  }>;
   monitoringMode?: MonitoringMode;
   accountability?: AccountabilityMode;
   refreshReps?: boolean;

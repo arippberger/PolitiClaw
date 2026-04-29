@@ -855,7 +855,13 @@ describe("politiclaw_configure", () => {
           state: "CA",
           zip: "94110",
           issueStances: [
-            { issue: "climate", stance: "support", weight: 5 },
+            {
+              issue: "climate",
+              stance: "support",
+              weight: 5,
+              note: "BWCA wilderness federal protections",
+              sourceText: "I really care about keeping the BWCA protected.",
+            },
             { issue: "housing", stance: "oppose" },
           ],
           monitoringMode: "weekly_digest",
@@ -898,6 +904,11 @@ describe("politiclaw_configure", () => {
         "climate",
         "housing-and-community-development",
       ]);
+      const climate = stances.find((s) => s.issue === "climate");
+      expect(climate?.note).toBe("BWCA wilderness federal protections");
+      expect(climate?.sourceText).toBe(
+        "I really care about keeping the BWCA protected.",
+      );
       expect(kv.get(ACCOUNTABILITY_KV_FLAG)).toBeDefined();
 
       expect(details.preferences?.address).toBe("999 Combined Lane");

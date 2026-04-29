@@ -22,7 +22,7 @@ Use slash commands for quick checks and ask your agent to call tools for setup. 
 
 1. **Find the next setup step.** Run `/politiclaw-setup`. It returns a copyable prompt for the agent, starting with “Call the agent tool `politiclaw_configure` with my street address…”.
 
-2. **Declare the stances you want to measure your reps against.** Use the `issueStances` input on `politiclaw_configure` during setup, or add/edit one later with `politiclaw_issue_stances` (action `set`, `list`, or `delete`). These are the baseline PolitiClaw uses for every accountability score — no score exists without them.
+2. **Declare the stances you want to measure your reps against.** Use the `issueStances` input on `politiclaw_configure` during setup, or add/edit one later with `politiclaw_issue_stances` (action `set`, `list`, or `delete`). Each stance can also carry a short `note` for the specific concern inside the issue bucket and `sourceText` for your original phrasing; letters, call scripts, rep reports, and the monitoring contract use that nuance. These stances are the baseline PolitiClaw uses for every accountability score — no score exists without them.
 
 3. **Continue setup whenever something changes.** Ask your agent to call `politiclaw_configure` to refresh reps, change monitoring cadence, save keys, or update the saved address.
 

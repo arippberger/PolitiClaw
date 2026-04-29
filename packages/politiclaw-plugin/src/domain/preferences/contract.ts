@@ -27,7 +27,6 @@ import {
   type AccountabilityMode,
   type IssueStanceRow,
   type MonitoringMode,
-  type PreferencesRow,
 } from "./index.js";
 
 const TOP_STANCE_LIMIT = 5;

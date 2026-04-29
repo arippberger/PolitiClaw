@@ -194,6 +194,14 @@
                 "maximum": 5,
                 "description": "How strongly the user cares (1-5). Defaults to 3.",
                 "type": "integer"
+              },
+              "note": {
+                "description": "Short paraphrase of the user's specific concern within this issue bucket. Surfaced in letters, call scripts, rep reports, and the monitoring contract.",
+                "type": "string"
+              },
+              "sourceText": {
+                "description": "Verbatim user phrasing that prompted this stance, preserved for later drafting context.",
+                "type": "string"
               }
             }
           }
@@ -330,7 +338,7 @@
         "name": "sourceText",
         "required": false,
         "type": "string",
-        "description": "Optional (action='set' only). Verbatim user phrasing that prompted this stance, preserved for letter drafting and call scripts."
+        "description": "Optional (action='set' only). Verbatim user phrasing that prompted this stance, persisted alongside the row for later drafting context. Not yet consumed by any rendering path."
       }
     ],
     "rawSchema": {
@@ -388,7 +396,7 @@
           "type": "string"
         },
         "sourceText": {
-          "description": "Optional (action='set' only). Verbatim user phrasing that prompted this stance, preserved for letter drafting and call scripts.",
+          "description": "Optional (action='set' only). Verbatim user phrasing that prompted this stance, persisted alongside the row for later drafting context. Not yet consumed by any rendering path.",
           "type": "string"
         }
       }
