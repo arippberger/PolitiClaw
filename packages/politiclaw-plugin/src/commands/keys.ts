@@ -24,7 +24,7 @@ export const keysCommand: OpenClawPluginCommandDefinition = {
     }
     lines.push("");
     lines.push(
-      "Save keys via politiclaw_set_api_keys, or re-run politiclaw_configure.",
+      "Save keys via politiclaw_configure (pass apiDataGov and any optional keys).",
     );
     return { text: lines.join("\n") };
   },

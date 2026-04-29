@@ -70,7 +70,7 @@ Run the PolitiClaw periodic representative alignment report. Read skills/politic
 
 ## politiclaw.election_proximity_alert
 
-- Description: Daily: when an election is within 30/14/7/1 days of the saved address, ramps a short alert ('election in N days') and points at politiclaw_prepare_me_for_my_next_election. Silent on days that do not cross a threshold.
+- Description: Daily: when an election is within 30/14/7/1 days of the saved address, ramps a short alert ('election in N days') and points at politiclaw_election_brief. Silent on days that do not cross a threshold.
 - Schedule: every 1 day(s)
 - Session target: `isolated`
 - Wake mode: `next-heartbeat`
@@ -79,5 +79,5 @@ Run the PolitiClaw periodic representative alignment report. Read skills/politic
 ### Payload
 
 ```text
-Run the PolitiClaw election-proximity check. Read skills/politiclaw-monitoring/SKILL.md → Election proximity alerts. Call politiclaw_get_my_ballot to read the next election date for the saved address. If the election is 30, 14, 7, or 1 day away, post one Class-D line ('Election in N days at <polling place or address>') and recommend politiclaw_prepare_me_for_my_next_election. On other days post nothing.
+Run the PolitiClaw election-proximity check. Read skills/politiclaw-monitoring/SKILL.md → Election proximity alerts. Call politiclaw_get_my_ballot to read the next election date for the saved address. If the election is 30, 14, 7, or 1 day away, post one Class-D line ('Election in N days at <polling place or address>') and recommend politiclaw_election_brief. On other days post nothing.
 ```

@@ -83,7 +83,7 @@ describe("createReminder", () => {
     expect(result.reminder.steps[0]).toBe("Verify polling location and ballot status.");
     expect(result.reminder.steps.some((s) => s.includes("2026-10-31"))).toBe(true);
     expect(result.reminder.steps).toContain(
-      "Run politiclaw_prepare_me_for_my_next_election the week of.",
+      "Run politiclaw_election_brief the week of.",
     );
     expect(result.reminder.anchorElectionDate).toBe("2026-11-03");
   });

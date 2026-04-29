@@ -21,13 +21,13 @@ graph LR
 
 These keys are active in the current runtime:
 
-- `plugins.politiclaw.apiKeys.apiDataGov`
+- `plugins.entries.politiclaw.config.apiKeys.apiDataGov`
   - Required for the current federal bill, House roll-call vote, committee schedule, and FEC finance paths.
   - One key covers both api.congress.gov and FEC OpenFEC.
   - Senate roll-call votes use voteview.com (zero-key) and do not require this key.
-- `plugins.politiclaw.apiKeys.googleCivic`
+- `plugins.entries.politiclaw.config.apiKeys.googleCivic`
   - Required for every ballot and election-logistics lookup today. Google Civic is the only wired ballot source.
-- `plugins.politiclaw.apiKeys.geocodio`
+- `plugins.entries.politiclaw.config.apiKeys.geocodio`
   - Optional upgrade for reps-by-address lookup when you want the API path instead of the zero-key local shapefile path.
 
 ## Declared In Schema, But Not Live Yet
@@ -52,4 +52,4 @@ For most users, the simplest order is:
 3. Decide whether you want `geocodio`, or whether the local shapefile path is enough.
 4. Re-run [`politiclaw_doctor`](../reference/generated/tools/politiclaw_doctor) after changing config.
 
-For walkthroughs of how to actually save each key (via [`politiclaw_set_api_keys`](../reference/generated/tools/politiclaw_set_api_keys) or the [`politiclaw_configure`](../reference/generated/tools/politiclaw_configure) flow) and what the gateway-restart side effect looks like, read [API Keys](./api-keys).
+For walkthroughs of how to save keys with [`politiclaw_configure`](../reference/generated/tools/politiclaw_configure) and what the gateway-restart side effect looks like, read [API Keys](./api-keys).

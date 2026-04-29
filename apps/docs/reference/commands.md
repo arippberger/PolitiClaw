@@ -14,7 +14,7 @@ Use a quick command when you want:
 - a key inventory and what each unlocks (`/politiclaw-keys`)
 - the plugin version and the OpenClaw runtime floor (`/politiclaw-version`)
 
-Use a tool when you want narrative, scoring, drafting, or anything that benefits from the agent's reasoning — `politiclaw_explain_my_ballot`, `politiclaw_score_representative`, `politiclaw_draft_letter`, etc.
+Use a tool when you want narrative, scoring, drafting, or anything that benefits from the agent's reasoning — `politiclaw_election_brief`, `politiclaw_score_representative`, `politiclaw_draft_outreach`, etc.
 
 ## The five commands
 

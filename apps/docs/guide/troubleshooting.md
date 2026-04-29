@@ -12,7 +12,7 @@ openclaw plugins install ./packages/politiclaw-plugin --link
 
 ## Bill, Vote, Or Finance Tools Are Unavailable
 
-Make sure `plugins.politiclaw.apiKeys.apiDataGov` is set. That is the live key for the current federal bill, House roll-call vote, committee schedule, and FEC finance integrations. (Senate roll-call votes ingest through voteview.com without a key.)
+Make sure `plugins.entries.politiclaw.config.apiKeys.apiDataGov` is set. That is the live key for the current federal bill, House roll-call vote, committee schedule, and FEC finance integrations. (Senate roll-call votes ingest through voteview.com without a key.)
 
 For how to save a key without editing gateway config by hand, see [API Keys → How to set keys](./api-keys#how-to-set-keys). Use the generated config and coverage pages when in doubt:
 
@@ -21,11 +21,11 @@ For how to save a key without editing gateway config by hand, see [API Keys → 
 
 ## Ballot Tools Say Google Civic Is Missing
 
-Set `plugins.politiclaw.apiKeys.googleCivic`. It is required for every ballot lookup today. See [API Keys → `googleCivic`](./api-keys#googlecivic) for how to obtain and save it.
+Set `plugins.entries.politiclaw.config.apiKeys.googleCivic`. It is required for every ballot lookup today. See [API Keys → `googleCivic`](./api-keys#googlecivic) for how to obtain and save it.
 
 ## Representative Lookup Falls Back Or Fails
 
-If you are using the zero-key path, run [`politiclaw_configure`](../reference/generated/tools/politiclaw_configure) once with your address and retry. If you prefer the API path, add `plugins.politiclaw.apiKeys.geocodio` (see [API Keys → `geocodio`](./api-keys#geocodio)).
+If you are using the zero-key path, run [`politiclaw_configure`](../reference/generated/tools/politiclaw_configure) once with your address and retry. If you prefer the API path, add `plugins.entries.politiclaw.config.apiKeys.geocodio` (see [API Keys → `geocodio`](./api-keys#geocodio)).
 
 ## Candidate Bio Or Ballot Narrative Looks Thin
 

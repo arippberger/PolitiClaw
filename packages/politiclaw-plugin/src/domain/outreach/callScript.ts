@@ -82,7 +82,7 @@ export async function draftCallScript(
       status: "no_stance_for_issue",
       reason: `No declared stance on issue '${issueSlug}'.`,
       actionable:
-        "Run politiclaw_set_issue_stance first — call scripts anchor on your declared position.",
+        "Run politiclaw_issue_stances with action='set' first — call scripts anchor on your declared position.",
     };
   }
   if (matchedStance.stance === "neutral") {
@@ -90,7 +90,7 @@ export async function draftCallScript(
       status: "no_stance_for_issue",
       reason: `Declared stance on '${issueSlug}' is neutral.`,
       actionable:
-        "Call scripts argue a position. Use politiclaw_set_issue_stance to set support or oppose first.",
+        "Call scripts argue a position. Use politiclaw_issue_stances with action='set' to set support or oppose first.",
     };
   }
 

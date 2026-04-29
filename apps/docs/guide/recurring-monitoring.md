@@ -34,7 +34,7 @@ A deterministic alignment digest of your stored representatives against your dec
 
 ### Election proximity alert (daily, mostly silent)
 
-Posts only at 30, 14, 7, and 1 day before an election on your saved ballot. One short line: "Election in N days at [polling place]," pointing at [`politiclaw_prepare_me_for_my_next_election`](../reference/generated/tools/politiclaw_prepare_me_for_my_next_election). Nothing on other days.
+Posts only at 30, 14, 7, and 1 day before an election on your saved ballot. One short line: "Election in N days at [polling place]," pointing at [`politiclaw_election_brief`](../reference/generated/tools/politiclaw_election_brief). Nothing on other days.
 
 ## When the first message arrives
 
@@ -60,7 +60,7 @@ PolitiClaw's default posture is to shut up when nothing changed. The monitoring 
 
 A noisy monitor gets muted. A silent monitor that says so when something breaks stays trusted.
 
-If you want to suppress a specific topic without changing cadence, use [`politiclaw_mute`](../reference/generated/tools/politiclaw_mute). Mutes are additive and auditable — the monitoring loop surfaces a compact "(N items suppressed by mute list)" note so you can always see the filter is active.
+If you want to suppress a specific topic without changing cadence, use [`politiclaw_mutes`](../reference/generated/tools/politiclaw_mutes). Mutes are additive and auditable — the monitoring loop surfaces a compact "(N items suppressed by mute list)" note so you can always see the filter is active.
 
 ## What isn't yet proactive
 

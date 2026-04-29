@@ -6,7 +6,7 @@ import {
 } from "../storage/context.js";
 import { Kv } from "../storage/kv.js";
 import { openMemoryDb } from "../storage/sqlite.js";
-import { listMutesTool, muteTool, unmuteTool } from "./mutes.js";
+import { mutesTool } from "./mutes.js";
 
 function withMemoryStorage() {
   const db = openMemoryDb();
@@ -18,12 +18,12 @@ afterEach(() => {
   resetStorageConfigForTests();
 });
 
-describe("politiclaw_mute tool", () => {
+describe("politiclaw_mutes — action='add'", () => {
   it("persists a mute and renders confirmation text", async () => {
     const db = withMemoryStorage();
-    const result = await muteTool.execute!(
+    const result = await mutesTool.execute!(
       "call-1",
-      { kind: "bill", ref: "119-hr-1", reason: "already decided" },
+      { action: "add", kind: "bill", ref: "119-hr-1", reason: "already decided" },
       undefined,
       undefined,
     );
@@ -39,9 +39,9 @@ describe("politiclaw_mute tool", () => {
 
   it("normalizes issue refs through the tool boundary", async () => {
     const db = withMemoryStorage();
-    await muteTool.execute!(
+    await mutesTool.execute!(
       "call-1",
-      { kind: "issue", ref: "Affordable Housing" },
+      { action: "add", kind: "issue", ref: "Affordable Housing" },
       undefined,
       undefined,
     );
@@ -53,29 +53,51 @@ describe("politiclaw_mute tool", () => {
 
   it("rejects unknown kinds at validation", async () => {
     withMemoryStorage();
-    await expect(
-      muteTool.execute!(
-        "call-1",
-        { kind: "invalid", ref: "x" },
-        undefined,
-        undefined,
-      ),
-    ).rejects.toThrow();
-  });
-});
-
-describe("politiclaw_unmute tool", () => {
-  it("reports removed=true when the row existed", async () => {
-    withMemoryStorage();
-    await muteTool.execute!(
+    const result = await mutesTool.execute!(
       "call-1",
-      { kind: "rep", ref: "A000360" },
+      { action: "add", kind: "invalid", ref: "x" },
       undefined,
       undefined,
     );
-    const result = await unmuteTool.execute!(
+    expect(result.details).toMatchObject({ status: "invalid" });
+  });
+
+  it("returns invalid when ref is missing on add", async () => {
+    withMemoryStorage();
+    const result = await mutesTool.execute!(
+      "call-1",
+      { action: "add", kind: "bill" },
+      undefined,
+      undefined,
+    );
+    expect(result.details).toMatchObject({ status: "invalid" });
+    expect(result.content[0].text).toContain("'ref' is required");
+  });
+
+  it("rejects an empty ref on add", async () => {
+    withMemoryStorage();
+    const result = await mutesTool.execute!(
+      "call-1",
+      { action: "add", kind: "bill", ref: "   " },
+      undefined,
+      undefined,
+    );
+    expect(result.details).toMatchObject({ status: "invalid" });
+  });
+});
+
+describe("politiclaw_mutes — action='remove'", () => {
+  it("reports removed=true when the row existed", async () => {
+    withMemoryStorage();
+    await mutesTool.execute!(
+      "call-1",
+      { action: "add", kind: "rep", ref: "A000360" },
+      undefined,
+      undefined,
+    );
+    const result = await mutesTool.execute!(
       "call-2",
-      { kind: "rep", ref: "A000360" },
+      { action: "remove", kind: "rep", ref: "A000360" },
       undefined,
       undefined,
     );
@@ -84,76 +106,96 @@ describe("politiclaw_unmute tool", () => {
 
   it("reports removed=false when nothing was muted", async () => {
     withMemoryStorage();
-    const result = await unmuteTool.execute!(
+    const result = await mutesTool.execute!(
       "call-1",
-      { kind: "rep", ref: "A000360" },
+      { action: "remove", kind: "rep", ref: "A000360" },
       undefined,
       undefined,
     );
     expect(result.details).toMatchObject({ removed: false });
   });
 
-  it("rejects a missing ref at validation (does not silently match 'undefined')", async () => {
+  it("returns invalid when ref is missing on remove", async () => {
     withMemoryStorage();
-    await expect(
-      unmuteTool.execute!(
-        "call-1",
-        { kind: "bill" } as unknown as { kind: "bill"; ref: string },
-        undefined,
-        undefined,
-      ),
-    ).rejects.toThrow();
+    const result = await mutesTool.execute!(
+      "call-1",
+      { action: "remove", kind: "bill" },
+      undefined,
+      undefined,
+    );
+    expect(result.details).toMatchObject({ status: "invalid" });
   });
 
-  it("rejects an empty ref at validation", async () => {
+  it("rejects an empty ref on remove", async () => {
     withMemoryStorage();
-    await expect(
-      unmuteTool.execute!(
-        "call-1",
-        { kind: "bill", ref: "   " },
-        undefined,
-        undefined,
-      ),
-    ).rejects.toThrow();
+    const result = await mutesTool.execute!(
+      "call-1",
+      { action: "remove", kind: "bill", ref: "   " },
+      undefined,
+      undefined,
+    );
+    expect(result.details).toMatchObject({ status: "invalid" });
   });
 
-  it("rejects unknown kinds at validation", async () => {
+  it("rejects unknown kinds on remove at validation", async () => {
     withMemoryStorage();
-    await expect(
-      unmuteTool.execute!(
-        "call-1",
-        { kind: "invalid", ref: "x" },
-        undefined,
-        undefined,
-      ),
-    ).rejects.toThrow();
+    const result = await mutesTool.execute!(
+      "call-1",
+      { action: "remove", kind: "invalid", ref: "x" },
+      undefined,
+      undefined,
+    );
+    expect(result.details).toMatchObject({ status: "invalid" });
   });
 });
 
-describe("politiclaw_list_mutes tool", () => {
+describe("politiclaw_mutes — action='list'", () => {
   it("returns the empty-state message when nothing is muted", async () => {
     withMemoryStorage();
-    const result = await listMutesTool.execute!("call-1", {}, undefined, undefined);
+    const result = await mutesTool.execute!(
+      "call-1",
+      { action: "list" },
+      undefined,
+      undefined,
+    );
     expect(result.content[0].text).toBe("No mutes set.");
     expect(result.details).toMatchObject({ mutes: [] });
   });
 
   it("lists mutes with their kind, ref, and reason (when set)", async () => {
     withMemoryStorage();
-    await muteTool.execute!(
+    await mutesTool.execute!(
       "call-1",
-      { kind: "bill", ref: "119-hr-1", reason: "already decided" },
+      { action: "add", kind: "bill", ref: "119-hr-1", reason: "already decided" },
       undefined,
       undefined,
     );
-    await muteTool.execute!(
+    await mutesTool.execute!(
       "call-2",
-      { kind: "issue", ref: "Climate Change" },
+      { action: "add", kind: "issue", ref: "Climate Change" },
       undefined,
       undefined,
     );
-    const result = await listMutesTool.execute!("call-3", {}, undefined, undefined);
+    const result = await mutesTool.execute!(
+      "call-3",
+      { action: "list" },
+      undefined,
+      undefined,
+    );
     expect(result.content[0].text).toContain("[bill] 119-hr-1 — already decided");
     expect(result.content[0].text).toContain("[issue] climate-change");
+  });
+});
+
+describe("politiclaw_mutes — invalid action", () => {
+  it("returns an invalid status when action is missing or unknown", async () => {
+    withMemoryStorage();
+    const result = await mutesTool.execute!(
+      "call-1",
+      {},
+      undefined,
+      undefined,
+    );
+    expect(result.details).toMatchObject({ status: "invalid" });
   });
 });

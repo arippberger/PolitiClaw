@@ -152,7 +152,7 @@ describe("politiclaw_score_representative tool", () => {
     );
     const text = (result.content[0] as { type: "text"; text: string }).text;
     expect(text).toContain("Cannot score");
-    expect(text).toContain("politiclaw_set_issue_stance");
+    expect(text).toContain("politiclaw_issue_stances");
   });
 
   it("refuses when rep is not in the reps table", async () => {

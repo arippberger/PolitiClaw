@@ -155,7 +155,7 @@ describe("FEC adapter — getCandidateSummary", () => {
     expect(result.status).toBe("unavailable");
     if (result.status !== "unavailable") return;
     expect(result.reason).toContain("no FEC candidate found");
-    expect(result.actionable).toContain("politiclaw_research_candidate");
+    expect(result.actionable).toContain("politiclaw_research_finance");
   });
 
   it("degrades gracefully when totals endpoint fails", async () => {

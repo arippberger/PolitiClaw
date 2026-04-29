@@ -20,7 +20,7 @@ Each arrow is a tool or cron job, not a marketing promise:
 2. **Score on demand or on schedule.** [`politiclaw_score_bill`](../reference/generated/tools/politiclaw_score_bill) and [`politiclaw_score_representative`](../reference/generated/tools/politiclaw_score_representative) score against your declared stances. Recurring jobs keep the picture current.
 3. **Signals are recorded locally.** Stance signals land in plugin-owned SQLite on your machine. [Generated Storage Schema](../reference/generated/storage-schema) is the source of truth for layout.
 4. **Periodic digest.** The monthly [`politiclaw_rep_report`](../reference/generated/tools/politiclaw_rep_report) re-scores every stored rep deterministically from recorded votes and alignment signals, with blind spots called out.
-5. **Close the loop with a draft.** [`politiclaw_draft_letter`](../reference/generated/tools/politiclaw_draft_letter) grounds outreach in bill text and your saved stance. You read it, edit it, and send it yourself.
+5. **Close the loop with a draft.** [`politiclaw_draft_outreach`](../reference/generated/tools/politiclaw_draft_outreach) grounds outreach in bill text and your saved stance. You read it, edit it, and send it yourself.
 
 ## What "aligned" and "against" actually mean
 
@@ -59,7 +59,7 @@ The monitoring skill enforces these tiers on every factual claim it emits. If a 
 
 ## Closing the loop: drafts, not sends
 
-The outreach path ends at a draft. [`politiclaw_draft_letter`](../reference/generated/tools/politiclaw_draft_letter) grounds a letter in the specific bill text and your saved stance so the draft reads like you wrote it after doing the homework. You review, edit, and send it yourself through whatever channel you normally use.
+The outreach path ends at a draft. [`politiclaw_draft_outreach`](../reference/generated/tools/politiclaw_draft_outreach) grounds a letter in the specific bill text and your saved stance so the draft reads like you wrote it after doing the homework. You review, edit, and send it yourself through whatever channel you normally use.
 
 For the broader outreach workflow — public comments, testimony, choosing a representative target — see [Draft Outreach](./draft-outreach).
 

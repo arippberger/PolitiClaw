@@ -5,19 +5,17 @@ Use this page when multiple tools can answer a similar need and you want to know
 ```mermaid
 flowchart TD
   start{"What do you want to do?"}
-  start -->|"Set up / save stances"| configure["politiclaw_configure"]
-  start -->|"Prepare for an election"| prep["politiclaw_prepare_me_for_my_next_election"]
+  start -->|"Set up / save stances / save keys"| configure["politiclaw_configure"]
+  start -->|"Prepare for an election"| prep["politiclaw_election_brief"]
   start -->|"Manage monitoring"| configureMonitor["politiclaw_configure"]
-  start -->|"Research a candidate"| candidate["politiclaw_research_candidate"]
+  start -->|"Research a candidate"| candidate["politiclaw_research_finance<br/>(mode='candidate')"]
   start -->|"Reps and bills"| repsBills["politiclaw_get_my_reps<br/>politiclaw_search_bills<br/>politiclaw_score_*"]
 
-  configure -. "edit one stance later" .-> stance["politiclaw_set_issue_stance"]
-  configure -. "save one API key" .-> setkeys["politiclaw_set_api_keys"]
-  prep -. "contest framing only" .-> explain["politiclaw_explain_my_ballot"]
+  configure -. "edit one stance later" .-> stance["politiclaw_issue_stances"]
   prep -. "raw ballot snapshot" .-> ballot["politiclaw_get_my_ballot"]
   configureMonitor -. "one-off snapshot" .-> upcoming["politiclaw_check_upcoming_votes"]
-  configureMonitor -. "suppress a topic" .-> mute["politiclaw_mute / unmute"]
-  candidate -. "incumbent vs challenger" .-> challenger["politiclaw_research_challengers"]
+  configureMonitor -. "suppress a topic" .-> mute["politiclaw_mutes"]
+  candidate -. "incumbent vs challenger" .-> challenger["politiclaw_research_finance<br/>(mode='challengers')"]
   repsBills -. "single bill details" .-> bill["politiclaw_get_bill_details"]
   repsBills -. "combined report" .-> report["politiclaw_rep_report"]
 ```
@@ -30,27 +28,24 @@ flowchart TD
 
 ### Why
 
-It bundles the highest-friction setup work into one flow instead of making users manually discover address saving, rep bootstrap, issue stances, and monitoring in separate steps.
+It bundles the highest-friction setup work into one flow instead of making users manually discover address saving, rep bootstrap, issue stances, monitoring, and API key persistence in separate steps. Re-running it with just `apiDataGov` (or `optionalApiKeys`) after onboarding is the canonical way to update keys.
 
 ### Use the lower-level tools when
 
-- you are editing a single issue later with [`politiclaw_set_issue_stance`](../reference/generated/tools/politiclaw_set_issue_stance)
-- you are reviewing or pruning a saved stance set with [`politiclaw_list_issue_stances`](../reference/generated/tools/politiclaw_list_issue_stances) or [`politiclaw_delete_issue_stance`](../reference/generated/tools/politiclaw_delete_issue_stance)
-- you want to save or update a single API key without re-running the whole flow with [`politiclaw_set_api_keys`](../reference/generated/tools/politiclaw_set_api_keys) (triggers a gateway restart)
+- you are editing, listing, or removing a single declared stance later with [`politiclaw_issue_stances`](../reference/generated/tools/politiclaw_issue_stances) (action `set` / `list` / `delete`)
 
 ## Ballot and election prep
 
 ### Default entry point
 
-- [`politiclaw_prepare_me_for_my_next_election`](../reference/generated/tools/politiclaw_prepare_me_for_my_next_election)
+- [`politiclaw_election_brief`](../reference/generated/tools/politiclaw_election_brief)
 
 ### Why
 
-It is the highest-value answer for most users because it checks prerequisites, pulls ballot context, and combines contest framing with representative context in one output.
+It is the highest-value answer for most users because it checks prerequisites, pulls ballot context, and combines per-contest framing with representative context in one output.
 
 ### Use the lower-level tools when
 
-- you want a contest-by-contest framing only, use [`politiclaw_explain_my_ballot`](../reference/generated/tools/politiclaw_explain_my_ballot)
 - you need the raw ballot snapshot and logistics for debugging or plumbing, use [`politiclaw_get_my_ballot`](../reference/generated/tools/politiclaw_get_my_ballot)
 
 ## Monitoring
@@ -66,7 +61,7 @@ It is the cleanest user-facing control. Most users want one place to save setup 
 ### Use the lower-level tools when
 
 - you want a one-off snapshot instead of ongoing monitoring, use [`politiclaw_check_upcoming_votes`](../reference/generated/tools/politiclaw_check_upcoming_votes)
-- you want to suppress a specific topic without changing cadence, use [`politiclaw_mute`](../reference/generated/tools/politiclaw_mute), [`politiclaw_unmute`](../reference/generated/tools/politiclaw_unmute), and [`politiclaw_list_mutes`](../reference/generated/tools/politiclaw_list_mutes)
+- you want to suppress a specific topic without changing cadence, use [`politiclaw_mutes`](../reference/generated/tools/politiclaw_mutes) with `action='add'`, `'remove'`, or `'list'`
 
 ### See also
 
@@ -77,15 +72,15 @@ It is the cleanest user-facing control. Most users want one place to save setup 
 
 ### Default entry point
 
-- [`politiclaw_research_candidate`](../reference/generated/tools/politiclaw_research_candidate)
+- [`politiclaw_research_finance`](../reference/generated/tools/politiclaw_research_finance)
 
 ### Why
 
-Most user intent starts with a person, not a whole race. The single-candidate tool is easier to explain and works well as a first pass.
+Most user intent starts with a person, not a whole race. Use `mode='candidate'` for a single FEC candidate (with `name` to disambiguate or `candidateId` for full per-cycle totals).
 
-### Use the lower-level tools when
+### Use the lower-level modes when
 
-- you want side-by-side incumbent versus challenger finance context for a stored race, use [`politiclaw_research_challengers`](../reference/generated/tools/politiclaw_research_challengers)
+- you want side-by-side incumbent versus challenger finance context for a stored race, call the same tool with `mode='challengers'`
 
 ## Reps and bills
 

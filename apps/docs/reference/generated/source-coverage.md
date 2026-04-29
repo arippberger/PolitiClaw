@@ -35,7 +35,7 @@ This page is generated from the explicit source coverage catalog.
 - Config key: `apiKeys.apiDataGov`
 - Summary: Required for the current federal bill, House vote, committee schedule, and FEC finance integrations.
 - Notes: One key powers api.congress.gov-backed sources and FEC OpenFEC. Senate roll-call ingest runs through a separate zero-key source (voteview.com).
-- Tools: `politiclaw_search_bills`, `politiclaw_get_bill_details`, `politiclaw_score_bill`, `politiclaw_check_upcoming_votes`, `politiclaw_ingest_votes`, `politiclaw_research_candidate`, `politiclaw_research_challengers`
+- Tools: `politiclaw_search_bills`, `politiclaw_get_bill_details`, `politiclaw_score_bill`, `politiclaw_check_upcoming_votes`, `politiclaw_ingest_votes`, `politiclaw_research_finance`
 - Runtime files: `packages/politiclaw-plugin/src/sources/bills/index.ts`, `packages/politiclaw-plugin/src/sources/votes/index.ts`, `packages/politiclaw-plugin/src/sources/upcomingVotes/index.ts`, `packages/politiclaw-plugin/src/sources/finance/index.ts`
 
 ### Local shapefile pipeline
@@ -73,7 +73,7 @@ This page is generated from the explicit source coverage catalog.
 - Config key: `apiKeys.googleCivic`
 - Summary: Key-gated ballot and election-logistics provider — the only ballot source the plugin wires today.
 - Notes: Required for every ballot tool. Per-state SoS adapters were scoped out in v1 after an audit found none of the six candidate states publishes a public address-to-ballot JSON feed; revisit when BallotReady or Democracy Works provides self-serve keys. Judicial retention detail and ballot-measure plain-language enrichment are not wired.
-- Tools: `politiclaw_get_my_ballot`, `politiclaw_explain_my_ballot`, `politiclaw_prepare_me_for_my_next_election`
+- Tools: `politiclaw_get_my_ballot`, `politiclaw_election_brief`
 - Runtime files: `packages/politiclaw-plugin/src/sources/ballot/index.ts`, `packages/politiclaw-plugin/src/sources/ballot/googleCivic.ts`
 
 ### Candidate and measure bio web search
@@ -82,7 +82,7 @@ This page is generated from the explicit source coverage catalog.
 - Required: no
 - Summary: The guarded adapter shape exists, but the production transport is not wired, so live calls return unavailable.
 - Notes: Tests can inject a fetcher today. Production use still depends on the host skill layer for narrative lookup.
-- Tools: `politiclaw_research_candidate`, `politiclaw_prepare_me_for_my_next_election`, `politiclaw_explain_my_ballot`
+- Tools: `politiclaw_research_finance`, `politiclaw_election_brief`
 - Runtime files: `packages/politiclaw-plugin/src/sources/webSearch/index.ts`, `packages/politiclaw-plugin/src/sources/webSearch/bios.ts`
 
 ### Open States
@@ -110,7 +110,7 @@ This page is generated from the explicit source coverage catalog.
 - Config key: `apiKeys.openSecrets`
 - Summary: Declared in the plugin config schema but not wired into the current runtime.
 - Notes: The candidate research tool intentionally stops at FEC totals today.
-- Runtime files: `packages/politiclaw-plugin/openclaw.plugin.json`, `packages/politiclaw-plugin/src/storage/context.ts`, `packages/politiclaw-plugin/src/tools/researchCandidate.ts`
+- Runtime files: `packages/politiclaw-plugin/openclaw.plugin.json`, `packages/politiclaw-plugin/src/storage/context.ts`, `packages/politiclaw-plugin/src/tools/researchFinance.ts`
 
 ### FollowTheMoney
 

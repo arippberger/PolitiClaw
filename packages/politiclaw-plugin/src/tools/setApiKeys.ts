@@ -285,4 +285,3 @@ export function createSetApiKeysTool(
 }
 
 export const setApiKeysTool = createSetApiKeysTool();
-export const setApiKeysTools: AnyAgentTool[] = [setApiKeysTool];

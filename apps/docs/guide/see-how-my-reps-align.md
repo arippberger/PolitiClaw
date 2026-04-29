@@ -18,7 +18,7 @@ Chain them in order: `get_my_reps` → `score_representative` (one rep at a time
 
 Rep accountability requires declared issue stances and at least one recorded stance signal on a relevant bill. If scores come back as *insufficient data* for every issue:
 
-1. Review your declared stances with [`politiclaw_list_issue_stances`](../reference/generated/tools/politiclaw_list_issue_stances) and add more if the set is thin.
+1. Review your declared stances with [`politiclaw_issue_stances`](../reference/generated/tools/politiclaw_issue_stances) and add more if the set is thin.
 2. Record agree/disagree signals on tracked bills from the dashboard's quick-vote section or the [`politiclaw_record_stance_signal`](../reference/generated/tools/politiclaw_record_stance_signal) tool. Direction only comes from *your* signals — never model inference.
 3. If roll-call data is missing, run [`politiclaw_ingest_votes`](../reference/generated/tools/politiclaw_ingest_votes) first (defaults to both chambers).
 
@@ -30,8 +30,8 @@ Rep accountability requires declared issue stances and at least one recorded sta
 
 ## Focused follow-ups
 
-- [`politiclaw_prepare_me_for_my_next_election`](../reference/generated/tools/politiclaw_prepare_me_for_my_next_election) when the accountability findings should fold into ballot context.
-- [`politiclaw_draft_letter`](../reference/generated/tools/politiclaw_draft_letter) when the next step is outreach grounded in a cited conflict.
+- [`politiclaw_election_brief`](../reference/generated/tools/politiclaw_election_brief) when the accountability findings should fold into ballot context.
+- [`politiclaw_draft_outreach`](../reference/generated/tools/politiclaw_draft_outreach) when the next step is outreach grounded in a cited conflict.
 
 ## In the accountability loop
 

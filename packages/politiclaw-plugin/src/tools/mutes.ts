@@ -11,47 +11,43 @@ import {
   type MuteRow,
 } from "../domain/mutes/index.js";
 import { getStorage } from "../storage/context.js";
-import { parse } from "../validation/typebox.js";
+import { safeParse } from "../validation/typebox.js";
 
-const MuteParams = Type.Object({
-  kind: Type.Union(
-    MUTE_KINDS.map((kind) => Type.Literal(kind)),
+const MutesParams = Type.Object({
+  action: Type.Union(
+    [Type.Literal("add"), Type.Literal("remove"), Type.Literal("list")],
     {
       description:
-        "What to mute: 'bill' (by bill id like '119-hr-1234'), 'rep' (by bioguide id), or 'issue' (by issue slug).",
+        "What to do: 'add' to start suppressing a target, 'remove' to unsuppress, 'list' to see every active mute. " +
+        "'add' and 'remove' both require kind+ref; 'list' takes no other params.",
     },
   ),
-  ref: Type.String({
-    description:
-      "The bill id, bioguide id, or issue slug to mute. Issue refs are normalized to lowercase kebab-case.",
-  }),
+  kind: Type.Optional(
+    Type.Union(MUTE_KINDS.map((kind) => Type.Literal(kind)), {
+      description:
+        "Required for action='add' or action='remove'. What to mute: 'bill' (by bill id like '119-hr-1234'), 'rep' (by bioguide id), or 'issue' (by issue slug).",
+    }),
+  ),
+  ref: Type.Optional(
+    Type.String({
+      description:
+        "Required for action='add' or action='remove'. Bill id, bioguide id, or issue slug. Issue refs are normalized to lowercase kebab-case.",
+    }),
+  ),
   reason: Type.Optional(
     Type.String({
       description:
-        "Optional short note about why this is muted (e.g. 'followup-2026-05'). Stored for your own reference; not rendered in alerts.",
+        "Optional (action='add' only). Short note about why this is muted (e.g. 'followup-2026-05'). Stored for your own reference; not rendered in alerts.",
     }),
   ),
 });
-
-const UnmuteParams = Type.Object({
-  kind: Type.Union(MUTE_KINDS.map((kind) => Type.Literal(kind))),
-  ref: Type.String(),
-});
-
-const ListMutesParams = Type.Object({});
 
 function textResult<T>(text: string, details: T) {
   return { content: [{ type: "text" as const, text }], details };
 }
 
-function normalizeMuteRefs(raw: unknown): unknown {
-  if (typeof raw !== "object" || raw === null) return raw;
-  const cast = raw as { ref?: unknown; reason?: unknown };
-  return {
-    ...raw,
-    ref: typeof cast.ref === "string" ? cast.ref.trim() : cast.ref,
-    reason: typeof cast.reason === "string" ? cast.reason.trim() : cast.reason,
-  };
+function trimString(value: unknown): string | undefined {
+  return typeof value === "string" ? value.trim() : undefined;
 }
 
 function renderMuteLine(row: MuteRow): string {
@@ -59,68 +55,116 @@ function renderMuteLine(row: MuteRow): string {
   return row.reason ? `${base} — ${row.reason}` : base;
 }
 
-export const muteTool: AnyAgentTool = {
-  name: "politiclaw_mute",
-  label: "Mute a bill, rep, or issue",
+export const mutesTool: AnyAgentTool = {
+  name: "politiclaw_mutes",
+  label: "Manage monitoring alert mutes (add, remove, list)",
   description:
-    "Suppress future monitoring alerts for a specific bill, representative, or issue. " +
-    "Muting is idempotent — re-muting the same target refreshes the optional reason and timestamp. " +
-    "Use when the user says they have seen enough about a topic; they can always unmute later.",
-  parameters: MuteParams,
+    "Manage suppression of monitoring alerts for specific bills, reps, or issues. " +
+    "Pass action='add' with kind+ref (and optional reason) to start suppressing — re-adding " +
+    "the same target refreshes the optional reason and timestamp. Pass action='remove' with " +
+    "kind+ref to unsuppress. Pass action='list' for every active mute, newest first. " +
+    "Prefer politiclaw_action_moments with verdict='not_now' or 'stop' when you only want to " +
+    "dismiss a single offer rather than silence the bill/rep/issue entirely.",
+  parameters: MutesParams,
   async execute(_toolCallId, rawParams) {
-    // Trim ref/reason before validation so a whitespace-only ref fails
-    // validation rather than slipping through to addMute. Mirrors the
-    // pre-migration Zod .trim().min(1) behavior.
-    const parsed = parse(MuteInputSchema, normalizeMuteRefs(rawParams));
-    const { db } = getStorage();
-    const row = addMute(db, parsed);
-    const reasonSuffix = row.reason ? ` (reason: ${row.reason})` : "";
-    return textResult(
-      `Muted ${row.kind} '${row.ref}'${reasonSuffix}.`,
-      row,
-    );
-  },
-};
-
-export const unmuteTool: AnyAgentTool = {
-  name: "politiclaw_unmute",
-  label: "Unmute a bill, rep, or issue",
-  description:
-    "Remove a previously-added mute. Future monitoring alerts will include this target again. " +
-    "Returns a no-op acknowledgement if nothing was muted under that (kind, ref).",
-  parameters: UnmuteParams,
-  async execute(_toolCallId, rawParams) {
-    const { kind, ref } = parse(UnmuteInputSchema, normalizeMuteRefs(rawParams));
-    const { db } = getStorage();
-    const removed = removeMute(db, { kind, ref });
-    return textResult(
-      removed
-        ? `Unmuted ${kind} '${ref}'.`
-        : `No mute found for ${kind} '${ref}'.`,
-      { removed, kind, ref },
-    );
-  },
-};
-
-export const listMutesTool: AnyAgentTool = {
-  name: "politiclaw_list_mutes",
-  label: "List current mutes",
-  description:
-    "Return every active mute entry, newest first. Use to show the user what is currently " +
-    "being suppressed from monitoring alerts before unmuting.",
-  parameters: ListMutesParams,
-  async execute() {
-    const { db } = getStorage();
-    const rows = listMutes(db);
-    if (rows.length === 0) {
-      return textResult("No mutes set.", { mutes: [] });
+    const parsedParams = safeParse(MutesParams, rawParams ?? {});
+    if (!parsedParams.ok) {
+      return textResult(
+        `Invalid input: ${parsedParams.messages.join("; ")}`,
+        { status: "invalid" },
+      );
     }
-    const lines = rows.map(renderMuteLine);
+    const params = parsedParams.data;
+    const action = params.action;
+
+    if (action === "list") {
+      const { db } = getStorage();
+      const rows = listMutes(db);
+      if (rows.length === 0) {
+        return textResult("No mutes set.", { mutes: [] });
+      }
+      const lines = rows.map(renderMuteLine);
+      return textResult(
+        [`Muted ${rows.length} item${rows.length === 1 ? "" : "s"}:`, ...lines].join("\n"),
+        { mutes: rows },
+      );
+    }
+
+    if (action === "add") {
+      const ref = trimString(params.ref);
+      const reason = trimString(params.reason);
+      if (!params.kind) {
+        return textResult(
+          "Cannot add mute: 'kind' is required when action='add'.",
+          { status: "invalid" },
+        );
+      }
+      if (!ref) {
+        return textResult(
+          "Cannot add mute: 'ref' is required when action='add'.",
+          { status: "invalid" },
+        );
+      }
+      const parsed = safeParse(MuteInputSchema, {
+        kind: params.kind,
+        ref,
+        ...(reason !== undefined ? { reason } : {}),
+      });
+      if (!parsed.ok) {
+        return textResult(
+          `Invalid input: ${parsed.messages.join("; ")}`,
+          { status: "invalid" },
+        );
+      }
+      const { db } = getStorage();
+      const row = addMute(db, parsed.data);
+      const reasonSuffix = row.reason ? ` (reason: ${row.reason})` : "";
+      return textResult(
+        `Muted ${row.kind} '${row.ref}'${reasonSuffix}.`,
+        row,
+      );
+    }
+
+    if (action === "remove") {
+      const ref = trimString(params.ref);
+      if (!params.kind) {
+        return textResult(
+          "Cannot remove mute: 'kind' is required when action='remove'.",
+          { status: "invalid" },
+        );
+      }
+      if (!ref) {
+        return textResult(
+          "Cannot remove mute: 'ref' is required when action='remove'.",
+          { status: "invalid" },
+        );
+      }
+      const parsed = safeParse(UnmuteInputSchema, {
+        kind: params.kind,
+        ref,
+      });
+      if (!parsed.ok) {
+        return textResult(
+          `Invalid input: ${parsed.messages.join("; ")}`,
+          { status: "invalid" },
+        );
+      }
+      const { kind, ref: parsedRef } = parsed.data;
+      const { db } = getStorage();
+      const removed = removeMute(db, { kind, ref: parsedRef });
+      return textResult(
+        removed
+          ? `Unmuted ${kind} '${parsedRef}'.`
+          : `No mute found for ${kind} '${parsedRef}'.`,
+        { removed, kind, ref: parsedRef },
+      );
+    }
+
     return textResult(
-      [`Muted ${rows.length} item${rows.length === 1 ? "" : "s"}:`, ...lines].join("\n"),
-      { mutes: rows },
+      `Invalid action. Pass action: 'add' | 'remove' | 'list'.`,
+      { status: "invalid" },
     );
   },
 };
 
-export const muteTools: AnyAgentTool[] = [muteTool, unmuteTool, listMutesTool];
+export const muteTools: AnyAgentTool[] = [mutesTool];

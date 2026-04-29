@@ -18,14 +18,7 @@ export const TOOL_AUDIT_ENTRIES: readonly ToolAuditEntry[] = [
     tier: "core",
     docsAction: "lead-in-guides",
     rationale:
-      "Best first-run and reconfiguration entry point because it folds address setup, rep bootstrap, issue-setup handoff, and monitoring cadence into one user-facing flow.",
-  },
-  {
-    name: "politiclaw_set_api_keys",
-    tier: "core",
-    docsAction: "lead-in-guides",
-    rationale:
-      "Writable counterpart to the configure flow's API-key stage: lets the agent persist provider keys (api.data.gov, Google Civic, Geocodio, and the optional upgrades) without the user editing the gateway config by hand.",
+      "Best first-run and reconfiguration entry point because it folds address setup, rep bootstrap, issue-setup handoff, monitoring cadence, and API key persistence into one user-facing flow.",
   },
   {
     name: "politiclaw_record_stance_signal",
@@ -34,22 +27,11 @@ export const TOOL_AUDIT_ENTRIES: readonly ToolAuditEntry[] = [
     rationale: "Low-level preference telemetry for flows and monitoring, not a normal direct user action.",
   },
   {
-    name: "politiclaw_set_issue_stance",
+    name: "politiclaw_issue_stances",
     tier: "core",
     docsAction: "lead-in-guides",
-    rationale: "Directly expresses user priorities and powers bill and rep alignment.",
-  },
-  {
-    name: "politiclaw_list_issue_stances",
-    tier: "advanced",
-    docsAction: "follow-up-or-advanced-docs",
-    rationale: "Useful for reviewing and tuning saved preferences after onboarding.",
-  },
-  {
-    name: "politiclaw_delete_issue_stance",
-    tier: "advanced",
-    docsAction: "follow-up-or-advanced-docs",
-    rationale: "Cleanup control for users editing their stance set, but not part of the default flow.",
+    rationale:
+      "Single tool for setting, listing, and deleting declared issue stances. Directly expresses user priorities and powers bill and rep alignment.",
   },
   {
     name: "politiclaw_get_my_reps",
@@ -97,19 +79,13 @@ export const TOOL_AUDIT_ENTRIES: readonly ToolAuditEntry[] = [
     name: "politiclaw_get_my_ballot",
     tier: "internal",
     docsAction: "generated-reference-only",
-    rationale: "Raw ballot snapshot is useful as plumbing, but the higher-level ballot tools are better public entry points.",
+    rationale: "Raw ballot snapshot is useful as plumbing, but politiclaw_election_brief is the better public entry point.",
   },
   {
-    name: "politiclaw_explain_my_ballot",
-    tier: "advanced",
-    docsAction: "follow-up-or-advanced-docs",
-    rationale: "Valuable for focused ballot deep dives, but narrower than the full election guide.",
-  },
-  {
-    name: "politiclaw_prepare_me_for_my_next_election",
+    name: "politiclaw_election_brief",
     tier: "core",
     docsAction: "lead-in-guides",
-    rationale: "Best ballot front door because it bundles setup checks, contest framing, and rep context.",
+    rationale: "Best ballot front door because it bundles setup checks, contest framing, and rep context in one readable guide.",
   },
   {
     name: "politiclaw_check_upcoming_votes",
@@ -118,40 +94,22 @@ export const TOOL_AUDIT_ENTRIES: readonly ToolAuditEntry[] = [
     rationale: "Great for engaged monitoring, but more procedural than the core user journeys.",
   },
   {
-    name: "politiclaw_mute",
+    name: "politiclaw_mutes",
     tier: "advanced",
     docsAction: "follow-up-or-advanced-docs",
-    rationale: "Useful tuning control once monitoring is already in use.",
+    rationale: "Single tool for adding, removing, and listing monitoring mutes — useful tuning control once monitoring is already in use.",
   },
   {
-    name: "politiclaw_unmute",
-    tier: "advanced",
-    docsAction: "follow-up-or-advanced-docs",
-    rationale: "Complements mute management for returning users, but not part of onboarding or first-run paths.",
-  },
-  {
-    name: "politiclaw_list_mutes",
-    tier: "advanced",
-    docsAction: "follow-up-or-advanced-docs",
-    rationale: "Audit view for monitoring suppressions, relevant mainly after custom tuning.",
-  },
-  {
-    name: "politiclaw_research_candidate",
+    name: "politiclaw_research_finance",
     tier: "core",
     docsAction: "lead-in-guides",
-    rationale: "Directly maps to a common election question and offers strong standalone value.",
+    rationale: "Directly maps to common election questions: per-candidate FEC finance lookup or side-by-side challenger comparison for stored reps.",
   },
   {
-    name: "politiclaw_research_challengers",
-    tier: "advanced",
-    docsAction: "follow-up-or-advanced-docs",
-    rationale: "Helpful side-by-side race view, but more specialized than single-candidate research.",
-  },
-  {
-    name: "politiclaw_draft_letter",
+    name: "politiclaw_draft_outreach",
     tier: "core",
     docsAction: "lead-in-guides",
-    rationale: "Clear outcome-oriented action that follows naturally from bills, reps, and issue stances.",
+    rationale: "Clear outcome-oriented action that follows naturally from bills, reps, and issue stances. Single tool covering both letter and call-script formats.",
   },
   {
     name: "politiclaw_doctor",
@@ -160,27 +118,15 @@ export const TOOL_AUDIT_ENTRIES: readonly ToolAuditEntry[] = [
     rationale: "Best recovery entry point when anything about setup, data, or monitoring looks broken.",
   },
   {
-    name: "politiclaw_draft_call_script",
-    tier: "advanced",
-    docsAction: "follow-up-or-advanced-docs",
-    rationale: "Phone sibling of the letter drafter — valuable when a faster channel fits but secondary to letters in the default flow.",
-  },
-  {
     name: "politiclaw_create_reminder",
     tier: "advanced",
     docsAction: "follow-up-or-advanced-docs",
     rationale: "Proactive bookmark tool used alongside monitoring; helpful for power users tracking a specific vote or election.",
   },
   {
-    name: "politiclaw_list_action_moments",
+    name: "politiclaw_action_moments",
     tier: "advanced",
     docsAction: "follow-up-or-advanced-docs",
-    rationale: "Surfaces open offer packages the classifier queued — an audit view for the action-moment pipeline.",
-  },
-  {
-    name: "politiclaw_dismiss_action_package",
-    tier: "advanced",
-    docsAction: "follow-up-or-advanced-docs",
-    rationale: "Per-offer feedback control (not_now / stop / useful) so users can tune action suggestions without muting entire targets.",
+    rationale: "Single tool for listing open offer packages and dismissing them with per-offer feedback (useful / not_now / stop) so users can tune action suggestions without muting entire targets.",
   },
 ] as const;

@@ -29,7 +29,7 @@ The shortest path from install to a real answer:
 
 From there, most users branch into either bill tracking, ballot prep, or monitoring. When several tools seem to overlap, use [Entry Points by Goal](./entry-points-by-goal) to find the default front door before jumping into lower-level reference pages.
 
-For everything related to provider keys — which key unlocks which tool, how to obtain each, how to save them with [`politiclaw_set_api_keys`](../reference/generated/tools/politiclaw_set_api_keys) or the configure flow, and what the gateway-restart implication is — see [API Keys](./api-keys).
+For everything related to provider keys — which key unlocks which tool, how to obtain each, how to save them with [`politiclaw_configure`](../reference/generated/tools/politiclaw_configure) or the configure flow, and what the gateway-restart implication is — see [API Keys](./api-keys).
 
 ## What To Expect Over Time
 

@@ -3,21 +3,21 @@
     "name": "politiclaw_configure",
     "tier": "core",
     "docsAction": "lead-in-guides",
-    "rationale": "Best first-run and reconfiguration entry point because it folds address setup, rep bootstrap, issue-setup handoff, and monitoring cadence into one user-facing flow.",
+    "rationale": "Best first-run and reconfiguration entry point because it folds address setup, rep bootstrap, issue-setup handoff, monitoring cadence, and API key persistence into one user-facing flow.",
     "label": "Configure PolitiClaw",
     "groupId": "preferences",
     "groupLabel": "Configuration and preferences",
     "sourcePath": "packages/politiclaw-plugin/src/tools/configure.ts"
   },
   {
-    "name": "politiclaw_set_api_keys",
+    "name": "politiclaw_issue_stances",
     "tier": "core",
     "docsAction": "lead-in-guides",
-    "rationale": "Writable counterpart to the configure flow's API-key stage: lets the agent persist provider keys (api.data.gov, Google Civic, Geocodio, and the optional upgrades) without the user editing the gateway config by hand.",
-    "label": "Save PolitiClaw API keys",
+    "rationale": "Single tool for setting, listing, and deleting declared issue stances. Directly expresses user priorities and powers bill and rep alignment.",
+    "label": "Manage declared issue stances (set, list, delete)",
     "groupId": "preferences",
     "groupLabel": "Configuration and preferences",
-    "sourcePath": "packages/politiclaw-plugin/src/tools/setApiKeys.ts"
+    "sourcePath": "packages/politiclaw-plugin/src/tools/issueStances.ts"
   },
   {
     "name": "politiclaw_record_stance_signal",
@@ -25,36 +25,6 @@
     "docsAction": "generated-reference-only",
     "rationale": "Low-level preference telemetry for flows and monitoring, not a normal direct user action.",
     "label": "Record PolitiClaw stance signal",
-    "groupId": "preferences",
-    "groupLabel": "Configuration and preferences",
-    "sourcePath": "packages/politiclaw-plugin/src/tools/preferences.ts"
-  },
-  {
-    "name": "politiclaw_set_issue_stance",
-    "tier": "core",
-    "docsAction": "lead-in-guides",
-    "rationale": "Directly expresses user priorities and powers bill and rep alignment.",
-    "label": "Set a declared issue stance",
-    "groupId": "preferences",
-    "groupLabel": "Configuration and preferences",
-    "sourcePath": "packages/politiclaw-plugin/src/tools/preferences.ts"
-  },
-  {
-    "name": "politiclaw_list_issue_stances",
-    "tier": "advanced",
-    "docsAction": "follow-up-or-advanced-docs",
-    "rationale": "Useful for reviewing and tuning saved preferences after onboarding.",
-    "label": "List declared issue stances",
-    "groupId": "preferences",
-    "groupLabel": "Configuration and preferences",
-    "sourcePath": "packages/politiclaw-plugin/src/tools/preferences.ts"
-  },
-  {
-    "name": "politiclaw_delete_issue_stance",
-    "tier": "advanced",
-    "docsAction": "follow-up-or-advanced-docs",
-    "rationale": "Cleanup control for users editing their stance set, but not part of the default flow.",
-    "label": "Delete a declared issue stance",
     "groupId": "preferences",
     "groupLabel": "Configuration and preferences",
     "sourcePath": "packages/politiclaw-plugin/src/tools/preferences.ts"
@@ -133,31 +103,21 @@
     "name": "politiclaw_get_my_ballot",
     "tier": "internal",
     "docsAction": "generated-reference-only",
-    "rationale": "Raw ballot snapshot is useful as plumbing, but the higher-level ballot tools are better public entry points.",
+    "rationale": "Raw ballot snapshot is useful as plumbing, but politiclaw_election_brief is the better public entry point.",
     "label": "Preview ballot logistics and contests for your saved address",
     "groupId": "ballot",
     "groupLabel": "Ballot and election prep",
     "sourcePath": "packages/politiclaw-plugin/src/tools/ballot.ts"
   },
   {
-    "name": "politiclaw_explain_my_ballot",
-    "tier": "advanced",
-    "docsAction": "follow-up-or-advanced-docs",
-    "rationale": "Valuable for focused ballot deep dives, but narrower than the full election guide.",
-    "label": "Explain each contest on your ballot with facts + framing — never a recommendation",
-    "groupId": "ballot",
-    "groupLabel": "Ballot and election prep",
-    "sourcePath": "packages/politiclaw-plugin/src/tools/explainBallot.ts"
-  },
-  {
-    "name": "politiclaw_prepare_me_for_my_next_election",
+    "name": "politiclaw_election_brief",
     "tier": "core",
     "docsAction": "lead-in-guides",
-    "rationale": "Best ballot front door because it bundles setup checks, contest framing, and rep context.",
-    "label": "Prepare one readable guide for the user's next election",
+    "rationale": "Best ballot front door because it bundles setup checks, contest framing, and rep context in one readable guide.",
+    "label": "One readable election guide: ballot framing + rep alignment + setup checks",
     "groupId": "ballot",
     "groupLabel": "Ballot and election prep",
-    "sourcePath": "packages/politiclaw-plugin/src/tools/prepareForElection.ts"
+    "sourcePath": "packages/politiclaw-plugin/src/tools/electionBrief.ts"
   },
   {
     "name": "politiclaw_check_upcoming_votes",
@@ -170,31 +130,11 @@
     "sourcePath": "packages/politiclaw-plugin/src/tools/monitoring.ts"
   },
   {
-    "name": "politiclaw_mute",
+    "name": "politiclaw_mutes",
     "tier": "advanced",
     "docsAction": "follow-up-or-advanced-docs",
-    "rationale": "Useful tuning control once monitoring is already in use.",
-    "label": "Mute a bill, rep, or issue",
-    "groupId": "monitoring",
-    "groupLabel": "Monitoring and cadence",
-    "sourcePath": "packages/politiclaw-plugin/src/tools/mutes.ts"
-  },
-  {
-    "name": "politiclaw_unmute",
-    "tier": "advanced",
-    "docsAction": "follow-up-or-advanced-docs",
-    "rationale": "Complements mute management for returning users, but not part of onboarding or first-run paths.",
-    "label": "Unmute a bill, rep, or issue",
-    "groupId": "monitoring",
-    "groupLabel": "Monitoring and cadence",
-    "sourcePath": "packages/politiclaw-plugin/src/tools/mutes.ts"
-  },
-  {
-    "name": "politiclaw_list_mutes",
-    "tier": "advanced",
-    "docsAction": "follow-up-or-advanced-docs",
-    "rationale": "Audit view for monitoring suppressions, relevant mainly after custom tuning.",
-    "label": "List current mutes",
+    "rationale": "Single tool for adding, removing, and listing monitoring mutes — useful tuning control once monitoring is already in use.",
+    "label": "Manage monitoring alert mutes (add, remove, list)",
     "groupId": "monitoring",
     "groupLabel": "Monitoring and cadence",
     "sourcePath": "packages/politiclaw-plugin/src/tools/mutes.ts"
@@ -210,64 +150,34 @@
     "sourcePath": "packages/politiclaw-plugin/src/tools/reminder.ts"
   },
   {
-    "name": "politiclaw_list_action_moments",
+    "name": "politiclaw_action_moments",
     "tier": "advanced",
     "docsAction": "follow-up-or-advanced-docs",
-    "rationale": "Surfaces open offer packages the classifier queued — an audit view for the action-moment pipeline.",
-    "label": "List open action-package offers",
+    "rationale": "Single tool for listing open offer packages and dismissing them with per-offer feedback (useful / not_now / stop) so users can tune action suggestions without muting entire targets.",
+    "label": "List or dismiss open action-package offers",
     "groupId": "monitoring",
     "groupLabel": "Monitoring and cadence",
     "sourcePath": "packages/politiclaw-plugin/src/tools/actionMoments.ts"
   },
   {
-    "name": "politiclaw_dismiss_action_package",
-    "tier": "advanced",
-    "docsAction": "follow-up-or-advanced-docs",
-    "rationale": "Per-offer feedback control (not_now / stop / useful) so users can tune action suggestions without muting entire targets.",
-    "label": "Dismiss or flag an action package",
-    "groupId": "monitoring",
-    "groupLabel": "Monitoring and cadence",
-    "sourcePath": "packages/politiclaw-plugin/src/tools/actionMoments.ts"
-  },
-  {
-    "name": "politiclaw_research_candidate",
+    "name": "politiclaw_research_finance",
     "tier": "core",
     "docsAction": "lead-in-guides",
-    "rationale": "Directly maps to a common election question and offers strong standalone value.",
-    "label": "Look up FEC candidate finance totals + tier-5 bio",
+    "rationale": "Directly maps to common election questions: per-candidate FEC finance lookup or side-by-side challenger comparison for stored reps.",
+    "label": "Research candidate finance — single candidate or side-by-side challengers",
     "groupId": "research",
     "groupLabel": "Candidate research and outreach",
-    "sourcePath": "packages/politiclaw-plugin/src/tools/researchCandidate.ts"
+    "sourcePath": "packages/politiclaw-plugin/src/tools/researchFinance.ts"
   },
   {
-    "name": "politiclaw_research_challengers",
-    "tier": "advanced",
-    "docsAction": "follow-up-or-advanced-docs",
-    "rationale": "Helpful side-by-side race view, but more specialized than single-candidate research.",
-    "label": "Compare incumbents and challengers by FEC finance totals",
-    "groupId": "research",
-    "groupLabel": "Candidate research and outreach",
-    "sourcePath": "packages/politiclaw-plugin/src/tools/researchChallengers.ts"
-  },
-  {
-    "name": "politiclaw_draft_letter",
+    "name": "politiclaw_draft_outreach",
     "tier": "core",
     "docsAction": "lead-in-guides",
-    "rationale": "Clear outcome-oriented action that follows naturally from bills, reps, and issue stances.",
-    "label": "Draft a letter to a representative",
+    "rationale": "Clear outcome-oriented action that follows naturally from bills, reps, and issue stances. Single tool covering both letter and call-script formats.",
+    "label": "Draft a letter or call script for a representative",
     "groupId": "research",
     "groupLabel": "Candidate research and outreach",
-    "sourcePath": "packages/politiclaw-plugin/src/tools/draftLetter.ts"
-  },
-  {
-    "name": "politiclaw_draft_call_script",
-    "tier": "advanced",
-    "docsAction": "follow-up-or-advanced-docs",
-    "rationale": "Phone sibling of the letter drafter — valuable when a faster channel fits but secondary to letters in the default flow.",
-    "label": "Draft a short call script for a rep's office",
-    "groupId": "research",
-    "groupLabel": "Candidate research and outreach",
-    "sourcePath": "packages/politiclaw-plugin/src/tools/callScript.ts"
+    "sourcePath": "packages/politiclaw-plugin/src/tools/draftOutreach.ts"
   },
   {
     "name": "politiclaw_doctor",

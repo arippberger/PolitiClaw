@@ -85,7 +85,7 @@ export async function draftLetter(
       status: "no_stance_for_issue",
       reason: `No declared stance on issue '${issueSlug}'.`,
       actionable:
-        "Run politiclaw_set_issue_stance first — letters anchor on your own declared position.",
+        "Run politiclaw_issue_stances with action='set' first — letters anchor on your own declared position.",
     };
   }
   if (matchedStance.stance === "neutral") {
@@ -93,7 +93,7 @@ export async function draftLetter(
       status: "no_stance_for_issue",
       reason: `Declared stance on '${issueSlug}' is neutral.`,
       actionable:
-        "Letters argue a position. Use politiclaw_set_issue_stance to set support or oppose before drafting.",
+        "Letters argue a position. Use politiclaw_issue_stances with action='set' to set support or oppose before drafting.",
     };
   }
 

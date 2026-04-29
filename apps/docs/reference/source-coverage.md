@@ -45,7 +45,7 @@ Ballot and election logistics come from Google Civic's `voterInfoQuery`, gated o
 
 ### Candidate research
 
-`politiclaw_research_candidate` reads FEC OpenFEC through the shared `apiDataGov` key for candidate and committee finance totals. Deeper enrichment — donor industries, revolving-door context, state-level finance — is not wired; see the generated matrix for the full status of optional finance providers.
+`politiclaw_research_finance` reads FEC OpenFEC through the shared `apiDataGov` key for candidate and committee finance totals (mode='candidate') and side-by-side challenger comparison (mode='challengers'). Deeper enrichment — donor industries, revolving-door context, state-level finance — is not wired; see the generated matrix for the full status of optional finance providers.
 
 ## What is not covered today
 

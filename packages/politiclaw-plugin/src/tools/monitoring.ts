@@ -259,19 +259,19 @@ function renderActionPackages(packages: readonly ActionPackageRow[]): string[] {
   }
   lines.push(
     "",
-    "These are offers — dismiss any with politiclaw_dismiss_action_package.",
+    "These are offers — dismiss any with politiclaw_action_moments (action='dismiss').",
   );
   return lines;
 }
 
 function offerTail(pkg: ActionPackageRow): string {
   if (pkg.packageKind === "outreach") {
-    return "A draft letter or short call script is ready if you want one — call politiclaw_draft_letter or politiclaw_draft_call_script.";
+    return "A draft letter or short call script is ready if you want one — call politiclaw_draft_outreach with format='letter' or format='call'.";
   }
   if (pkg.packageKind === "reminder") {
     return "Create a reminder with politiclaw_create_reminder if you want a bookmark.";
   }
-  return "Run politiclaw_prepare_me_for_my_next_election when you're ready.";
+  return "Run politiclaw_election_brief when you're ready.";
 }
 
 
@@ -285,7 +285,7 @@ function renderMutedNote(result: CheckUpcomingVotesResult): string {
       `${result.mutedEventCount} event${result.mutedEventCount === 1 ? "" : "s"} (all related bills muted)`,
     );
   }
-  return `(${parts.join(", ")} suppressed by mute list — use politiclaw_list_mutes to review.)`;
+  return `(${parts.join(", ")} suppressed by mute list — use politiclaw_mutes (action='list') to review.)`;
 }
 
 function renderProvenance(result: CheckUpcomingVotesResult): string {
@@ -377,7 +377,7 @@ function renderEventClassB(entry: ChangedEvent): string {
   }
   if (eventIsInFuture(event.startDateTime)) {
     lines.push(
-      `    Next: politiclaw_draft_letter if you want to weigh in before the hearing.`,
+      `    Next: politiclaw_draft_outreach with format='letter' if you want to weigh in before the hearing.`,
     );
   }
   return lines.join("\n");
@@ -466,7 +466,7 @@ function buildNextStep(entry: ScoredBillChange): string | null {
     text.includes("failed of passage");
   if (final) return null;
   const link = congressGovPublicBillUrl(entry.bill.id);
-  const draft = `politiclaw_draft_letter to weigh in`;
+  const draft = `politiclaw_draft_outreach (format='letter') to weigh in`;
   if (link) return `${draft} · ${link}`;
   return draft;
 }

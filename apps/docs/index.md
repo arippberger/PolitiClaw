@@ -86,7 +86,7 @@ import { withBase } from "vitepress";
 <h2 class="pc-h2">how it works</h2>
 
 <p>
-  The plugin registers three things with your OpenClaw gateway: a pool of <strong>provider adapters</strong> (api.data.gov for federal bills, House votes, and FEC finance; voteview.com for Senate votes; Google Civic for ballots; Geocodio as an optional rep-lookup upgrade), a <strong>tool bundle</strong> the agent can call (<code>politiclaw_doctor</code>, <code>politiclaw_configure</code>, <code>politiclaw_set_api_keys</code>, <code>politiclaw_get_my_reps</code>, <code>politiclaw_prepare_me_for_my_next_election</code>, …), and a set of <strong>cron templates</strong> the gateway schedules for monitoring.
+  The plugin registers three things with your OpenClaw gateway: a pool of <strong>provider adapters</strong> (api.data.gov for federal bills, House votes, and FEC finance; voteview.com for Senate votes; Google Civic for ballots; Geocodio as an optional rep-lookup upgrade), a <strong>tool bundle</strong> the agent can call (<code>politiclaw_doctor</code>, <code>politiclaw_configure</code>, <code>politiclaw_issue_stances</code>, <code>politiclaw_get_my_reps</code>, <code>politiclaw_election_brief</code>, …), and a set of <strong>cron templates</strong> the gateway schedules for monitoring.
 </p>
 
 ```mermaid

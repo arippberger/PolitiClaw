@@ -5,7 +5,7 @@
     "groupId": "preferences",
     "groupLabel": "Configuration and preferences",
     "sourcePath": "packages/politiclaw-plugin/src/tools/configure.ts",
-    "description": "One front-door tool that walks the user through PolitiClaw setup end-to-end: address → top issues → monitoring mode → accountability preference → api.data.gov key (and optional upgrades) → final monitoring contract. Call with whatever you have; the tool returns the next question to ask. Pass `apiDataGov` (and any `optionalApiKeys` the user has) inline to save them via politiclaw_set_api_keys in one shot — the gateway will restart once. When everything is collected it reconciles cron jobs once and returns stage:'complete' with a monitoringContract summary. Use this for first-time setup, reconfiguration, or any 'set up PolitiClaw / change my settings' request. Lower-level stance/mode tools still exist for one-off edits after setup is complete.",
+    "description": "One front-door tool that walks the user through PolitiClaw setup end-to-end: address → top issues → monitoring mode → accountability preference → api.data.gov key (and optional upgrades) → final monitoring contract. Call with whatever you have; the tool returns the next question to ask. Pass `apiDataGov` (and any `optionalApiKeys` the user has) inline to save them in one shot — the gateway will restart once. When everything is collected it reconciles cron jobs once and returns stage:'complete' with a monitoringContract summary. Use this for first-time setup, reconfiguration, or any 'set up PolitiClaw / change my settings' request — including key-only updates after onboarding. Lower-level stance/mode tools still exist for one-off edits after setup is complete.",
     "parameters": [
       {
         "name": "stage",
@@ -77,7 +77,7 @@
         "name": "apiDataGov",
         "required": false,
         "type": "string",
-        "description": "Required api.data.gov key (free, instant signup at https://api.data.gov/signup/). When supplied, the tool persists it via politiclaw_set_api_keys and the gateway restarts to pick it up."
+        "description": "Required api.data.gov key (free, instant signup at https://api.data.gov/signup/). When supplied, the tool persists it directly to plugins.entries.politiclaw.config.apiKeys.apiDataGov and the gateway restarts to pick it up."
       },
       {
         "name": "optionalApiKeys",
@@ -245,7 +245,7 @@
           "type": "boolean"
         },
         "apiDataGov": {
-          "description": "Required api.data.gov key (free, instant signup at https://api.data.gov/signup/). When supplied, the tool persists it via politiclaw_set_api_keys and the gateway restarts to pick it up.",
+          "description": "Required api.data.gov key (free, instant signup at https://api.data.gov/signup/). When supplied, the tool persists it directly to plugins.entries.politiclaw.config.apiKeys.apiDataGov and the gateway restarts to pick it up.",
           "type": "string"
         },
         "optionalApiKeys": {
@@ -289,126 +289,87 @@
     }
   },
   {
-    "name": "politiclaw_set_api_keys",
-    "label": "Save PolitiClaw API keys",
+    "name": "politiclaw_issue_stances",
+    "label": "Manage declared issue stances (set, list, delete)",
     "groupId": "preferences",
     "groupLabel": "Configuration and preferences",
-    "sourcePath": "packages/politiclaw-plugin/src/tools/setApiKeys.ts",
-    "description": "Persist one or more PolitiClaw API keys into the user's OpenClaw config (`plugins.entries.politiclaw.config.apiKeys.*`). Pass only the keys the user actually has — unsupplied fields are left untouched. Writes go through the gateway's `config.patch` method (validated, audited, optimistic concurrency); the gateway schedules its own restart so the new values become live. The required key is `apiDataGov` (one free key from api.data.gov covers federal bills, House roll-call votes, committee schedules, and FEC finance). All other keys are optional upgrades. Prefer one call with every key the user has, since each call triggers exactly one gateway restart.",
+    "sourcePath": "packages/politiclaw-plugin/src/tools/issueStances.ts",
+    "description": "Manage the user's declared positions on policy issues. These drive bill alignment scoring and rep scoring. Pass action='set' with issue+stance (and optional 1-5 weight) to upsert — re-running with the same issue overwrites the previous stance. Pass action='list' to return every declared stance ordered by weight (no other params required). Pass action='delete' with issue to remove a stance. For first-time setup or full reconfiguration, prefer politiclaw_configure.",
     "parameters": [
       {
-        "name": "apiDataGov",
-        "required": false,
-        "type": "string",
-        "description": "REQUIRED in practice. Free api.data.gov key — covers api.congress.gov (federal bills, House roll-call votes, committee schedules) and FEC OpenFEC. Sign up at https://api.data.gov/signup/."
+        "name": "action",
+        "required": true,
+        "type": "\"set\" | \"list\" | \"delete\"",
+        "description": "What to do: 'set' upserts a stance (requires issue+stance, optional weight); 'list' returns every declared stance ordered by weight (no other params); 'delete' removes one stance (requires issue)."
       },
       {
-        "name": "geocodio",
+        "name": "issue",
         "required": false,
         "type": "string",
-        "description": "OPTIONAL. Geocodio key — reps-by-address via API. Free tier 2,500 lookups/day."
+        "description": "Required for action='set' and action='delete'. Issue label or slug. Normalized to lowercase kebab-case (e.g. 'Affordable Housing' → 'affordable-housing')."
       },
       {
-        "name": "openStates",
+        "name": "stance",
         "required": false,
-        "type": "string",
-        "description": "OPTIONAL. Open States key — state bills and votes with member positions."
+        "type": "\"support\" | \"oppose\" | \"neutral\"",
+        "description": "Required for action='set'. The user's declared position on the issue."
       },
       {
-        "name": "legiscan",
+        "name": "weight",
         "required": false,
-        "type": "string",
-        "description": "OPTIONAL. LegiScan key — alternative state-bills source. Free tier 30k queries/month."
-      },
-      {
-        "name": "openSecrets",
-        "required": false,
-        "type": "string",
-        "description": "OPTIONAL. OpenSecrets key — federal campaign-finance derived analytics. Non-commercial use only."
-      },
-      {
-        "name": "followTheMoney",
-        "required": false,
-        "type": "string",
-        "description": "OPTIONAL. FollowTheMoney key — state-level campaign finance."
-      },
-      {
-        "name": "voteSmart",
-        "required": false,
-        "type": "string",
-        "description": "OPTIONAL. Vote Smart key — structured candidate bios."
-      },
-      {
-        "name": "democracyWorks",
-        "required": false,
-        "type": "string",
-        "description": "OPTIONAL. Democracy Works key — ballot logistics upgrade. Partner-gated."
-      },
-      {
-        "name": "cicero",
-        "required": false,
-        "type": "string",
-        "description": "OPTIONAL (paid). Cicero key — local municipal/county/school-board representatives."
-      },
-      {
-        "name": "ballotReady",
-        "required": false,
-        "type": "string",
-        "description": "OPTIONAL (commercial). BallotReady key — fuller down-ballot coverage."
-      },
-      {
-        "name": "googleCivic",
-        "required": false,
-        "type": "string",
-        "description": "OPTIONAL. Google Civic key — required for politiclaw_get_my_ballot. Create in Google Cloud console with the Civic Information API enabled."
+        "type": "integer",
+        "description": "Optional (action='set' only). How strongly the user cares (1-5). Defaults to 3."
       }
     ],
     "rawSchema": {
       "type": "object",
+      "required": [
+        "action"
+      ],
       "properties": {
-        "apiDataGov": {
-          "description": "REQUIRED in practice. Free api.data.gov key — covers api.congress.gov (federal bills, House roll-call votes, committee schedules) and FEC OpenFEC. Sign up at https://api.data.gov/signup/.",
+        "action": {
+          "description": "What to do: 'set' upserts a stance (requires issue+stance, optional weight); 'list' returns every declared stance ordered by weight (no other params); 'delete' removes one stance (requires issue).",
+          "anyOf": [
+            {
+              "const": "set",
+              "type": "string"
+            },
+            {
+              "const": "list",
+              "type": "string"
+            },
+            {
+              "const": "delete",
+              "type": "string"
+            }
+          ]
+        },
+        "issue": {
+          "description": "Required for action='set' and action='delete'. Issue label or slug. Normalized to lowercase kebab-case (e.g. 'Affordable Housing' → 'affordable-housing').",
           "type": "string"
         },
-        "geocodio": {
-          "description": "OPTIONAL. Geocodio key — reps-by-address via API. Free tier 2,500 lookups/day.",
-          "type": "string"
+        "stance": {
+          "description": "Required for action='set'. The user's declared position on the issue.",
+          "anyOf": [
+            {
+              "const": "support",
+              "type": "string"
+            },
+            {
+              "const": "oppose",
+              "type": "string"
+            },
+            {
+              "const": "neutral",
+              "type": "string"
+            }
+          ]
         },
-        "openStates": {
-          "description": "OPTIONAL. Open States key — state bills and votes with member positions.",
-          "type": "string"
-        },
-        "legiscan": {
-          "description": "OPTIONAL. LegiScan key — alternative state-bills source. Free tier 30k queries/month.",
-          "type": "string"
-        },
-        "openSecrets": {
-          "description": "OPTIONAL. OpenSecrets key — federal campaign-finance derived analytics. Non-commercial use only.",
-          "type": "string"
-        },
-        "followTheMoney": {
-          "description": "OPTIONAL. FollowTheMoney key — state-level campaign finance.",
-          "type": "string"
-        },
-        "voteSmart": {
-          "description": "OPTIONAL. Vote Smart key — structured candidate bios.",
-          "type": "string"
-        },
-        "democracyWorks": {
-          "description": "OPTIONAL. Democracy Works key — ballot logistics upgrade. Partner-gated.",
-          "type": "string"
-        },
-        "cicero": {
-          "description": "OPTIONAL (paid). Cicero key — local municipal/county/school-board representatives.",
-          "type": "string"
-        },
-        "ballotReady": {
-          "description": "OPTIONAL (commercial). BallotReady key — fuller down-ballot coverage.",
-          "type": "string"
-        },
-        "googleCivic": {
-          "description": "OPTIONAL. Google Civic key — required for politiclaw_get_my_ballot. Create in Google Cloud console with the Civic Information API enabled.",
-          "type": "string"
+        "weight": {
+          "minimum": 1,
+          "maximum": 5,
+          "description": "Optional (action='set' only). How strongly the user cares (1-5). Defaults to 3.",
+          "type": "integer"
         }
       }
     }
@@ -503,110 +464,6 @@
           "exclusiveMinimum": 0,
           "description": "Signal strength (> 0); defaults to 1.0.",
           "type": "number"
-        }
-      }
-    }
-  },
-  {
-    "name": "politiclaw_set_issue_stance",
-    "label": "Set a declared issue stance",
-    "groupId": "preferences",
-    "groupLabel": "Configuration and preferences",
-    "sourcePath": "packages/politiclaw-plugin/src/tools/preferences.ts",
-    "description": "Record the user's declared position (support / oppose / neutral) on a named policy issue, with a 1-5 importance weight. Drives bill alignment scoring and rep scoring. Re-running with the same issue overwrites the previous stance. For first-time setup or full reconfiguration, prefer politiclaw_configure.",
-    "parameters": [
-      {
-        "name": "issue",
-        "required": true,
-        "type": "string",
-        "description": "Issue label. Normalized to lowercase kebab-case (e.g. 'Affordable Housing' → 'affordable-housing')."
-      },
-      {
-        "name": "stance",
-        "required": true,
-        "type": "\"support\" | \"oppose\" | \"neutral\"",
-        "description": ""
-      },
-      {
-        "name": "weight",
-        "required": false,
-        "type": "integer",
-        "description": "How strongly the user cares (1-5). Defaults to 3."
-      }
-    ],
-    "rawSchema": {
-      "type": "object",
-      "required": [
-        "issue",
-        "stance"
-      ],
-      "properties": {
-        "issue": {
-          "description": "Issue label. Normalized to lowercase kebab-case (e.g. 'Affordable Housing' → 'affordable-housing').",
-          "type": "string"
-        },
-        "stance": {
-          "anyOf": [
-            {
-              "const": "support",
-              "type": "string"
-            },
-            {
-              "const": "oppose",
-              "type": "string"
-            },
-            {
-              "const": "neutral",
-              "type": "string"
-            }
-          ]
-        },
-        "weight": {
-          "minimum": 1,
-          "maximum": 5,
-          "description": "How strongly the user cares (1-5). Defaults to 3.",
-          "type": "integer"
-        }
-      }
-    }
-  },
-  {
-    "name": "politiclaw_list_issue_stances",
-    "label": "List declared issue stances",
-    "groupId": "preferences",
-    "groupLabel": "Configuration and preferences",
-    "sourcePath": "packages/politiclaw-plugin/src/tools/preferences.ts",
-    "description": "Return every declared issue stance, ordered by weight (high to low). Use to show the user what PolitiClaw is scoring bills and reps against. For first-time setup or full reconfiguration, prefer politiclaw_configure.",
-    "parameters": [],
-    "rawSchema": {
-      "type": "object",
-      "properties": {}
-    }
-  },
-  {
-    "name": "politiclaw_delete_issue_stance",
-    "label": "Delete a declared issue stance",
-    "groupId": "preferences",
-    "groupLabel": "Configuration and preferences",
-    "sourcePath": "packages/politiclaw-plugin/src/tools/preferences.ts",
-    "description": "Remove a single declared issue stance by issue slug or label. For first-time setup or full reconfiguration, prefer politiclaw_configure.",
-    "parameters": [
-      {
-        "name": "issue",
-        "required": true,
-        "type": "string",
-        "description": "Issue slug or label to delete."
-      }
-    ],
-    "rawSchema": {
-      "type": "object",
-      "required": [
-        "issue"
-      ],
-      "properties": {
-        "issue": {
-          "description": "Issue slug or label to delete.",
-          "type": "string"
         }
       }
     }
@@ -856,7 +713,7 @@
     "groupId": "bills",
     "groupLabel": "Bills and votes",
     "sourcePath": "packages/politiclaw-plugin/src/tools/scoring.ts",
-    "description": "Compute how much a federal bill touches the user's declared issue stances. Deterministic (no LLM): matches policy area, subjects, title, and summary against each declared stance. Reports relevance and confidence; confidence below the 0.4 floor renders as \"insufficient data\". Rationale names specific matched subjects (never abstract generalities). Requires declared issue stances (see politiclaw_set_issue_stance) and plugins.entries.politiclaw.config.apiKeys.apiDataGov for the bill source.",
+    "description": "Compute how much a federal bill touches the user's declared issue stances. Deterministic (no LLM): matches policy area, subjects, title, and summary against each declared stance. Reports relevance and confidence; confidence below the 0.4 floor renders as \"insufficient data\". Rationale names specific matched subjects (never abstract generalities). Requires declared issue stances (see politiclaw_issue_stances with action='set') and plugins.entries.politiclaw.config.apiKeys.apiDataGov for the bill source.",
     "parameters": [
       {
         "name": "billId",
@@ -1032,12 +889,12 @@
     }
   },
   {
-    "name": "politiclaw_explain_my_ballot",
-    "label": "Explain each contest on your ballot with facts + framing — never a recommendation",
+    "name": "politiclaw_election_brief",
+    "label": "One readable election guide: ballot framing + rep alignment + setup checks",
     "groupId": "ballot",
     "groupLabel": "Ballot and election prep",
-    "sourcePath": "packages/politiclaw-plugin/src/tools/explainBallot.ts",
-    "description": "Per-contest, non-prescriptive framing of your ballot. For measures, renders deterministic 'A YES vote would…' / 'A NO vote would…' lines drawn from Google Civic's published summary (tier 2 aggregator — verify against official text). For candidate races, explains what the race decides and attaches candidate bios from the tier-5 web-search adapter when wired. Never says 'vote YES/NO'. Always includes the verify-against-official-source disclaimer when any rendered line is LLM-search-derived. Requires declared issue stances, a saved address, and plugins.entries.politiclaw.config.apiKeys.googleCivic.",
+    "sourcePath": "packages/politiclaw-plugin/src/tools/electionBrief.ts",
+    "description": "Map the user's ballot against the values they declared: composes saved address, declared stances, stored reps' alignment records, and ballot snapshot into one readable guide so the user can see how each contest and incumbent lines up with — or diverges from — their stated stances. Runs the prereq checks itself; missing address, missing reps, or missing stances return a 'setup needed' pointer at the exact tool to run, not a stack trace. Use this as the default when the user says 'help me with my ballot' or 'what do I need to know for the election.' Framing is facts + tradeoffs; it never tells the user how to vote. politiclaw_get_my_ballot remains available for the raw fetch when you only need the ballot data.",
     "parameters": [
       {
         "name": "refresh",
@@ -1051,31 +908,6 @@
       "properties": {
         "refresh": {
           "description": "When true, bypass the cached ballot snapshot and re-query voterInfoQuery.",
-          "type": "boolean"
-        }
-      }
-    }
-  },
-  {
-    "name": "politiclaw_prepare_me_for_my_next_election",
-    "label": "Prepare one readable guide for the user's next election",
-    "groupId": "ballot",
-    "groupLabel": "Ballot and election prep",
-    "sourcePath": "packages/politiclaw-plugin/src/tools/prepareForElection.ts",
-    "description": "Map the ballot against the values the user declared: composes saved address, declared stances, stored reps' alignment records, and ballot snapshot into one readable guide so the user can see how each contest and incumbent lines up with — or diverges from — their stated stances. Runs the prereq checks itself; missing address, missing reps, or missing stances return a 'setup needed' pointer at the exact tool to run, not a stack trace. Use this as the default when the user says 'help me with my ballot' or 'what do I need to know for the election.' Framing is facts + tradeoffs; it never tells the user how to vote. Atomic tools (politiclaw_explain_my_ballot, politiclaw_score_representative, politiclaw_research_candidate) remain available for focused follow-ups.",
-    "parameters": [
-      {
-        "name": "refresh",
-        "required": false,
-        "type": "boolean",
-        "description": "When true, bypass the ballot-snapshot cache and re-query voterInfoQuery."
-      }
-    ],
-    "rawSchema": {
-      "type": "object",
-      "properties": {
-        "refresh": {
-          "description": "When true, bypass the ballot-snapshot cache and re-query voterInfoQuery.",
           "type": "boolean"
         }
       }
@@ -1182,41 +1014,63 @@
     }
   },
   {
-    "name": "politiclaw_mute",
-    "label": "Mute a bill, rep, or issue",
+    "name": "politiclaw_mutes",
+    "label": "Manage monitoring alert mutes (add, remove, list)",
     "groupId": "monitoring",
     "groupLabel": "Monitoring and cadence",
     "sourcePath": "packages/politiclaw-plugin/src/tools/mutes.ts",
-    "description": "Suppress future monitoring alerts for a specific bill, representative, or issue. Muting is idempotent — re-muting the same target refreshes the optional reason and timestamp. Use when the user says they have seen enough about a topic; they can always unmute later.",
+    "description": "Manage suppression of monitoring alerts for specific bills, reps, or issues. Pass action='add' with kind+ref (and optional reason) to start suppressing — re-adding the same target refreshes the optional reason and timestamp. Pass action='remove' with kind+ref to unsuppress. Pass action='list' for every active mute, newest first. Prefer politiclaw_action_moments with verdict='not_now' or 'stop' when you only want to dismiss a single offer rather than silence the bill/rep/issue entirely.",
     "parameters": [
       {
-        "name": "kind",
+        "name": "action",
         "required": true,
+        "type": "\"add\" | \"remove\" | \"list\"",
+        "description": "What to do: 'add' to start suppressing a target, 'remove' to unsuppress, 'list' to see every active mute. 'add' and 'remove' both require kind+ref; 'list' takes no other params."
+      },
+      {
+        "name": "kind",
+        "required": false,
         "type": "\"bill\" | \"rep\" | \"issue\"",
-        "description": "What to mute: 'bill' (by bill id like '119-hr-1234'), 'rep' (by bioguide id), or 'issue' (by issue slug)."
+        "description": "Required for action='add' or action='remove'. What to mute: 'bill' (by bill id like '119-hr-1234'), 'rep' (by bioguide id), or 'issue' (by issue slug)."
       },
       {
         "name": "ref",
-        "required": true,
+        "required": false,
         "type": "string",
-        "description": "The bill id, bioguide id, or issue slug to mute. Issue refs are normalized to lowercase kebab-case."
+        "description": "Required for action='add' or action='remove'. Bill id, bioguide id, or issue slug. Issue refs are normalized to lowercase kebab-case."
       },
       {
         "name": "reason",
         "required": false,
         "type": "string",
-        "description": "Optional short note about why this is muted (e.g. 'followup-2026-05'). Stored for your own reference; not rendered in alerts."
+        "description": "Optional (action='add' only). Short note about why this is muted (e.g. 'followup-2026-05'). Stored for your own reference; not rendered in alerts."
       }
     ],
     "rawSchema": {
       "type": "object",
       "required": [
-        "kind",
-        "ref"
+        "action"
       ],
       "properties": {
+        "action": {
+          "description": "What to do: 'add' to start suppressing a target, 'remove' to unsuppress, 'list' to see every active mute. 'add' and 'remove' both require kind+ref; 'list' takes no other params.",
+          "anyOf": [
+            {
+              "const": "add",
+              "type": "string"
+            },
+            {
+              "const": "remove",
+              "type": "string"
+            },
+            {
+              "const": "list",
+              "type": "string"
+            }
+          ]
+        },
         "kind": {
-          "description": "What to mute: 'bill' (by bill id like '119-hr-1234'), 'rep' (by bioguide id), or 'issue' (by issue slug).",
+          "description": "Required for action='add' or action='remove'. What to mute: 'bill' (by bill id like '119-hr-1234'), 'rep' (by bioguide id), or 'issue' (by issue slug).",
           "anyOf": [
             {
               "const": "bill",
@@ -1233,77 +1087,14 @@
           ]
         },
         "ref": {
-          "description": "The bill id, bioguide id, or issue slug to mute. Issue refs are normalized to lowercase kebab-case.",
+          "description": "Required for action='add' or action='remove'. Bill id, bioguide id, or issue slug. Issue refs are normalized to lowercase kebab-case.",
           "type": "string"
         },
         "reason": {
-          "description": "Optional short note about why this is muted (e.g. 'followup-2026-05'). Stored for your own reference; not rendered in alerts.",
+          "description": "Optional (action='add' only). Short note about why this is muted (e.g. 'followup-2026-05'). Stored for your own reference; not rendered in alerts.",
           "type": "string"
         }
       }
-    }
-  },
-  {
-    "name": "politiclaw_unmute",
-    "label": "Unmute a bill, rep, or issue",
-    "groupId": "monitoring",
-    "groupLabel": "Monitoring and cadence",
-    "sourcePath": "packages/politiclaw-plugin/src/tools/mutes.ts",
-    "description": "Remove a previously-added mute. Future monitoring alerts will include this target again. Returns a no-op acknowledgement if nothing was muted under that (kind, ref).",
-    "parameters": [
-      {
-        "name": "kind",
-        "required": true,
-        "type": "\"bill\" | \"rep\" | \"issue\"",
-        "description": ""
-      },
-      {
-        "name": "ref",
-        "required": true,
-        "type": "string",
-        "description": ""
-      }
-    ],
-    "rawSchema": {
-      "type": "object",
-      "required": [
-        "kind",
-        "ref"
-      ],
-      "properties": {
-        "kind": {
-          "anyOf": [
-            {
-              "const": "bill",
-              "type": "string"
-            },
-            {
-              "const": "rep",
-              "type": "string"
-            },
-            {
-              "const": "issue",
-              "type": "string"
-            }
-          ]
-        },
-        "ref": {
-          "type": "string"
-        }
-      }
-    }
-  },
-  {
-    "name": "politiclaw_list_mutes",
-    "label": "List current mutes",
-    "groupId": "monitoring",
-    "groupLabel": "Monitoring and cadence",
-    "sourcePath": "packages/politiclaw-plugin/src/tools/mutes.ts",
-    "description": "Return every active mute entry, newest first. Use to show the user what is currently being suppressed from monitoring alerts before unmuting.",
-    "parameters": [],
-    "rawSchema": {
-      "type": "object",
-      "properties": {}
     }
   },
   {
@@ -1426,73 +1217,76 @@
     }
   },
   {
-    "name": "politiclaw_list_action_moments",
-    "label": "List open action-package offers",
+    "name": "politiclaw_action_moments",
+    "label": "List or dismiss open action-package offers",
     "groupId": "monitoring",
     "groupLabel": "Monitoring and cadence",
     "sourcePath": "packages/politiclaw-plugin/src/tools/actionMoments.ts",
-    "description": "Return the set of open action packages — outreach drafts (letter/call), reminders, and election-prep prompts — that the classifier has queued as optional offers. The list is offer-not-push: nothing here has been sent, and the user can dismiss each with politiclaw_dismiss_action_package.",
+    "description": "Manage the open action packages — outreach drafts (letter/call), reminders, and election-prep prompts — that the classifier has queued as optional offers. Pass action='list' (no other params required) to see what is currently queued; the list is offer-not-push, nothing has been sent. Pass action='dismiss' with packageId and verdict to record feedback: verdict='useful' marks it used, 'not_now' suppresses the same target for 7 days, 'stop' permanently stops offering packages for the same (trigger, target). Prefer this over politiclaw_mutes unless the user explicitly wants to silence the bill/rep/issue.",
     "parameters": [
+      {
+        "name": "action",
+        "required": true,
+        "type": "\"list\" | \"dismiss\"",
+        "description": "What to do: 'list' returns open action packages (no other params required); 'dismiss' records user feedback on a single package (requires packageId and verdict)."
+      },
       {
         "name": "limit",
         "required": false,
         "type": "integer",
-        "description": "Max packages to return. Defaults to 25."
-      }
-    ],
-    "rawSchema": {
-      "type": "object",
-      "properties": {
-        "limit": {
-          "minimum": 1,
-          "maximum": 100,
-          "description": "Max packages to return. Defaults to 25.",
-          "type": "integer"
-        }
-      }
-    }
-  },
-  {
-    "name": "politiclaw_dismiss_action_package",
-    "label": "Dismiss or flag an action package",
-    "groupId": "monitoring",
-    "groupLabel": "Monitoring and cadence",
-    "sourcePath": "packages/politiclaw-plugin/src/tools/actionMoments.ts",
-    "description": "Record user feedback on an action package. verdict='useful' marks it used, 'not_now' suppresses the same target for 7 days, 'stop' permanently stops offering packages for the same (trigger, target tuple). Prefer this over politiclaw_mute unless the user explicitly wants to silence the bill/rep/issue.",
-    "parameters": [
+        "description": "Used only with action='list'. Max packages to return. Defaults to 25."
+      },
       {
         "name": "packageId",
-        "required": true,
+        "required": false,
         "type": "integer",
-        "description": "Action package id to dismiss."
+        "description": "Required for action='dismiss'. Action package id to dismiss."
       },
       {
         "name": "verdict",
-        "required": true,
+        "required": false,
         "type": "\"useful\" | \"not_now\" | \"stop\"",
-        "description": "useful = used it. not_now = hide for 7 days. stop = never offer this target again."
+        "description": "Required for action='dismiss'. useful = used it. not_now = hide for 7 days. stop = never offer this target again."
       },
       {
         "name": "note",
         "required": false,
         "type": "string",
-        "description": "Optional free-text reason — stored verbatim for later review."
+        "description": "Optional (action='dismiss' only). Free-text reason — stored verbatim for later review."
       }
     ],
     "rawSchema": {
       "type": "object",
       "required": [
-        "packageId",
-        "verdict"
+        "action"
       ],
       "properties": {
+        "action": {
+          "description": "What to do: 'list' returns open action packages (no other params required); 'dismiss' records user feedback on a single package (requires packageId and verdict).",
+          "anyOf": [
+            {
+              "const": "list",
+              "type": "string"
+            },
+            {
+              "const": "dismiss",
+              "type": "string"
+            }
+          ]
+        },
+        "limit": {
+          "minimum": 1,
+          "maximum": 100,
+          "description": "Used only with action='list'. Max packages to return. Defaults to 25.",
+          "type": "integer"
+        },
         "packageId": {
           "minimum": 1,
-          "description": "Action package id to dismiss.",
+          "description": "Required for action='dismiss'. Action package id to dismiss.",
           "type": "integer"
         },
         "verdict": {
-          "description": "useful = used it. not_now = hide for 7 days. stop = never offer this target again.",
+          "description": "Required for action='dismiss'. useful = used it. not_now = hide for 7 days. stop = never offer this target again.",
           "anyOf": [
             {
               "const": "useful",
@@ -1509,72 +1303,100 @@
           ]
         },
         "note": {
-          "description": "Optional free-text reason — stored verbatim for later review.",
+          "description": "Optional (action='dismiss' only). Free-text reason — stored verbatim for later review.",
           "type": "string"
         }
       }
     }
   },
   {
-    "name": "politiclaw_research_candidate",
-    "label": "Look up FEC candidate finance totals + tier-5 bio",
+    "name": "politiclaw_research_finance",
+    "label": "Research candidate finance — single candidate or side-by-side challengers",
     "groupId": "research",
     "groupLabel": "Candidate research and outreach",
-    "sourcePath": "packages/politiclaw-plugin/src/tools/researchCandidate.ts",
-    "description": "Research a federal candidate (President, Senate, House) via FEC OpenFEC plus an optional LLM-search bio. Pass `candidateId` (e.g. H8CA12345) for a full per-cycle totals summary with an attached bio; pass `name` for a fuzzy search that returns up to 5 FEC matches (no bio on the search path — re-run by `candidateId` to pull one). Dollar amounts come only from FEC (tier 1) — industry rollups, donor identities, and independent expenditures are intentionally out of scope until an OpenSecrets key lands. The bio is tier-5 by default and only reaches tier 1/2 when every citation is a primary-government or neutral civic-infrastructure domain. Requires plugins.entries.politiclaw.config.apiKeys.apiDataGov (same key as api.congress.gov).",
+    "sourcePath": "packages/politiclaw-plugin/src/tools/researchFinance.ts",
+    "description": "Federal campaign-finance research from FEC OpenFEC (tier 1). Pass mode='candidate' with `candidateId` (e.g. H8CA12345) for a full per-cycle totals summary with an attached LLM-search bio; pass `name` for a fuzzy search returning up to 5 FEC matches (no bio on the search path — re-run by `candidateId` to pull one). Pass mode='challengers' to compare each stored rep's filed challengers side-by-side (uses politiclaw_get_my_reps results; supports optional `repId` and `cycle` filters). Dollar amounts come only from FEC — industry rollups, donor identities, and independent expenditures are out of scope until an OpenSecrets key lands. The bio is tier-5 by default and only reaches tier 1/2 when every citation is a primary-government or neutral civic-infrastructure domain. Requires plugins.entries.politiclaw.config.apiKeys.apiDataGov (same key as api.congress.gov).",
     "parameters": [
+      {
+        "name": "mode",
+        "required": true,
+        "type": "\"candidate\" | \"challengers\"",
+        "description": "'candidate' looks up FEC finance + bio for one federal candidate (requires candidateId or name). 'challengers' compares each stored rep's filed challengers side-by-side (uses politiclaw_get_my_reps results; supports optional repId+cycle filters)."
+      },
       {
         "name": "candidateId",
         "required": false,
         "type": "string",
-        "description": "FEC candidate id (e.g. `H8CA12345`). Preferred when known — routes straight to the totals endpoint."
+        "description": "Used only with mode='candidate'. FEC candidate id (e.g. `H8CA12345`). Preferred when known — routes straight to the totals endpoint."
       },
       {
         "name": "name",
         "required": false,
         "type": "string",
-        "description": "Free-text candidate name query. Used when `candidateId` is absent; returns up to 5 FEC candidate matches for disambiguation."
+        "description": "Used only with mode='candidate'. Free-text candidate name query when `candidateId` is absent; returns up to 5 FEC matches for disambiguation."
       },
       {
         "name": "cycle",
         "required": false,
         "type": "integer",
-        "description": "Optional four-digit election cycle (e.g. 2024) to filter searches to active candidates for that cycle."
+        "description": "Optional four-digit election cycle (e.g. 2024). For mode='candidate' filters searches to active candidates for that cycle. For mode='challengers' defaults to the current year if even, otherwise next year."
       },
       {
         "name": "office",
         "required": false,
         "type": "\"H\" | \"S\" | \"P\"",
-        "description": "Optional office filter — H (House), S (Senate), P (President)."
+        "description": "Used only with mode='candidate'. Optional office filter — H (House), S (Senate), P (President)."
       },
       {
         "name": "state",
         "required": false,
         "type": "string",
-        "description": "Optional two-letter state filter (uppercased before the FEC call)."
+        "description": "Used only with mode='candidate'. Optional two-letter state filter (uppercased before the FEC call)."
+      },
+      {
+        "name": "repId",
+        "required": false,
+        "type": "string",
+        "description": "Used only with mode='challengers'. Focus on one stored rep (from politiclaw_get_my_reps). When absent, compares challengers for every stored rep in one turn."
       }
     ],
     "rawSchema": {
       "type": "object",
+      "required": [
+        "mode"
+      ],
       "properties": {
+        "mode": {
+          "description": "'candidate' looks up FEC finance + bio for one federal candidate (requires candidateId or name). 'challengers' compares each stored rep's filed challengers side-by-side (uses politiclaw_get_my_reps results; supports optional repId+cycle filters).",
+          "anyOf": [
+            {
+              "const": "candidate",
+              "type": "string"
+            },
+            {
+              "const": "challengers",
+              "type": "string"
+            }
+          ]
+        },
         "candidateId": {
           "minLength": 1,
-          "description": "FEC candidate id (e.g. `H8CA12345`). Preferred when known — routes straight to the totals endpoint.",
+          "description": "Used only with mode='candidate'. FEC candidate id (e.g. `H8CA12345`). Preferred when known — routes straight to the totals endpoint.",
           "type": "string"
         },
         "name": {
           "minLength": 1,
-          "description": "Free-text candidate name query. Used when `candidateId` is absent; returns up to 5 FEC candidate matches for disambiguation.",
+          "description": "Used only with mode='candidate'. Free-text candidate name query when `candidateId` is absent; returns up to 5 FEC matches for disambiguation.",
           "type": "string"
         },
         "cycle": {
           "minimum": 1900,
           "maximum": 2100,
-          "description": "Optional four-digit election cycle (e.g. 2024) to filter searches to active candidates for that cycle.",
+          "description": "Optional four-digit election cycle (e.g. 2024). For mode='candidate' filters searches to active candidates for that cycle. For mode='challengers' defaults to the current year if even, otherwise next year.",
           "type": "integer"
         },
         "office": {
-          "description": "Optional office filter — H (House), S (Senate), P (President).",
+          "description": "Used only with mode='candidate'. Optional office filter — H (House), S (Senate), P (President).",
           "anyOf": [
             {
               "const": "H",
@@ -1592,55 +1414,30 @@
         },
         "state": {
           "pattern": "^[A-Za-z]{2}$",
-          "description": "Optional two-letter state filter (uppercased before the FEC call).",
-          "type": "string"
-        }
-      }
-    }
-  },
-  {
-    "name": "politiclaw_research_challengers",
-    "label": "Compare incumbents and challengers by FEC finance totals",
-    "groupId": "research",
-    "groupLabel": "Candidate research and outreach",
-    "sourcePath": "packages/politiclaw-plugin/src/tools/researchChallengers.ts",
-    "description": "For each stored rep (or a specific one via repId), look up every federal candidate filed for that race this cycle and render a side-by-side FEC finance comparison. Dollar amounts come only from FEC (tier 1). Pass `cycle` for historical comparisons. Requires plugins.entries.politiclaw.config.apiKeys.apiDataGov. Call politiclaw_get_my_reps first if no reps are stored.",
-    "parameters": [
-      {
-        "name": "repId",
-        "required": false,
-        "type": "string",
-        "description": "Optional: focus on one stored rep (from politiclaw_get_my_reps). When absent, compares challengers for every stored rep in one turn."
-      },
-      {
-        "name": "cycle",
-        "required": false,
-        "type": "integer",
-        "description": "Optional four-digit election cycle (e.g. 2026). Defaults to the current year if even, otherwise next year."
-      }
-    ],
-    "rawSchema": {
-      "type": "object",
-      "properties": {
-        "repId": {
-          "description": "Optional: focus on one stored rep (from politiclaw_get_my_reps). When absent, compares challengers for every stored rep in one turn.",
+          "description": "Used only with mode='candidate'. Optional two-letter state filter (uppercased before the FEC call).",
           "type": "string"
         },
-        "cycle": {
-          "description": "Optional four-digit election cycle (e.g. 2026). Defaults to the current year if even, otherwise next year.",
-          "type": "integer"
+        "repId": {
+          "description": "Used only with mode='challengers'. Focus on one stored rep (from politiclaw_get_my_reps). When absent, compares challengers for every stored rep in one turn.",
+          "type": "string"
         }
       }
     }
   },
   {
-    "name": "politiclaw_draft_letter",
-    "label": "Draft a letter to a representative",
+    "name": "politiclaw_draft_outreach",
+    "label": "Draft a letter or call script for a representative",
     "groupId": "research",
     "groupLabel": "Candidate research and outreach",
-    "sourcePath": "packages/politiclaw-plugin/src/tools/draftLetter.ts",
-    "description": "Put an accountability question in front of a rep on the user's behalf: a polite, sourced letter that states the user's declared stance and asks the rep where they stand on the same issue, optionally citing a specific federal bill. Deterministic slot-fill (no LLM). Output is copy-paste ready for the user's own email client — PolitiClaw never sends mail; the user sends from their own client. Letters are capped at 400 words and persist in the letters table for audit. Requires a declared stance on the issue (politiclaw_set_issue_stance) and, when citing a bill, plugins.entries.politiclaw.config.apiKeys.apiDataGov for bill lookup.",
+    "sourcePath": "packages/politiclaw-plugin/src/tools/draftOutreach.ts",
+    "description": "Put an accountability question in front of a rep on the user's behalf. Pass format='letter' for a polite, sourced copy-paste-ready email-style letter (≤400 words) — supports an optional customNote. Pass format='call' for a short phone-call script (≤150 words) using the rep's office phone number from the stored record — supports an optional oneSpecificSentence. Both formats are deterministic slot-fill (no LLM) and require a declared stance on the issue (politiclaw_issue_stances). Output is copy-paste ready for the user's own client — PolitiClaw never sends or dials. Drafts persist in their respective tables for audit. Citing a bill requires plugins.entries.politiclaw.config.apiKeys.apiDataGov for bill lookup.",
     "parameters": [
+      {
+        "name": "format",
+        "required": true,
+        "type": "\"letter\" | \"call\"",
+        "description": "'letter' produces a copy-paste-ready email-style letter (≤400 words). 'call' produces a short phone-call script (≤150 words) with the rep's office phone number from the stored record."
+      },
       {
         "name": "repId",
         "required": true,
@@ -1651,101 +1448,66 @@
         "name": "issue",
         "required": true,
         "type": "string",
-        "description": "Issue slug from your declared stances (e.g. 'affordable-housing'). Must already be set via politiclaw_set_issue_stance."
+        "description": "Issue slug from your declared stances (e.g. 'affordable-housing'). Must already be set via politiclaw_issue_stances."
       },
       {
         "name": "billId",
         "required": false,
         "type": "string",
-        "description": "Optional canonical bill id ('119-hr-1234'). When present the letter cites the specific bill."
+        "description": "Optional canonical bill id ('119-hr-1234'). When present the draft cites the specific bill."
       },
       {
         "name": "customNote",
         "required": false,
         "type": "string",
-        "description": "Optional one-sentence personal hook appended verbatim above the closing. Keep short — the draft is already near its word ceiling."
-      }
-    ],
-    "rawSchema": {
-      "type": "object",
-      "required": [
-        "repId",
-        "issue"
-      ],
-      "properties": {
-        "repId": {
-          "description": "Stable rep id (bioguide when available). Call politiclaw_get_my_reps first to look it up.",
-          "type": "string"
-        },
-        "issue": {
-          "description": "Issue slug from your declared stances (e.g. 'affordable-housing'). Must already be set via politiclaw_set_issue_stance.",
-          "type": "string"
-        },
-        "billId": {
-          "description": "Optional canonical bill id ('119-hr-1234'). When present the letter cites the specific bill.",
-          "type": "string"
-        },
-        "customNote": {
-          "description": "Optional one-sentence personal hook appended verbatim above the closing. Keep short — the draft is already near its word ceiling.",
-          "type": "string"
-        }
-      }
-    }
-  },
-  {
-    "name": "politiclaw_draft_call_script",
-    "label": "Draft a short call script for a rep's office",
-    "groupId": "research",
-    "groupLabel": "Candidate research and outreach",
-    "sourcePath": "packages/politiclaw-plugin/src/tools/callScript.ts",
-    "description": "Draft a ≤150-word call script the user can read to their rep's office on a declared issue, optionally citing a specific federal bill. Deterministic slot-fill (no LLM). Phone numbers come from the stored rep contact record — never invented. PolitiClaw never dials; the output is copy-paste ready for the user. Requires a declared stance (politiclaw_set_issue_stance) and, when citing a bill, plugins.entries.politiclaw.config.apiKeys.apiDataGov.",
-    "parameters": [
-      {
-        "name": "repId",
-        "required": true,
-        "type": "string",
-        "description": "Stable rep id (bioguide when available). Call politiclaw_get_my_reps first to look it up."
-      },
-      {
-        "name": "issue",
-        "required": true,
-        "type": "string",
-        "description": "Issue slug from your declared stances (e.g. 'affordable-housing'). Must already be set via politiclaw_set_issue_stance."
-      },
-      {
-        "name": "billId",
-        "required": false,
-        "type": "string",
-        "description": "Optional canonical bill id ('119-hr-1234'). When present the script cites the specific bill."
+        "description": "Used only with format='letter'. Optional one-sentence personal hook appended verbatim above the closing. Keep short — the draft is already near its word ceiling."
       },
       {
         "name": "oneSpecificSentence",
         "required": false,
         "type": "string",
-        "description": "Optional single sentence the user wants to say in their own words. Appended verbatim after the ask line. Keep it short — the script is capped at 150 words."
+        "description": "Used only with format='call'. Optional single sentence the user wants to say in their own words. Appended verbatim after the ask line. Keep it short — the script is capped at 150 words."
       }
     ],
     "rawSchema": {
       "type": "object",
       "required": [
+        "format",
         "repId",
         "issue"
       ],
       "properties": {
+        "format": {
+          "description": "'letter' produces a copy-paste-ready email-style letter (≤400 words). 'call' produces a short phone-call script (≤150 words) with the rep's office phone number from the stored record.",
+          "anyOf": [
+            {
+              "const": "letter",
+              "type": "string"
+            },
+            {
+              "const": "call",
+              "type": "string"
+            }
+          ]
+        },
         "repId": {
           "description": "Stable rep id (bioguide when available). Call politiclaw_get_my_reps first to look it up.",
           "type": "string"
         },
         "issue": {
-          "description": "Issue slug from your declared stances (e.g. 'affordable-housing'). Must already be set via politiclaw_set_issue_stance.",
+          "description": "Issue slug from your declared stances (e.g. 'affordable-housing'). Must already be set via politiclaw_issue_stances.",
           "type": "string"
         },
         "billId": {
-          "description": "Optional canonical bill id ('119-hr-1234'). When present the script cites the specific bill.",
+          "description": "Optional canonical bill id ('119-hr-1234'). When present the draft cites the specific bill.",
+          "type": "string"
+        },
+        "customNote": {
+          "description": "Used only with format='letter'. Optional one-sentence personal hook appended verbatim above the closing. Keep short — the draft is already near its word ceiling.",
           "type": "string"
         },
         "oneSpecificSentence": {
-          "description": "Optional single sentence the user wants to say in their own words. Appended verbatim after the ask line. Keep it short — the script is capped at 150 words.",
+          "description": "Used only with format='call'. Optional single sentence the user wants to say in their own words. Appended verbatim after the ask line. Keep it short — the script is capped at 150 words.",
           "type": "string"
         }
       }

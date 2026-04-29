@@ -6,7 +6,7 @@
 
 ## Description
 
-One front-door tool that walks the user through PolitiClaw setup end-to-end: address → top issues → monitoring mode → accountability preference → api.data.gov key (and optional upgrades) → final monitoring contract. Call with whatever you have; the tool returns the next question to ask. Pass `apiDataGov` (and any `optionalApiKeys` the user has) inline to save them via politiclaw_set_api_keys in one shot — the gateway will restart once. When everything is collected it reconciles cron jobs once and returns stage:'complete' with a monitoringContract summary. Use this for first-time setup, reconfiguration, or any 'set up PolitiClaw / change my settings' request. Lower-level stance/mode tools still exist for one-off edits after setup is complete.
+One front-door tool that walks the user through PolitiClaw setup end-to-end: address → top issues → monitoring mode → accountability preference → api.data.gov key (and optional upgrades) → final monitoring contract. Call with whatever you have; the tool returns the next question to ask. Pass `apiDataGov` (and any `optionalApiKeys` the user has) inline to save them in one shot — the gateway will restart once. When everything is collected it reconciles cron jobs once and returns stage:'complete' with a monitoringContract summary. Use this for first-time setup, reconfiguration, or any 'set up PolitiClaw / change my settings' request — including key-only updates after onboarding. Lower-level stance/mode tools still exist for one-off edits after setup is complete.
 
 ## Parameters
 
@@ -23,7 +23,7 @@ One front-door tool that walks the user through PolitiClaw setup end-to-end: add
 | `monitoringMode` | no | `"off" \| "quiet_watch" \| "weekly_digest" \| "action_only" \| "full_copilot"` | How PolitiClaw should watch for you. 'off' pauses everything. 'quiet_watch' is silent unless tracked bills/hearings materially change. 'weekly_digest' adds the Sunday summary and monthly rep report. 'action_only' is quiet except when elections are near or tracked items change. 'full_copilot' enables everything. Defaults to 'action_only' when first configuring unless a mode is already saved. |
 | `accountability` | no | `"self_serve" \| "nudge_me" \| "draft_for_me"` | How proactive PolitiClaw should be when bills/votes cross your alignment threshold: self_serve (post deltas only), nudge_me (add a 'Your move' section with suggestions), draft_for_me (also draft a letter to your rep proactively). |
 | `refreshReps` | no | `boolean` | When true, bypass the reps cache and re-resolve representatives. |
-| `apiDataGov` | no | `string` | Required api.data.gov key (free, instant signup at https://api.data.gov/signup/). When supplied, the tool persists it via politiclaw_set_api_keys and the gateway restarts to pick it up. |
+| `apiDataGov` | no | `string` | Required api.data.gov key (free, instant signup at https://api.data.gov/signup/). When supplied, the tool persists it directly to plugins.entries.politiclaw.config.apiKeys.apiDataGov and the gateway restarts to pick it up. |
 | `optionalApiKeys` | no | `object` | Optional upgrade keys to save in the same call as apiDataGov so the gateway only restarts once. Pass only the keys the user actually has. |
 
 ## Raw Schema
@@ -188,7 +188,7 @@ One front-door tool that walks the user through PolitiClaw setup end-to-end: add
       "type": "boolean"
     },
     "apiDataGov": {
-      "description": "Required api.data.gov key (free, instant signup at https://api.data.gov/signup/). When supplied, the tool persists it via politiclaw_set_api_keys and the gateway restarts to pick it up.",
+      "description": "Required api.data.gov key (free, instant signup at https://api.data.gov/signup/). When supplied, the tool persists it directly to plugins.entries.politiclaw.config.apiKeys.apiDataGov and the gateway restarts to pick it up.",
       "type": "string"
     },
     "optionalApiKeys": {

@@ -86,7 +86,7 @@ export async function scoreBill(
     return {
       status: "no_stances",
       reason: "no declared issue stances",
-      actionable: "call politiclaw_set_issue_stance before scoring a bill",
+      actionable: "call politiclaw_issue_stances with action='set' before scoring a bill",
     };
   }
 
@@ -220,7 +220,7 @@ export function scoreRepresentative(
     return {
       status: "no_stances",
       reason: "no declared issue stances",
-      actionable: "call politiclaw_set_issue_stance before scoring a representative",
+      actionable: "call politiclaw_issue_stances with action='set' before scoring a representative",
     };
   }
 

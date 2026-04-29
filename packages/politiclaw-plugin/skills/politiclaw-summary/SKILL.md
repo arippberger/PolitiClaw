@@ -103,10 +103,11 @@ Check the user's `accountability` mode (read it from
   markup", "Check your registration; primary is in 21 days." Do not
   draft anything yourself; just suggest.
 - `draft_for_me`: same as `nudge_me`, plus call
-  `politiclaw_draft_letter` proactively for the single highest-alignment
-  bill from section 2 and surface "Drafted a letter for Rep. X — review
-  in the returned draft text so the user can send it themselves." Cap at one auto-draft per
-  digest to avoid swamping the user.
+  `politiclaw_draft_outreach` with `format='letter'` proactively for the
+  single highest-alignment bill from section 2 and surface "Drafted a
+  letter for Rep. X — review in the returned draft text so the user can
+  send it themselves." Cap at one auto-draft per digest to avoid swamping
+  the user.
 
 Each suggestion is one sentence. Do not pad. If the week is quiet enough
 that there's nothing concrete to suggest, omit the section even in

@@ -39,7 +39,7 @@ describe("politiclaw-keys command", () => {
   it("points users at the canonical save path", async () => {
     setPluginConfigForTests({ apiKeys: {} });
     const text = textOf(await keysCommand.handler(fakeCtx));
-    expect(text).toContain("politiclaw_set_api_keys");
+    expect(text).toContain("politiclaw_configure");
   });
 });
 

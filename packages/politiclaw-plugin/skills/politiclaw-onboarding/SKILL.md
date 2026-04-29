@@ -142,8 +142,9 @@ lightly — the key points are:
 1. The user signs up at `https://api.data.gov/signup/` (free, instant).
 2. They paste the key back into chat. Don't ask them to edit any files.
    When they paste it, call `politiclaw_configure` again with
-   `apiDataGov: "<the-key>"` — the tool persists it via
-   `politiclaw_set_api_keys` and the gateway restarts itself to pick it up.
+   `apiDataGov: "<the-key>"` — the tool persists it directly to
+   `plugins.entries.politiclaw.config.apiKeys.apiDataGov` and the gateway
+   restarts itself to pick it up.
 3. If the user happens to mention any optional upgrade keys in the same
    message (Geocodio, Open States, OpenSecrets, etc.), pass them in
    `optionalApiKeys` on the same call so the gateway only restarts once.
@@ -192,7 +193,7 @@ stages again.
 
 ## Anti-patterns
 
-- Don't call lower-level tools like `politiclaw_set_issue_stance` for
+- Don't call lower-level tools like `politiclaw_issue_stances` for
   first-time setup. Use `politiclaw_configure`.
 - Don't omit inactive jobs or caveats from the contract block.
 - Don't argue with a stance you disagree with. Record what the user said.

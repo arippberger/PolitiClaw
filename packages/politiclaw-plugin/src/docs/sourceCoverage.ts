@@ -17,7 +17,7 @@ export type SourceCoverageEntry = {
 };
 
 export const DOCS_BASELINE = {
-  tools: 28,
+  tools: 19,
   cronTemplates: 5,
   migrations: 18,
   skills: 5,
@@ -46,8 +46,7 @@ export const SOURCE_COVERAGE_CATALOG: readonly SourceCoverageEntry[] = [
       "politiclaw_score_bill",
       "politiclaw_check_upcoming_votes",
       "politiclaw_ingest_votes",
-      "politiclaw_research_candidate",
-      "politiclaw_research_challengers",
+      "politiclaw_research_finance",
     ],
   },
   {
@@ -123,8 +122,7 @@ export const SOURCE_COVERAGE_CATALOG: readonly SourceCoverageEntry[] = [
     ],
     unlockedByTools: [
       "politiclaw_get_my_ballot",
-      "politiclaw_explain_my_ballot",
-      "politiclaw_prepare_me_for_my_next_election",
+      "politiclaw_election_brief",
     ],
   },
   {
@@ -141,9 +139,8 @@ export const SOURCE_COVERAGE_CATALOG: readonly SourceCoverageEntry[] = [
       "packages/politiclaw-plugin/src/sources/webSearch/bios.ts",
     ],
     unlockedByTools: [
-      "politiclaw_research_candidate",
-      "politiclaw_prepare_me_for_my_next_election",
-      "politiclaw_explain_my_ballot",
+      "politiclaw_research_finance",
+      "politiclaw_election_brief",
     ],
   },
   {
@@ -191,7 +188,7 @@ export const SOURCE_COVERAGE_CATALOG: readonly SourceCoverageEntry[] = [
     sourcePaths: [
       "packages/politiclaw-plugin/openclaw.plugin.json",
       "packages/politiclaw-plugin/src/storage/context.ts",
-      "packages/politiclaw-plugin/src/tools/researchCandidate.ts",
+      "packages/politiclaw-plugin/src/tools/researchFinance.ts",
     ],
     unlockedByTools: [],
   },

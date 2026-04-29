@@ -55,7 +55,7 @@ words.
 >     Counter-consideration: the allocation increase is funded by redirecting
 >     opportunity-zone credits, which some housing analysts argue concentrates
 >     investment in already-dense metros.
->     Next: politiclaw_draft_letter to weigh in · https://www.congress.gov/bill/119/house-bill/1234
+>     Next: politiclaw_draft_outreach (format='letter') to weigh in · https://www.congress.gov/bill/119/house-bill/1234
 
 If the tool did not attach a quoted bill-text basis, render
 "Direction unclear; no stance-grounded quote in available text" and do **not**
@@ -69,7 +69,7 @@ future. No direction/counter lines (events aren't scored).
 > - **House Financial Services — Markup: HR-1234** · Fri Apr 24, 10:00 AM UTC
 >   (Rayburn 2141).
 >     Related bills: 119-hr-1234.
->     Next: politiclaw_draft_letter if you want to weigh in before the hearing.
+>     Next: politiclaw_draft_outreach with format='letter' if you want to weigh in before the hearing.
 
 **Class C — Rep vote misaligned.** From `politiclaw_rep_report` or a
 rep-vote watch that found a misalignment against a declared stance. Cite the
@@ -79,8 +79,8 @@ roll-call and the stance it conflicts with; do not editorialize.
 >     Why it matters: you declared `support` on `affordable-housing`; this vote
 >     cuts against that stance.
 >     What happened: roll call 142, passed 218-215 · tier 1 (api.congress.gov).
->     Next: politiclaw_draft_letter to Rep. Smith, or politiclaw_mute if this
->     issue isn't worth tracking for you.
+>     Next: politiclaw_draft_outreach (format='letter') to Rep. Smith, or
+>     politiclaw_mutes (action='add') if this issue isn't worth tracking for you.
 
 Aligned votes are bundled to a count in weekly digests, not surfaced per-item
 ("Rep. Smith aligned with your stances on 3 of 4 counted votes this week").
@@ -88,7 +88,7 @@ Aligned votes are bundled to a count in weekly digests, not surfaced per-item
 **Class D — Election proximity.** One line; keep the existing shape.
 
 > Election in **14 days** at Oakland Tech HS. Run
-> `politiclaw_prepare_me_for_my_next_election` for a full guide.
+> `politiclaw_election_brief` for a full guide.
 
 ## 3. Triage + bundling rules
 
@@ -172,12 +172,13 @@ Rendering rules:
 - Never use "urgent", "critical", "act now", "don't miss", `!!`, emojis, or
   "last chance". If you find yourself reaching for those, the classifier
   already scored the moment; your job is to pass it along, not to amplify it.
-- On "stop suggesting this," call `politiclaw_dismiss_action_package` with
-  `verdict='stop'`, NOT `politiclaw_mute`. Escalate to mute only when the
-  user explicitly asks to silence the bill/rep/issue entirely.
-- On "not now," call `politiclaw_dismiss_action_package` with
-  `verdict='not_now'`. The offer for the same target is suppressed for 7
-  days and can re-surface after that if the trigger still holds.
+- On "stop suggesting this," call `politiclaw_action_moments` with
+  `action='dismiss'` and `verdict='stop'`, NOT `politiclaw_mutes`. Escalate
+  to a mute only when the user explicitly asks to silence the bill/rep/issue
+  entirely.
+- On "not now," call `politiclaw_action_moments` with `action='dismiss'`
+  and `verdict='not_now'`. The offer for the same target is suppressed for
+  7 days and can re-surface after that if the trigger still holds.
 - Repeated-misalignment offers must carry the dissenting-view caveat inline:
   `"Your rep has voted against your declared stance on {issue} {N} times in
   the last {window}. A draft letter is one option; so is nothing. You
@@ -185,9 +186,8 @@ Rendering rules:
 
 When `preferences.action_prompting = 'off'`, `actionPackages` will be empty
 even if changes qualified. Explicit tool calls
-(`politiclaw_draft_letter`, `politiclaw_draft_call_script`,
-`politiclaw_create_reminder`) still work — the off setting only suppresses
-auto-offers.
+(`politiclaw_draft_outreach`, `politiclaw_create_reminder`) still work — the
+off setting only suppresses auto-offers.
 
 ## 7. Source tier in every claim
 
@@ -263,10 +263,11 @@ action beyond reporting facts:
 - `draft_for_me`: same as `nudge_me`, plus when a tracked bill in the
   current delta has `alignment.relevance ≥ 0.6` and
   `alignment.confidence ≥ 0.5` and the user has not yet sent a letter
-  on it, call `politiclaw_draft_letter` proactively for the
-  highest-alignment rep on that bill, and surface "Drafted a letter for
-  Rep. X — review in the returned draft text and send it yourself." Cap at one
-  proactive draft per monitoring run; the user can always ask for more.
+  on it, call `politiclaw_draft_outreach` with `format='letter'`
+  proactively for the highest-alignment rep on that bill, and surface
+  "Drafted a letter for Rep. X — review in the returned draft text and
+  send it yourself." Cap at one proactive draft per monitoring run; the
+  user can always ask for more.
 
 Do not escalate behavior beyond the saved mode. If the user wants more
 proactivity they will say so; switching them silently breaks trust.
@@ -297,11 +298,12 @@ This is the canonical accountability surface. Frame it as an answer to
 ## 8. Muting
 
 When the user says "stop alerting me about X" or "I'm done with this one,"
-call `politiclaw_mute` with the appropriate kind (`bill`, `rep`, or `issue`)
-and ref. The monitoring loop will suppress that target on every future run
-and will surface a compact `(N bills suppressed by mute list)` note so the
-user can see the filter is still active. Use `politiclaw_list_mutes` to show
-current mutes and `politiclaw_unmute` to reverse the decision. A bill mute
+call `politiclaw_mutes` with `action='add'` and the appropriate kind
+(`bill`, `rep`, or `issue`) and ref. The monitoring loop will suppress that
+target on every future run and will surface a compact
+`(N bills suppressed by mute list)` note so the user can see the filter is
+still active. Use `politiclaw_mutes` with `action='list'` to show current
+mutes and `action='remove'` to reverse the decision. A bill mute
 also suppresses any upcoming committee event whose every related bill is
 muted — events that still touch unmuted bills pass through normally. Prefer
 muting over silently dropping topics from summaries; the user should be able

@@ -113,7 +113,7 @@ describe("politiclaw_rep_report tool", () => {
   it("explains when no stances exist", async () => {
     const result = await repReportTool.execute!("call-1", {}, undefined, undefined);
     const text = (result.content[0] as { type: "text"; text: string }).text;
-    expect(text).toContain("politiclaw_set_issue_stance");
+    expect(text).toContain("politiclaw_issue_stances");
   });
 
   it("includes header, snapshot hash, bill link, and disclaimer when data exists", async () => {

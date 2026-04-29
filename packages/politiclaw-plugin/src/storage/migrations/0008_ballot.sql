@@ -1,7 +1,7 @@
 -- Ballot logistics cache + audited explanations.
 --
 -- `ballots` caches Google Civic voterInfoQuery (and future adapter) payloads;
--- `ballot_explanations` stores deterministic tool output from explain_my_ballot.
+-- `ballot_explanations` stores deterministic ballot-framing output.
 
 CREATE TABLE IF NOT EXISTS ballots (
   address_hash           TEXT PRIMARY KEY,

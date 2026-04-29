@@ -3,15 +3,15 @@ name: politiclaw-outreach
 description: >-
   How to help the user close the loop on a stance-gap the monitoring loop
   surfaced: put an accountability question in front of the rep in the user's
-  own words. Covers when to offer a letter draft, how to use
-  politiclaw_draft_letter, and the firm rule that PolitiClaw never sends
-  mail — the user sends from their own client.
+  own words. Covers when to offer a letter or call draft, how to use
+  politiclaw_draft_outreach, and the firm rule that PolitiClaw never sends
+  mail or dials — the user sends from their own client.
 read_when:
   - The user asks "can you write a letter to my rep" or similar outreach
     phrasing.
   - The user says they want to contact, email, call, or complain to a
     representative on a specific issue or bill.
-  - politiclaw_draft_letter has been invoked and you are rendering its output.
+  - politiclaw_draft_outreach has been invoked and you are rendering its output.
 ---
 
 # politiclaw-outreach
@@ -28,7 +28,7 @@ user sends it — PolitiClaw does not.
   hand-edited message is the value. Do not offer to email, fax, or call on the
   user's behalf. Do not paste the letter into any outbound channel.
 - **No stance laundering.** The letter argues the user's own declared stance
-  (from `politiclaw_set_issue_stance`). If the user has not declared a stance
+  (from `politiclaw_issue_stances`). If the user has not declared a stance
   on the issue, stop and ask them to declare one first. Do not invent a
   position for them.
 - **No voting recommendations to the rep.** The draft states the user's
@@ -47,19 +47,26 @@ Offer a draft when all three hold:
    offices triage by topic.
 
 If any of these are missing, guide the user to the prerequisite tool
-(`politiclaw_get_my_reps`, `politiclaw_set_issue_stance`,
+(`politiclaw_get_my_reps`, `politiclaw_issue_stances`,
 `politiclaw_search_bills`) rather than drafting.
 
 ## 3. How to call the tool
 
-`politiclaw_draft_letter` takes:
+`politiclaw_draft_outreach` takes:
 
+- `format` — `'letter'` for an email-style letter, `'call'` for a phone-call
+  script. The two formats share the same prerequisite shape but use
+  different optional personal-hook fields (see below).
 - `repId` — from `politiclaw_get_my_reps`. Never a guessed bioguide.
 - `issue` — an issue slug that already has a declared stance.
 - `billId` (optional) — canonical `119-hr-1234`; the tool pulls the title +
   latest action + congress.gov link and embeds them in the body.
-- `customNote` (optional) — one short sentence the user provides for a
-  personal hook ("My family has been on a wait list for 14 months").
+- `customNote` (optional, `format='letter'` only) — one short sentence the
+  user provides for a personal hook ("My family has been on a wait list for
+  14 months").
+- `oneSpecificSentence` (optional, `format='call'` only) — one short sentence
+  the user wants to say in their own words. Pass it on the matching format
+  only; the tool rejects mismatches.
 
 The tool returns:
 
@@ -137,11 +144,11 @@ Drafts are starting points; the user owns the send.
 
 ## 8. Call scripts
 
-`politiclaw_draft_call_script` is the phone-call sibling of `politiclaw_draft_letter`.
-Same posture: offer, don't push. The plugin slot-fills a ≤150-word script
-(opening, ask, optional one-specific sentence, closing) from the stored rep
-record and the user's declared stance. The user reads it; the plugin never
-dials.
+`politiclaw_draft_outreach` with `format='call'` is the phone-call sibling
+of `format='letter'`. Same posture: offer, don't push. The plugin slot-fills
+a ≤150-word script (opening, ask, optional one-specific sentence, closing)
+from the stored rep record and the user's declared stance. The user reads
+it; the plugin never dials.
 
 When to offer a call script:
 
@@ -159,7 +166,7 @@ Rendering rules:
   citations."* **Never invent or LLM-guess a number**, even if you "know" one
   from training data.
 - If the tool returns `no_stance_for_issue`, route the user to
-  `politiclaw_set_issue_stance` first, same as with letters.
+  `politiclaw_issue_stances` (action='set') first, same as with letters.
 - Include the footer: *"This is a draft call. Phone numbers route to the DC
   office; district offices may answer faster — check the rep's site before
   you call."*
@@ -176,16 +183,18 @@ conflating them confuses the user and corrupts the feedback signal.
   me to check this again before the vote." Stored in the `reminders` table;
   surfaced by the monitoring crons when the deadline is within 48 hours. Use
   when the user wants a nudge later, not silence now.
-- **Stop on an action package** (`politiclaw_dismiss_action_package` with
-  `verdict='stop'`) = "don't offer this specific decision again." Scoped to
-  the `(trigger_class, bill, rep, issue, election_date)` tuple of one
-  package. Everything else about that bill/rep/issue still alerts. Use when
-  the user isn't interested in *this* offer but hasn't disowned the topic.
-- **Mute** (`politiclaw_mute`) = "silence the target entirely." Kind is
-  `bill`, `rep`, or `issue`. Every future alert and action package for that
-  target is suppressed until `politiclaw_unmute`. Use only when the user
-  explicitly asks to silence the topic — muting is the biggest hammer and
-  erodes the user's situational awareness if used reflexively.
+- **Stop on an action package** (`politiclaw_action_moments` with
+  `action='dismiss'` and `verdict='stop'`) = "don't offer this specific
+  decision again." Scoped to the `(trigger_class, bill, rep, issue,
+  election_date)` tuple of one package. Everything else about that
+  bill/rep/issue still alerts. Use when the user isn't interested in
+  *this* offer but hasn't disowned the topic.
+- **Mute** (`politiclaw_mutes` with `action='add'`) = "silence the target
+  entirely." Kind is `bill`, `rep`, or `issue`. Every future alert and
+  action package for that target is suppressed until `politiclaw_mutes`
+  with `action='remove'`. Use only when the user explicitly asks to silence
+  the topic — muting is the biggest hammer and erodes the user's
+  situational awareness if used reflexively.
 
 Routing rule: default to the narrowest tool. "Stop suggesting letters about
 this bill" → dismiss the package with `verdict='stop'`. "I never want to see

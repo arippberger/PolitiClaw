@@ -15,7 +15,7 @@ If you only need the most common user-facing tools, start here:
 - [politiclaw_doctor](./generated/tools/politiclaw_doctor)
 - [politiclaw_configure](./generated/tools/politiclaw_configure)
 - [politiclaw_get_my_reps](./generated/tools/politiclaw_get_my_reps)
-- [politiclaw_prepare_me_for_my_next_election](./generated/tools/politiclaw_prepare_me_for_my_next_election)
+- [politiclaw_election_brief](./generated/tools/politiclaw_election_brief)
 - [politiclaw_check_upcoming_votes](./generated/tools/politiclaw_check_upcoming_votes)
 
 For everything else, use the generated index rather than relying on copied tool lists.

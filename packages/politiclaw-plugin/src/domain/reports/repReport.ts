@@ -38,7 +38,7 @@ export function generateRepReport(
     return {
       status: "no_stances",
       reason: "no declared issue stances",
-      actionable: "call politiclaw_set_issue_stance before generating a rep report",
+      actionable: "call politiclaw_issue_stances with action='set' before generating a rep report",
     };
   }
 

@@ -3,22 +3,19 @@ import type { AnyAgentTool } from "openclaw/plugin-sdk/plugin-entry";
 import { actionMomentsTools } from "../tools/actionMoments.js";
 import { ballotTools } from "../tools/ballot.js";
 import { billsTools } from "../tools/bills.js";
-import { callScriptTools } from "../tools/callScript.js";
 import { configureTools } from "../tools/configure.js";
 import { doctorTools } from "../tools/doctor.js";
-import { explainBallotTools } from "../tools/explainBallot.js";
-import { letterTools } from "../tools/draftLetter.js";
+import { draftOutreachTools } from "../tools/draftOutreach.js";
+import { electionBriefTools } from "../tools/electionBrief.js";
+import { issueStancesTools } from "../tools/issueStances.js";
 import { monitoringTools } from "../tools/monitoring.js";
 import { muteTools } from "../tools/mutes.js";
-import { politiclawTools as preferencesTools } from "../tools/preferences.js";
-import { prepareForElectionTools } from "../tools/prepareForElection.js";
+import { recordStanceSignalTools } from "../tools/preferences.js";
 import { reminderTools } from "../tools/reminder.js";
-import { setApiKeysTools } from "../tools/setApiKeys.js";
 import { repReportTools } from "../tools/repReport.js";
 import { repScoringTools } from "../tools/repScoring.js";
 import { repsTools } from "../tools/reps.js";
-import { researchCandidateTools } from "../tools/researchCandidate.js";
-import { researchChallengersTools } from "../tools/researchChallengers.js";
+import { researchFinanceTools } from "../tools/researchFinance.js";
 import { scoringTools } from "../tools/scoring.js";
 import { voteIngestTools } from "../tools/voteIngest.js";
 
@@ -75,14 +72,14 @@ export const POLITICLAW_TOOL_GROUPS: readonly DocsToolGroup[] = [
       ...makeEntries(
         "preferences",
         "Configuration and preferences",
-        "packages/politiclaw-plugin/src/tools/setApiKeys.ts",
-        setApiKeysTools,
+        "packages/politiclaw-plugin/src/tools/issueStances.ts",
+        issueStancesTools,
       ),
       ...makeEntries(
         "preferences",
         "Configuration and preferences",
         "packages/politiclaw-plugin/src/tools/preferences.ts",
-        preferencesTools,
+        recordStanceSignalTools,
       ),
     ],
   },
@@ -142,7 +139,7 @@ export const POLITICLAW_TOOL_GROUPS: readonly DocsToolGroup[] = [
     id: "ballot",
     label: "Ballot and election prep",
     description:
-      "Fetch ballot data, explain contests, and assemble a single election guide.",
+      "Fetch ballot data and assemble a single readable election guide.",
     entries: [
       ...makeEntries(
         "ballot",
@@ -153,14 +150,8 @@ export const POLITICLAW_TOOL_GROUPS: readonly DocsToolGroup[] = [
       ...makeEntries(
         "ballot",
         "Ballot and election prep",
-        "packages/politiclaw-plugin/src/tools/explainBallot.ts",
-        explainBallotTools,
-      ),
-      ...makeEntries(
-        "ballot",
-        "Ballot and election prep",
-        "packages/politiclaw-plugin/src/tools/prepareForElection.ts",
-        prepareForElectionTools,
+        "packages/politiclaw-plugin/src/tools/electionBrief.ts",
+        electionBriefTools,
       ),
     ],
   },
@@ -200,31 +191,19 @@ export const POLITICLAW_TOOL_GROUPS: readonly DocsToolGroup[] = [
     id: "research",
     label: "Candidate research and outreach",
     description:
-      "Compare candidate finance data, research challengers, and draft constituent outreach.",
+      "Compare candidate finance data and draft constituent outreach (letter or call script).",
     entries: [
       ...makeEntries(
         "research",
         "Candidate research and outreach",
-        "packages/politiclaw-plugin/src/tools/researchCandidate.ts",
-        researchCandidateTools,
+        "packages/politiclaw-plugin/src/tools/researchFinance.ts",
+        researchFinanceTools,
       ),
       ...makeEntries(
         "research",
         "Candidate research and outreach",
-        "packages/politiclaw-plugin/src/tools/researchChallengers.ts",
-        researchChallengersTools,
-      ),
-      ...makeEntries(
-        "research",
-        "Candidate research and outreach",
-        "packages/politiclaw-plugin/src/tools/draftLetter.ts",
-        letterTools,
-      ),
-      ...makeEntries(
-        "research",
-        "Candidate research and outreach",
-        "packages/politiclaw-plugin/src/tools/callScript.ts",
-        callScriptTools,
+        "packages/politiclaw-plugin/src/tools/draftOutreach.ts",
+        draftOutreachTools,
       ),
     ],
   },

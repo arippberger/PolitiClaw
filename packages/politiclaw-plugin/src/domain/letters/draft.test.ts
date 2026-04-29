@@ -91,7 +91,7 @@ describe("draftLetter", () => {
     const result = await draftLetter(db, { repId: "P000197", issue: "climate" });
     expect(result.status).toBe("no_stance_for_issue");
     if (result.status !== "no_stance_for_issue") return;
-    expect(result.actionable).toContain("politiclaw_set_issue_stance");
+    expect(result.actionable).toContain("politiclaw_issue_stances");
   });
 
   it("refuses when declared stance is neutral", async () => {

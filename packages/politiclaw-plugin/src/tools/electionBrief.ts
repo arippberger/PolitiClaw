@@ -13,11 +13,11 @@ import { createWebSearchResolver } from "../sources/webSearch/index.js";
 import { getPluginConfig, getStorage } from "../storage/context.js";
 import { safeParse } from "../validation/typebox.js";
 
-const PrepareForElectionParams = Type.Object({
+const ElectionBriefParams = Type.Object({
   refresh: Type.Optional(
     Type.Boolean({
       description:
-        "When true, bypass the ballot-snapshot cache and re-query voterInfoQuery.",
+        "When true, bypass the cached ballot snapshot and re-query voterInfoQuery.",
     }),
   ),
 });
@@ -38,7 +38,7 @@ function renderSetupNeeded(
   }
   lines.push(
     "",
-    "Run the tools above in order, then call politiclaw_prepare_me_for_my_next_election again.",
+    "Run the tools above in order, then call politiclaw_election_brief again.",
   );
   return lines.join("\n");
 }
@@ -110,7 +110,7 @@ function renderRepScores(entries: readonly RepScoreEntry[]): string[] {
     }
     const totalConsidered = result.consideredVoteCount;
     const issues = result.perIssue;
-    const allBelowFloor = issues.every((i) => i.belowConfidenceFloor);
+    const allBelowFloor = issues.every((issue) => issue.belowConfidenceFloor);
     if (issues.length === 0 || allBelowFloor) {
       lines.push(
         `  • ${rep.name} (${rep.office}): insufficient data across ${totalConsidered} counted vote${
@@ -120,8 +120,8 @@ function renderRepScores(entries: readonly RepScoreEntry[]): string[] {
       continue;
     }
     const issueFrags = issues
-      .filter((i) => !i.belowConfidenceFloor)
-      .map((i) => `${i.issue} ${Math.round(i.alignmentScore * 100)}%`);
+      .filter((issue) => !issue.belowConfidenceFloor)
+      .map((issue) => `${issue.issue} ${Math.round(issue.alignmentScore * 100)}%`);
     lines.push(
       `  • ${rep.name} (${rep.office}): ${issueFrags.join(", ")} across ${totalConsidered} counted vote${
         totalConsidered === 1 ? "" : "s"
@@ -131,7 +131,7 @@ function renderRepScores(entries: readonly RepScoreEntry[]): string[] {
   return lines;
 }
 
-export function renderPrepareForElectionOutput(
+export function renderElectionBriefOutput(
   result: PrepareForElectionResult,
 ): string {
   if (result.status === "setup_needed") return renderSetupNeeded(result.missing);
@@ -156,29 +156,28 @@ export function renderPrepareForElectionOutput(
   sections.push(...renderRepScores(result.repScores));
   sections.push(
     "",
-    "For deeper per-candidate research: politiclaw_research_candidate (FEC finance) or politiclaw_research_challengers (side-by-side).",
+    "For deeper per-candidate research: politiclaw_research_finance with mode='candidate' (single candidate) or mode='challengers' (side-by-side).",
     "",
     ALIGNMENT_DISCLAIMER,
   );
   return sections.join("\n");
 }
 
-export const prepareForElectionTool: AnyAgentTool = {
-  name: "politiclaw_prepare_me_for_my_next_election",
-  label: "Prepare one readable guide for the user's next election",
+export const electionBriefTool: AnyAgentTool = {
+  name: "politiclaw_election_brief",
+  label: "One readable election guide: ballot framing + rep alignment + setup checks",
   description:
-    "Map the ballot against the values the user declared: composes saved address, declared stances, " +
+    "Map the user's ballot against the values they declared: composes saved address, declared stances, " +
     "stored reps' alignment records, and ballot snapshot into one readable guide so the user can " +
     "see how each contest and incumbent lines up with — or diverges from — their stated stances. " +
     "Runs the prereq checks itself; missing address, missing reps, or missing stances return a " +
     "'setup needed' pointer at the exact tool to run, not a stack trace. Use this as the default " +
     "when the user says 'help me with my ballot' or 'what do I need to know for the election.' " +
-    "Framing is facts + tradeoffs; it never tells the user how to vote. Atomic tools " +
-    "(politiclaw_explain_my_ballot, politiclaw_score_representative, politiclaw_research_candidate) " +
-    "remain available for focused follow-ups.",
-  parameters: PrepareForElectionParams,
+    "Framing is facts + tradeoffs; it never tells the user how to vote. " +
+    "politiclaw_get_my_ballot remains available for the raw fetch when you only need the ballot data.",
+  parameters: ElectionBriefParams,
   async execute(_toolCallId, rawParams) {
-    const parsed = safeParse(PrepareForElectionParams, rawParams);
+    const parsed = safeParse(ElectionBriefParams, rawParams);
     if (!parsed.ok) {
       return textResult(
         `Invalid input: ${parsed.messages.join("; ")}`,
@@ -197,8 +196,8 @@ export const prepareForElectionTool: AnyAgentTool = {
       refresh: parsed.data.refresh === true,
       webSearch,
     });
-    return textResult(renderPrepareForElectionOutput(result), result);
+    return textResult(renderElectionBriefOutput(result), result);
   },
 };
 
-export const prepareForElectionTools: AnyAgentTool[] = [prepareForElectionTool];
+export const electionBriefTools: AnyAgentTool[] = [electionBriefTool];

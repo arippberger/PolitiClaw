@@ -185,7 +185,7 @@ const ConfigureParams = Type.Object({
   apiDataGov: Type.Optional(
     Type.String({
       description:
-        "Required api.data.gov key (free, instant signup at https://api.data.gov/signup/). When supplied, the tool persists it via politiclaw_set_api_keys and the gateway restarts to pick it up.",
+        "Required api.data.gov key (free, instant signup at https://api.data.gov/signup/). When supplied, the tool persists it directly to plugins.entries.politiclaw.config.apiKeys.apiDataGov and the gateway restarts to pick it up.",
     }),
   ),
   optionalApiKeys: Type.Optional(
@@ -531,12 +531,12 @@ export function createConfigureTool(deps: ConfigureToolDeps = {}): AnyAgentTool 
       "api.data.gov key (and optional upgrades) → final monitoring contract. " +
       "Call with whatever you have; the tool returns the next question to ask. " +
       "Pass `apiDataGov` (and any `optionalApiKeys` the user has) inline to " +
-      "save them via politiclaw_set_api_keys in one shot — the gateway will " +
-      "restart once. When everything is collected it reconciles cron jobs once " +
-      "and returns stage:'complete' with a monitoringContract summary. Use this " +
-      "for first-time setup, reconfiguration, or any 'set up PolitiClaw / " +
-      "change my settings' request. Lower-level stance/mode tools still exist " +
-      "for one-off edits after setup is complete.",
+      "save them in one shot — the gateway will restart once. When everything " +
+      "is collected it reconciles cron jobs once and returns stage:'complete' " +
+      "with a monitoringContract summary. Use this for first-time setup, " +
+      "reconfiguration, or any 'set up PolitiClaw / change my settings' " +
+      "request — including key-only updates after onboarding. Lower-level " +
+      "stance/mode tools still exist for one-off edits after setup is complete.",
     parameters: ConfigureParams,
     async execute(_toolCallId, rawParams) {
       const input = (rawParams ?? {}) as ConfigureInput;
@@ -741,9 +741,9 @@ export function createConfigureTool(deps: ConfigureToolDeps = {}): AnyAgentTool 
         return textResult(result.prompt, result);
       }
 
-      // 5b. api.data.gov key — show once, don't loop. Plugin config is host-
-      //     managed, so we can only surface instructions; we can't persist the
-      //     key from here.
+      // 5b. api.data.gov key — show once, don't loop. The user can paste
+      //     keys back into this tool and the api_keys_saved branch above
+      //     writes them through the gateway config adapter.
       const apiKeyNoticeShown =
         kv.get<number>(API_KEY_NOTICE_KV_FLAG) !== undefined;
       const apiDataGovMissing = !pluginConfig.apiKeys?.apiDataGov;

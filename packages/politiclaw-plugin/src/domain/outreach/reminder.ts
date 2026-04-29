@@ -211,7 +211,7 @@ function buildSteps(input: CreateReminderInput, contextDate: string | null): str
       base.push("Verify polling location and ballot status.");
       const mailBy = dateMinusDays(input.anchor.electionDate, 3);
       if (mailBy) base.push(`If voting by mail, mail ballot by ${mailBy}.`);
-      base.push("Run politiclaw_prepare_me_for_my_next_election the week of.");
+      base.push("Run politiclaw_election_brief the week of.");
       break;
     }
     case "bill": {

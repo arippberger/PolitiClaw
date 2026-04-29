@@ -22,7 +22,7 @@ Run these tool calls through your agent in order. None require hand-editing file
 
 1. **Run configuration once.** Call `politiclaw_configure` with your street address. It saves your address, resolves your federal reps, returns the issue-setup flow when stances are missing, and applies your saved monitoring cadence once setup is complete.
 
-2. **Declare the stances you want to measure your reps against.** Use the `issueStances` input on `politiclaw_configure` during setup, or add/edit one later with `politiclaw_set_issue_stance`. These are the baseline PolitiClaw uses for every accountability score — no score exists without them.
+2. **Declare the stances you want to measure your reps against.** Use the `issueStances` input on `politiclaw_configure` during setup, or add/edit one later with `politiclaw_issue_stances` (action `set`, `list`, or `delete`). These are the baseline PolitiClaw uses for every accountability score — no score exists without them.
 
 3. **Re-run configuration whenever something changes.** `politiclaw_configure` is also the front door for refreshing reps, changing monitoring cadence, or updating the saved address.
 
@@ -32,11 +32,11 @@ If anything in this path looks wrong, run `politiclaw_doctor` — see [Troublesh
 
 ## API keys
 
-**The fastest path: paste the key into chat.** Run `politiclaw_configure`. When the api.data.gov key is missing, the agent walks you through signup and asks you to paste the key (and any optional upgrade keys you have) back into chat. The plugin saves them via `politiclaw_set_api_keys`, which writes through the OpenClaw gateway's `config.patch` method (validated, audited, optimistic concurrency). The gateway then restarts itself once to pick up the new values — reconnect after the restart and the keys are live.
+**The fastest path: paste the key into chat.** Run `politiclaw_configure`. When the api.data.gov key is missing, the agent walks you through signup and asks you to paste the key (and any optional upgrade keys you have) back into chat. The plugin writes them through the OpenClaw gateway's `config.patch` method (validated, audited, optimistic concurrency). The gateway then restarts itself once to pick up the new values — reconnect after the restart and the keys are live.
 
-`politiclaw_set_api_keys` is also callable on its own ("save my Geocodio key as `xyz`") for one-off updates after onboarding.
+`politiclaw_configure` also handles one-off updates after onboarding: passing `apiDataGov` (or any `optionalApiKeys`) saves them straight to `plugins.entries.politiclaw.config.apiKeys.*` without re-running the full setup flow.
 
-You can still edit `~/.openclaw/openclaw.json` by hand under `plugins.politiclaw.apiKeys.*` if you prefer; both paths land in the same file.
+You can still edit `~/.openclaw/openclaw.json` by hand under `plugins.entries.politiclaw.config.apiKeys.*` if you prefer; both paths land in the same file.
 
 **One key is required; the rest are optional upgrades.**
 

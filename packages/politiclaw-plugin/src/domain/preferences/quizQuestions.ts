@@ -3,7 +3,7 @@
  *
  * Each question maps 1:1 to an `IssueStance.issue` slug so that the
  * onboarding tool can persist answers through the existing
- * `politiclaw_set_issue_stance` path without re-interpreting free text.
+ * `politiclaw_issue_stances` path without re-interpreting free text.
  *
  * Slugs follow the two-tier taxonomy in `./normalize.ts`:
  *   - Tier 1 (LoC Policy Area as slug): used for buckets where the

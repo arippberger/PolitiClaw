@@ -23,7 +23,7 @@ REQUIRED. Shared api.data.gov key used by both api.congress.gov and FEC OpenFEC.
 - Runtime status: `implemented`
 - Required: yes
 - Wired today: yes
-- Unlocks: `politiclaw_search_bills`, `politiclaw_get_bill_details`, `politiclaw_score_bill`, `politiclaw_check_upcoming_votes`, `politiclaw_ingest_votes`, `politiclaw_research_candidate`, `politiclaw_research_challengers`
+- Unlocks: `politiclaw_search_bills`, `politiclaw_get_bill_details`, `politiclaw_score_bill`, `politiclaw_check_upcoming_votes`, `politiclaw_ingest_votes`, `politiclaw_research_finance`
 - Runtime files: `packages/politiclaw-plugin/src/sources/bills/index.ts`, `packages/politiclaw-plugin/src/sources/votes/index.ts`, `packages/politiclaw-plugin/src/sources/upcomingVotes/index.ts`, `packages/politiclaw-plugin/src/sources/finance/index.ts`
 - Notes: One key powers api.congress.gov-backed sources and FEC OpenFEC. Senate roll-call ingest runs through a separate zero-key source (voteview.com).
 
@@ -65,7 +65,7 @@ OPTIONAL UPGRADE. Federal campaign-finance derived analytics such as industry ro
 - Runtime status: `schema_only`
 - Required: no
 - Wired today: no
-- Runtime files: `packages/politiclaw-plugin/openclaw.plugin.json`, `packages/politiclaw-plugin/src/storage/context.ts`, `packages/politiclaw-plugin/src/tools/researchCandidate.ts`
+- Runtime files: `packages/politiclaw-plugin/openclaw.plugin.json`, `packages/politiclaw-plugin/src/storage/context.ts`, `packages/politiclaw-plugin/src/tools/researchFinance.ts`
 - Notes: The candidate research tool intentionally stops at FEC totals today.
 
 ## apiKeys.followTheMoney
@@ -125,6 +125,6 @@ OPTIONAL but required for politiclaw_get_my_ballot. Google Cloud API key with th
 - Runtime status: `optional_upgrade`
 - Required: no
 - Wired today: yes
-- Unlocks: `politiclaw_get_my_ballot`, `politiclaw_explain_my_ballot`, `politiclaw_prepare_me_for_my_next_election`
+- Unlocks: `politiclaw_get_my_ballot`, `politiclaw_election_brief`
 - Runtime files: `packages/politiclaw-plugin/src/sources/ballot/index.ts`, `packages/politiclaw-plugin/src/sources/ballot/googleCivic.ts`
 - Notes: Required for every ballot tool. Per-state SoS adapters were scoped out in v1 after an audit found none of the six candidate states publishes a public address-to-ballot JSON feed; revisit when BallotReady or Democracy Works provides self-serve keys. Judicial retention detail and ballot-measure plain-language enrichment are not wired.

@@ -274,7 +274,7 @@ export function createFecAdapter(options: FecAdapterOptions): FecAdapter {
         return unavailable(
           ADAPTER_ID,
           `no FEC candidate found for id ${trimmed}`,
-          "Confirm the FEC candidate id (e.g. H8CA12345) via politiclaw_research_candidate search.",
+          "Confirm the FEC candidate id (e.g. H8CA12345) via politiclaw_research_finance with mode='candidate' and a name search.",
         );
       }
 

@@ -102,7 +102,7 @@ describe("politiclaw_score_bill tool", () => {
     const text = (result.content[0] as { type: "text"; text: string }).text;
 
     expect(text).toContain("Cannot score");
-    expect(text).toContain("politiclaw_set_issue_stance");
+    expect(text).toContain("politiclaw_issue_stances");
   });
 
   it("renders the disclaimer and named matches when stances are rich enough", async () => {

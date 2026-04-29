@@ -41,7 +41,7 @@ describe("scoreBill", () => {
     );
     expect(result.status).toBe("no_stances");
     if (result.status !== "no_stances") return;
-    expect(result.actionable).toContain("politiclaw_set_issue_stance");
+    expect(result.actionable).toContain("politiclaw_issue_stances");
   });
 
   it("computes and persists alignment when stances are present", async () => {

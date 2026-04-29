@@ -305,7 +305,7 @@ function buildRecentLettersSection(db: PolitiClawDb): StatusRecentLetters {
   if (rows.length === 0) {
     return {
       status: "none",
-      reason: "no letters drafted yet — call politiclaw_draft_letter to write one",
+      reason: "no letters drafted yet — call politiclaw_draft_outreach with format='letter' to write one",
     };
   }
   return {

@@ -1,17 +1,14 @@
 # Generated Tool Reference
 
-This section is generated from the registered runtime tool objects. Current count: 28.
+This section is generated from the registered runtime tool objects. Current count: 19.
 
 ## Configuration and preferences
 
 Configure the plugin, declare issue stances, and manage the saved preference data that remains user-facing.
 
 - [`politiclaw_configure`](./politiclaw_configure.md) — Configure PolitiClaw
-- [`politiclaw_set_api_keys`](./politiclaw_set_api_keys.md) — Save PolitiClaw API keys
+- [`politiclaw_issue_stances`](./politiclaw_issue_stances.md) — Manage declared issue stances (set, list, delete)
 - [`politiclaw_record_stance_signal`](./politiclaw_record_stance_signal.md) — Record PolitiClaw stance signal
-- [`politiclaw_set_issue_stance`](./politiclaw_set_issue_stance.md) — Set a declared issue stance
-- [`politiclaw_list_issue_stances`](./politiclaw_list_issue_stances.md) — List declared issue stances
-- [`politiclaw_delete_issue_stance`](./politiclaw_delete_issue_stance.md) — Delete a declared issue stance
 
 ## Representatives and alignment
 
@@ -32,32 +29,26 @@ Search federal bills, inspect bill details, score bill alignment, and ingest Hou
 
 ## Ballot and election prep
 
-Fetch ballot data, explain contests, and assemble a single election guide.
+Fetch ballot data and assemble a single readable election guide.
 
 - [`politiclaw_get_my_ballot`](./politiclaw_get_my_ballot.md) — Preview ballot logistics and contests for your saved address
-- [`politiclaw_explain_my_ballot`](./politiclaw_explain_my_ballot.md) — Explain each contest on your ballot with facts + framing — never a recommendation
-- [`politiclaw_prepare_me_for_my_next_election`](./politiclaw_prepare_me_for_my_next_election.md) — Prepare one readable guide for the user's next election
+- [`politiclaw_election_brief`](./politiclaw_election_brief.md) — One readable election guide: ballot framing + rep alignment + setup checks
 
 ## Monitoring and cadence
 
 Check upcoming federal activity and manage alert suppression once configuration is complete.
 
 - [`politiclaw_check_upcoming_votes`](./politiclaw_check_upcoming_votes.md) — Check upcoming votes + bill changes since last run
-- [`politiclaw_mute`](./politiclaw_mute.md) — Mute a bill, rep, or issue
-- [`politiclaw_unmute`](./politiclaw_unmute.md) — Unmute a bill, rep, or issue
-- [`politiclaw_list_mutes`](./politiclaw_list_mutes.md) — List current mutes
+- [`politiclaw_mutes`](./politiclaw_mutes.md) — Manage monitoring alert mutes (add, remove, list)
 - [`politiclaw_create_reminder`](./politiclaw_create_reminder.md) — Create a reminder anchored to a bill, event, or election
-- [`politiclaw_list_action_moments`](./politiclaw_list_action_moments.md) — List open action-package offers
-- [`politiclaw_dismiss_action_package`](./politiclaw_dismiss_action_package.md) — Dismiss or flag an action package
+- [`politiclaw_action_moments`](./politiclaw_action_moments.md) — List or dismiss open action-package offers
 
 ## Candidate research and outreach
 
-Compare candidate finance data, research challengers, and draft constituent outreach.
+Compare candidate finance data and draft constituent outreach (letter or call script).
 
-- [`politiclaw_research_candidate`](./politiclaw_research_candidate.md) — Look up FEC candidate finance totals + tier-5 bio
-- [`politiclaw_research_challengers`](./politiclaw_research_challengers.md) — Compare incumbents and challengers by FEC finance totals
-- [`politiclaw_draft_letter`](./politiclaw_draft_letter.md) — Draft a letter to a representative
-- [`politiclaw_draft_call_script`](./politiclaw_draft_call_script.md) — Draft a short call script for a rep's office
+- [`politiclaw_research_finance`](./politiclaw_research_finance.md) — Research candidate finance — single candidate or side-by-side challengers
+- [`politiclaw_draft_outreach`](./politiclaw_draft_outreach.md) — Draft a letter or call script for a representative
 
 ## Operations and diagnostics
 

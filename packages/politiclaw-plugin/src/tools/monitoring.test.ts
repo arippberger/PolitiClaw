@@ -310,7 +310,7 @@ describe("renderCheckUpcomingVotesOutput — per-class shapes", () => {
     expect(text).toContain(
       "Why it matters: touches your `support` on `affordable-housing`",
     );
-    expect(text).toContain("Next: politiclaw_draft_letter to weigh in");
+    expect(text).toContain("Next: politiclaw_draft_outreach (format='letter') to weigh in");
     expect(text).toContain(
       "https://www.congress.gov/bill/119/house-bill/1234",
     );
@@ -458,7 +458,7 @@ describe("renderCheckUpcomingVotesOutput — per-class shapes", () => {
     expect(text).toContain("(Rayburn 2141)");
     expect(text).toContain("Related bills: 119-hr-1234.");
     expect(text).toContain(
-      "Next: politiclaw_draft_letter if you want to weigh in before the hearing",
+      "Next: politiclaw_draft_outreach with format='letter' if you want to weigh in before the hearing",
     );
   });
 
@@ -485,7 +485,7 @@ describe("renderCheckUpcomingVotesOutput — per-class shapes", () => {
         ],
       }),
     );
-    expect(text).not.toContain("Next: politiclaw_draft_letter if you want to weigh");
+    expect(text).not.toContain("Next: politiclaw_draft_outreach with format='letter' if you want to weigh");
   });
 
   it("renders muted-note when mutes exist alongside real changes", () => {

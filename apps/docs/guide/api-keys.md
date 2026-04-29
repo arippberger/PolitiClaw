@@ -55,10 +55,10 @@ Geocodio is a paid service with a free tier. Create an account on their site and
 
 ## How to set keys
 
-Two routes write the key into the gateway config:
+`politiclaw_configure` writes keys into the gateway config in two situations:
 
-- [`politiclaw_set_api_keys`](../reference/generated/tools/politiclaw_set_api_keys) — the agent-facing tool. Pass any subset of keys; entries you do not provide are skipped. Use this for "save this one key" calls without re-running the full setup flow.
-- [`politiclaw_configure`](../reference/generated/tools/politiclaw_configure) — the onboarding flow. The api-key stage at the end of the wizard prompts for the same keys, after address, stances, and monitoring cadence are saved.
+- Pass any subset of keys directly (`apiDataGov` plus optional `optionalApiKeys`) for "save this one key" calls without re-running the full setup flow. Entries you do not provide are skipped.
+- During onboarding, the api-key stage at the end of the wizard prompts for the same keys after address, stances, and monitoring cadence are saved.
 
 Both paths trigger an OpenClaw gateway restart so the new credentials are picked up by the provider adapters. Onboarding fields (address, stances, monitoring mode) are persisted before the restart, so nothing is lost when the gateway comes back up.
 
@@ -67,7 +67,7 @@ After saving, run [`politiclaw_doctor`](../reference/generated/tools/politiclaw_
 ## Practical setup order
 
 1. Add `apiDataGov` first — most tools (bills, votes, finance) depend on it.
-2. Add `googleCivic` if you want ballot tools (`politiclaw_get_my_ballot`, `politiclaw_explain_my_ballot`, `politiclaw_prepare_me_for_my_next_election`).
+2. Add `googleCivic` if you want ballot tools (`politiclaw_get_my_ballot`, `politiclaw_election_brief`).
 3. Add `geocodio` only if you prefer the API path for reps-by-address over the zero-key local shapefile path.
 4. Re-run `politiclaw_doctor` after any change.
 

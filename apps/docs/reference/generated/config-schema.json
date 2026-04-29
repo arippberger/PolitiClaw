@@ -18,8 +18,7 @@
         "politiclaw_score_bill",
         "politiclaw_check_upcoming_votes",
         "politiclaw_ingest_votes",
-        "politiclaw_research_candidate",
-        "politiclaw_research_challengers"
+        "politiclaw_research_finance"
       ],
       "notes": "One key powers api.congress.gov-backed sources and FEC OpenFEC. Senate roll-call ingest runs through a separate zero-key source (voteview.com)."
     },
@@ -73,7 +72,7 @@
       "sourcePaths": [
         "packages/politiclaw-plugin/openclaw.plugin.json",
         "packages/politiclaw-plugin/src/storage/context.ts",
-        "packages/politiclaw-plugin/src/tools/researchCandidate.ts"
+        "packages/politiclaw-plugin/src/tools/researchFinance.ts"
       ],
       "unlockedByTools": [],
       "notes": "The candidate research tool intentionally stops at FEC totals today."
@@ -155,8 +154,7 @@
       ],
       "unlockedByTools": [
         "politiclaw_get_my_ballot",
-        "politiclaw_explain_my_ballot",
-        "politiclaw_prepare_me_for_my_next_election"
+        "politiclaw_election_brief"
       ],
       "notes": "Required for every ballot tool. Per-state SoS adapters were scoped out in v1 after an audit found none of the six candidate states publishes a public address-to-ballot JSON feed; revisit when BallotReady or Democracy Works provides self-serve keys. Judicial retention detail and ballot-measure plain-language enrichment are not wired."
     }

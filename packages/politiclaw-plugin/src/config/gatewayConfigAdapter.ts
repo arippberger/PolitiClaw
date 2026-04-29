@@ -1,7 +1,8 @@
 /**
  * Thin wrapper around the OpenClaw gateway's config-mutation methods.
  *
- * `politiclaw_set_api_keys` writes to `plugins.entries.politiclaw.config.apiKeys.*` by
+ * The api-keys writer (called from politiclaw_configure when apiDataGov / optionalApiKeys
+ * are passed inline) writes to `plugins.entries.politiclaw.config.apiKeys.*` by
  * calling `config.patch` (with a `baseHash` from `config.get` for optimistic
  * concurrency). The wrapper exists so tests can inject a fake without
  * opening a real gateway websocket — production goes through callGatewayTool.

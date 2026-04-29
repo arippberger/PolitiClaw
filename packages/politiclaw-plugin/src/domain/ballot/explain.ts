@@ -126,7 +126,7 @@ export async function explainMyBallot(
       status: "no_stances",
       reason: "no declared issue stances",
       actionable:
-        "call politiclaw_set_issue_stance before asking for a ballot explanation",
+        "call politiclaw_issue_stances with action='set' before asking for a ballot explanation",
     };
   }
 
@@ -369,7 +369,7 @@ function buildFraming(
       const direction = match.stance === "support" ? "support" : "opposition";
       lines.push({
         prefix: `Your declared stance (${match.issue}, ${direction}, weight ${match.stanceWeight})`,
-        body: `this office description matched on ${match.matchedText}. Directional framing requires per-candidate source text — consult candidate sites, politiclaw_research_candidate for federal finance, or politiclaw_score_representative for a sitting member's record.`,
+        body: `this office description matched on ${match.matchedText}. Directional framing requires per-candidate source text — consult candidate sites, politiclaw_research_finance with mode='candidate' for federal finance, or politiclaw_score_representative for a sitting member's record.`,
       });
     }
     return lines;

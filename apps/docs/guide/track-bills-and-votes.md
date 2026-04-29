@@ -19,7 +19,7 @@ Use `search_bills` to find the bill, then `score_bill` to map it to the user's d
 
 ## Good supporting setup
 
-Bill scoring works best after the user has declared issue stances with [`politiclaw_configure`](../reference/generated/tools/politiclaw_configure) or [`politiclaw_set_issue_stance`](../reference/generated/tools/politiclaw_set_issue_stance).
+Bill scoring works best after the user has declared issue stances with [`politiclaw_configure`](../reference/generated/tools/politiclaw_configure) or [`politiclaw_issue_stances`](../reference/generated/tools/politiclaw_issue_stances).
 
 ## In the accountability loop
 

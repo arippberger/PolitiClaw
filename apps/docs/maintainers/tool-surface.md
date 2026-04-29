@@ -6,8 +6,8 @@ graph TB
   tier2["Tier 2 — advanced / power-user<br/>narrower or procedural"]
   tier3["Tier 3 — internal / operator-facing<br/>setup, plumbing, background"]
 
-  tier1 --> tools1["politiclaw_doctor<br/>politiclaw_configure<br/>politiclaw_set_api_keys<br/>politiclaw_set_issue_stance<br/>politiclaw_prepare_me_for_my_next_election<br/>politiclaw_get_my_reps<br/>politiclaw_score_representative<br/>politiclaw_search_bills<br/>politiclaw_score_bill<br/>politiclaw_research_candidate<br/>politiclaw_draft_letter"]
-  tier2 --> tools2["politiclaw_get_bill_details<br/>politiclaw_rep_report<br/>politiclaw_explain_my_ballot<br/>politiclaw_check_upcoming_votes<br/>politiclaw_research_challengers<br/>politiclaw_list_issue_stances · delete_issue_stance<br/>politiclaw_create_reminder<br/>politiclaw_mute · unmute · list_mutes"]
+  tier1 --> tools1["politiclaw_doctor<br/>politiclaw_configure<br/>politiclaw_issue_stances<br/>politiclaw_election_brief<br/>politiclaw_get_my_reps<br/>politiclaw_score_representative<br/>politiclaw_search_bills<br/>politiclaw_score_bill<br/>politiclaw_research_finance<br/>politiclaw_draft_outreach"]
+  tier2 --> tools2["politiclaw_get_bill_details<br/>politiclaw_rep_report<br/>politiclaw_check_upcoming_votes<br/>politiclaw_create_reminder<br/>politiclaw_mutes<br/>politiclaw_action_moments"]
   tier3 --> tools3["politiclaw_record_stance_signal<br/>politiclaw_ingest_votes<br/>politiclaw_get_my_ballot"]
 
   tier1 -. "default entry points" .-> nav1[/"Guides + onboarding"/]
@@ -42,15 +42,14 @@ Examples:
 
 - `politiclaw_doctor`
 - `politiclaw_configure`
-- `politiclaw_set_api_keys`
-- `politiclaw_set_issue_stance`
-- `politiclaw_prepare_me_for_my_next_election`
+- `politiclaw_issue_stances`
+- `politiclaw_election_brief`
 - `politiclaw_get_my_reps`
 - `politiclaw_score_representative`
 - `politiclaw_search_bills`
 - `politiclaw_score_bill`
-- `politiclaw_research_candidate`
-- `politiclaw_draft_letter`
+- `politiclaw_research_finance`
+- `politiclaw_draft_outreach`
 
 ## Tier 2, advanced / power-user
 
@@ -67,15 +66,10 @@ Examples:
 
 - `politiclaw_get_bill_details`
 - `politiclaw_rep_report`
-- `politiclaw_explain_my_ballot`
 - `politiclaw_check_upcoming_votes`
-- `politiclaw_research_challengers`
-- `politiclaw_list_issue_stances`
-- `politiclaw_delete_issue_stance`
 - `politiclaw_create_reminder`
-- `politiclaw_mute`
-- `politiclaw_unmute`
-- `politiclaw_list_mutes`
+- `politiclaw_mutes`
+- `politiclaw_action_moments`
 
 ## Tier 3, internal / operator-facing
 

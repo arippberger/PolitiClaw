@@ -11,7 +11,7 @@ import {
   upsertIssueStance,
   upsertPreferences,
 } from "../domain/preferences/index.js";
-import { prepareForElectionTool, renderPrepareForElectionOutput } from "./prepareForElection.js";
+import { electionBriefTool, renderElectionBriefOutput } from "./electionBrief.js";
 import type { PrepareForElectionResult } from "../domain/ballot/prepareForElection.js";
 
 function textFrom(result: { content?: Array<{ type: string; text?: string }> }): string {
@@ -22,8 +22,8 @@ function textFrom(result: { content?: Array<{ type: string; text?: string }> }):
   return block.text;
 }
 
-describe("renderPrepareForElectionOutput", () => {
-  it("renders setup_needed with pointers to the exact tool per missing item", () => {
+describe("renderElectionBriefOutput", () => {
+  it("renders setup_needed with pointers to the exact tool per missing item, and points retry at the new tool name", () => {
     const result: PrepareForElectionResult = {
       status: "setup_needed",
       missing: [
@@ -39,9 +39,10 @@ describe("renderPrepareForElectionOutput", () => {
         },
       ],
     };
-    const text = renderPrepareForElectionOutput(result);
+    const text = renderElectionBriefOutput(result);
     expect(text).toContain("Setup needed");
     expect(text).toContain("politiclaw_configure");
+    expect(text).toContain("politiclaw_election_brief");
   });
 
   it("renders ballot_unavailable with the adapter hint", () => {
@@ -51,14 +52,14 @@ describe("renderPrepareForElectionOutput", () => {
       actionable: "set plugins.entries.politiclaw.config.apiKeys.googleCivic",
       adapterId: "googleCivic",
     };
-    const text = renderPrepareForElectionOutput(result);
+    const text = renderElectionBriefOutput(result);
     expect(text).toContain("Ballot data unavailable");
     expect(text).toContain("googleCivic");
     expect(text).toContain("set plugins.entries.politiclaw.config.apiKeys.googleCivic");
   });
 });
 
-describe("politiclaw_prepare_me_for_my_next_election — execute", () => {
+describe("politiclaw_election_brief — execute", () => {
   beforeEach(() => {
     resetStorageConfigForTests();
   });
@@ -71,7 +72,7 @@ describe("politiclaw_prepare_me_for_my_next_election — execute", () => {
     setStorageForTests({ db, kv: new Kv(db) });
     setPluginConfigForTests({ apiKeys: { googleCivic: "fake" } });
 
-    const res = await prepareForElectionTool.execute!("call-1", {}, undefined, undefined);
+    const res = await electionBriefTool.execute!("call-1", {}, undefined, undefined);
     const text = textFrom(res as { content: Array<{ type: string; text: string }> });
     expect(text).toContain("Setup needed");
     expect(text).toContain("politiclaw_configure");
@@ -80,7 +81,6 @@ describe("politiclaw_prepare_me_for_my_next_election — execute", () => {
   it("returns setup_needed with the stances pointer when stances are missing", async () => {
     const db = openMemoryDb();
     upsertPreferences(db, { address: "123 Main St", state: "CA" });
-    // seed a rep row directly so the stance prereq is the only failure
     db.prepare(
       `INSERT INTO reps (id, name, office, party, state, district, contact, last_synced, source_adapter_id, source_tier)
        VALUES ('rep-1', 'Test Rep', 'US House', 'X', 'CA', '12', '{}', @now, 'fake', 1)`,
@@ -88,7 +88,7 @@ describe("politiclaw_prepare_me_for_my_next_election — execute", () => {
     setStorageForTests({ db, kv: new Kv(db) });
     setPluginConfigForTests({ apiKeys: { googleCivic: "fake" } });
 
-    const res = await prepareForElectionTool.execute!("call-1", {}, undefined, undefined);
+    const res = await electionBriefTool.execute!("call-1", {}, undefined, undefined);
     const text = textFrom(res as { content: Array<{ type: string; text: string }> });
     expect(text).toContain("Setup needed");
     expect(text).toContain("politiclaw_configure");
@@ -105,7 +105,7 @@ describe("politiclaw_prepare_me_for_my_next_election — execute", () => {
     setStorageForTests({ db, kv: new Kv(db) });
     setPluginConfigForTests({ apiKeys: {} });
 
-    const res = await prepareForElectionTool.execute!("call-1", {}, undefined, undefined);
+    const res = await electionBriefTool.execute!("call-1", {}, undefined, undefined);
     const text = textFrom(res as { content: Array<{ type: string; text: string }> });
     expect(text).toContain("Ballot data unavailable");
     expect(text).toContain("googleCivic");

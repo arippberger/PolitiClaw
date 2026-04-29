@@ -78,7 +78,7 @@ What to notice:
 
 Emitted by `politiclaw.election_proximity_alert` only at 30, 14, 7, and 1 day before an election on your saved ballot.
 
-> Election in **14 days** at *1234 Civic Center Dr, Springfield*. Run `politiclaw_prepare_me_for_my_next_election` for a full guide.
+> Election in **14 days** at *1234 Civic Center Dr, Springfield*. Run `politiclaw_election_brief` for a full guide.
 
 One line. Other days produce nothing.
 

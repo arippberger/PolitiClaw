@@ -150,7 +150,7 @@ export const ELECTION_PROXIMITY_ALERT_TEMPLATE: PolitiClawCronTemplate = {
   description:
     "Daily: when an election is within 30/14/7/1 days of the saved address, " +
     "ramps a short alert ('election in N days') and points at " +
-    "politiclaw_prepare_me_for_my_next_election. Silent on days that do not " +
+    "politiclaw_election_brief. Silent on days that do not " +
     "cross a threshold.",
   schedule: { kind: "every", everyMs: MS_IN_DAY },
   sessionTarget: "isolated",
@@ -163,7 +163,7 @@ export const ELECTION_PROXIMITY_ALERT_TEMPLATE: PolitiClawCronTemplate = {
       "Call politiclaw_get_my_ballot to read the next election date for the " +
       "saved address. If the election is 30, 14, 7, or 1 day away, post one " +
       "Class-D line ('Election in N days at <polling place or address>') and " +
-      "recommend politiclaw_prepare_me_for_my_next_election. On other days " +
+      "recommend politiclaw_election_brief. On other days " +
       "post nothing.",
   },
   delivery: { mode: "announce", channel: "last" },
