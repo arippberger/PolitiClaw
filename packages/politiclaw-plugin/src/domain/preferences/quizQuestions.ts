@@ -5,6 +5,13 @@
  * onboarding tool can persist answers through the existing
  * `politiclaw_set_issue_stance` path without re-interpreting free text.
  *
+ * Slugs follow the two-tier taxonomy in `./normalize.ts`:
+ *   - Tier 1 (LoC Policy Area as slug): used for buckets where the
+ *     Library of Congress Policy Area is the right granularity (e.g.
+ *     `taxation`, `health`, `public-lands-and-natural-resources`).
+ *   - Tier 2 (finer slugs): used where Policy Area is too coarse (e.g.
+ *     `gun-policy`, `middle-east-policy`, `climate`).
+ *
  * Rules for editing this bank (enforced by tests in ./quizQuestions.test.ts):
  *   - Every question has a non-empty kebab-case slug.
  *   - Every question has a prompt and three distinct answer labels
@@ -56,8 +63,28 @@ export const QUIZ_QUESTIONS: readonly QuizQuestion[] = [
     weightPrompt: "How important is this to you on a 1–5 scale?",
   },
   {
+    id: "q-public-lands",
+    canonicalIssueSlug: "public-lands-and-natural-resources",
+    prompt:
+      "How do you feel about strong federal protection of public lands, national monuments, and wilderness areas (versus opening them to development or state transfer)?",
+    supportAnswer: "Favor stronger protection",
+    opposeAnswer: "Favor more development access",
+    neutralAnswer: "No strong view",
+    weightPrompt: "How important is this to you on a 1–5 scale?",
+  },
+  {
+    id: "q-environmental-protection",
+    canonicalIssueSlug: "environmental-protection",
+    prompt:
+      "How do you feel about strong federal environmental regulation (EPA enforcement, clean-air and clean-water rules, pollution limits) — separate from climate policy?",
+    supportAnswer: "Favor stronger regulation",
+    opposeAnswer: "Favor lighter regulation",
+    neutralAnswer: "No strong view",
+    weightPrompt: "How important is this to you on a 1–5 scale?",
+  },
+  {
     id: "q-healthcare",
-    canonicalIssueSlug: "healthcare",
+    canonicalIssueSlug: "health",
     prompt:
       "How do you feel about expanding the federal role in healthcare coverage (public option, subsidy expansion, Medicare/Medicaid scope)?",
     supportAnswer: "Favor expansion",
@@ -97,7 +124,7 @@ export const QUIZ_QUESTIONS: readonly QuizQuestion[] = [
   },
   {
     id: "q-labor",
-    canonicalIssueSlug: "labor-rights",
+    canonicalIssueSlug: "labor-and-employment",
     prompt:
       "How do you feel about strengthening collective-bargaining protections and raising the federal minimum wage?",
     supportAnswer: "Favor strengthening",
@@ -107,7 +134,7 @@ export const QUIZ_QUESTIONS: readonly QuizQuestion[] = [
   },
   {
     id: "q-taxes",
-    canonicalIssueSlug: "tax-policy",
+    canonicalIssueSlug: "taxation",
     prompt:
       "How do you feel about raising federal taxes on top earners and large corporations to fund public programs?",
     supportAnswer: "Favor raising",
@@ -117,7 +144,7 @@ export const QUIZ_QUESTIONS: readonly QuizQuestion[] = [
   },
   {
     id: "q-defense",
-    canonicalIssueSlug: "defense-spending",
+    canonicalIssueSlug: "armed-forces-and-national-security",
     prompt:
       "How do you feel about growing the federal defense budget above inflation?",
     supportAnswer: "Favor growth",
@@ -147,7 +174,7 @@ export const QUIZ_QUESTIONS: readonly QuizQuestion[] = [
   },
   {
     id: "q-criminal-justice",
-    canonicalIssueSlug: "criminal-justice",
+    canonicalIssueSlug: "crime-and-law-enforcement",
     prompt:
       "How do you feel about federal criminal-justice reform (sentencing reform, police accountability standards, decarceration)?",
     supportAnswer: "Favor reform",
@@ -157,7 +184,7 @@ export const QUIZ_QUESTIONS: readonly QuizQuestion[] = [
   },
   {
     id: "q-foreign-policy",
-    canonicalIssueSlug: "foreign-policy",
+    canonicalIssueSlug: "international-affairs",
     prompt:
       "How do you feel about active US engagement abroad through alliances, treaties, and foreign aid (versus a more restrained posture)?",
     supportAnswer: "Favor engagement",
@@ -187,7 +214,7 @@ export const QUIZ_QUESTIONS: readonly QuizQuestion[] = [
   },
   {
     id: "q-trade",
-    canonicalIssueSlug: "trade-policy",
+    canonicalIssueSlug: "foreign-trade-and-international-finance",
     prompt:
       "How do you feel about using tariffs and trade restrictions to protect domestic industry (versus prioritizing free-trade agreements)?",
     supportAnswer: "Favor tariffs / protection",
@@ -197,7 +224,7 @@ export const QUIZ_QUESTIONS: readonly QuizQuestion[] = [
   },
   {
     id: "q-energy",
-    canonicalIssueSlug: "energy-policy",
+    canonicalIssueSlug: "energy",
     prompt:
       "How do you feel about expanding domestic oil, gas, and nuclear production (separate from emissions policy)?",
     supportAnswer: "Favor expansion",
@@ -207,7 +234,7 @@ export const QUIZ_QUESTIONS: readonly QuizQuestion[] = [
   },
   {
     id: "q-tech",
-    canonicalIssueSlug: "tech-regulation",
+    canonicalIssueSlug: "science-technology-communications",
     prompt:
       "How do you feel about stricter federal regulation of large tech platforms and AI systems (antitrust, content moderation rules, AI safety mandates)?",
     supportAnswer: "Favor more regulation",
@@ -242,6 +269,16 @@ export const QUIZ_QUESTIONS: readonly QuizQuestion[] = [
       "How do you feel about federal protections for LGBTQ people in employment, housing, and healthcare (including gender-affirming care)?",
     supportAnswer: "Favor expanding protections",
     opposeAnswer: "Favor narrowing protections",
+    neutralAnswer: "No strong view",
+    weightPrompt: "How important is this to you on a 1–5 scale?",
+  },
+  {
+    id: "q-civil-rights",
+    canonicalIssueSlug: "civil-rights-and-liberties",
+    prompt:
+      "How do you feel about strengthening federal civil-rights enforcement against discrimination in employment, housing, and public services?",
+    supportAnswer: "Favor stronger enforcement",
+    opposeAnswer: "Favor lighter enforcement",
     neutralAnswer: "No strong view",
     weightPrompt: "How important is this to you on a 1–5 scale?",
   },

@@ -200,7 +200,7 @@ describe("checkUpcomingVotes", () => {
   it("scores each changed bill against declared stances", async () => {
     upsertIssueStance(db, { issue: "housing", stance: "support", weight: 4 });
     upsertIssueStance(db, { issue: "climate", stance: "support", weight: 3 });
-    upsertIssueStance(db, { issue: "tax-policy", stance: "oppose", weight: 2 });
+    upsertIssueStance(db, { issue: "taxation", stance: "oppose", weight: 2 });
 
     const bills = makeBillsResolver(async () => okBills([baseHousingBill, baseCleanEnergyBill]));
     const events = makeEventsResolver(async () => okEvents([]));

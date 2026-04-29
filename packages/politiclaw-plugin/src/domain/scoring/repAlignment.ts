@@ -50,6 +50,8 @@ export type RepIssueAlignment = {
   issue: string;
   stance: IssueStance["stance"];
   stanceWeight: number;
+  /** User's free-text paraphrase of the specific concern within this issue bucket, when present. */
+  note?: string;
   alignedCount: number;
   conflictedCount: number;
   consideredCount: number;
@@ -190,6 +192,7 @@ function scoreSingleIssue(
     issue: stance.issue,
     stance: stance.stance,
     stanceWeight: stance.weight,
+    ...(stance.note ? { note: stance.note } : {}),
     alignedCount,
     conflictedCount,
     consideredCount,
@@ -207,6 +210,7 @@ function buildEmptyIssue(stance: IssueStance, reason: string): RepIssueAlignment
     issue: stance.issue,
     stance: stance.stance,
     stanceWeight: stance.weight,
+    ...(stance.note ? { note: stance.note } : {}),
     alignedCount: 0,
     conflictedCount: 0,
     consideredCount: 0,

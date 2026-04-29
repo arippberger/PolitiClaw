@@ -43,6 +43,18 @@ const SetIssueStanceParams = Type.Object({
       description: "How strongly the user cares (1-5). Defaults to 3.",
     }),
   ),
+  note: Type.Optional(
+    Type.String({
+      description:
+        "Short paraphrase of the user's specific concern within this issue bucket (e.g. 'BWCA wilderness federal protections' for the 'public-lands-and-natural-resources' slug). Surfaced in letters, call scripts, and rep reports.",
+    }),
+  ),
+  sourceText: Type.Optional(
+    Type.String({
+      description:
+        "Verbatim user phrasing that prompted this stance, preserved for letter drafting and call scripts.",
+    }),
+  ),
 });
 
 const ListIssueStancesParams = Type.Object({});
@@ -108,9 +120,10 @@ export const listIssueStancesTool: AnyAgentTool = {
         { stances: [] },
       );
     }
-    const lines = rows.map(
-      (row) => `- ${row.issue}: ${row.stance} (weight ${row.weight})`,
-    );
+    const lines = rows.map((row) => {
+      const noteSuffix = row.note ? ` — ${row.note}` : "";
+      return `- ${row.issue}: ${row.stance} (weight ${row.weight})${noteSuffix}`;
+    });
     return textResult(["Issue stances:", ...lines].join("\n"), { stances: rows });
   },
 };

@@ -199,7 +199,7 @@ describe("politiclaw_configure", () => {
       const stances = listIssueStances(db);
       const issues = stances.map((s) => s.issue);
       expect(issues).toContain("middle-east-policy");
-      expect(issues).toContain("tech-regulation");
+      expect(issues).toContain("science-technology-communications");
       // Novel-issue path: punctuation should be stripped, not preserved.
       expect(issues).toContain("antarctic-arctic-claims");
     });
@@ -817,11 +817,11 @@ describe("politiclaw_configure", () => {
       expect(prefs?.monitoringMode).toBe("weekly_digest");
       expect(prefs?.accountability).toBe("nudge_me");
       const stances = listIssueStances(db);
-      // "housing" normalizes to "affordable-housing" via the canonical-
-      // synonym map (existing configure behavior). Both stances landed.
+      // "housing" normalizes to "housing-and-community-development" via the
+      // canonical-synonym map (LoC Policy Area). Both stances landed.
       expect(stances.map((s) => s.issue).sort()).toEqual([
-        "affordable-housing",
         "climate",
+        "housing-and-community-development",
       ]);
       expect(kv.get(ACCOUNTABILITY_KV_FLAG)).toBeDefined();
 

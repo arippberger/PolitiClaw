@@ -260,6 +260,12 @@ export type StanceSignalRow = {
   createdAt: number;
 };
 
+function trimToNullable(value: string | undefined): string | null {
+  if (value === undefined) return null;
+  const trimmed = value.trim();
+  return trimmed.length > 0 ? trimmed : null;
+}
+
 export function upsertIssueStance(db: PolitiClawDb, input: IssueStanceInput): IssueStanceRow {
   const normalized: IssueStanceInput = {
     ...input,
@@ -267,33 +273,55 @@ export function upsertIssueStance(db: PolitiClawDb, input: IssueStanceInput): Is
   };
   const parsed = parse(IssueStanceSchema, normalized);
   const weight = parsed.weight ?? DEFAULT_ISSUE_STANCE_WEIGHT;
+  const note = trimToNullable(parsed.note);
+  const sourceText = trimToNullable(parsed.sourceText);
   const now = Date.now();
   db.prepare(
-    `INSERT INTO issue_stances (issue, stance, weight, updated_at)
-     VALUES (@issue, @stance, @weight, @updated_at)
+    `INSERT INTO issue_stances (issue, stance, weight, note, source_text, updated_at)
+     VALUES (@issue, @stance, @weight, @note, @source_text, @updated_at)
      ON CONFLICT(issue) DO UPDATE SET
-       stance     = excluded.stance,
-       weight     = excluded.weight,
-       updated_at = excluded.updated_at`,
+       stance      = excluded.stance,
+       weight      = excluded.weight,
+       note        = excluded.note,
+       source_text = excluded.source_text,
+       updated_at  = excluded.updated_at`,
   ).run({
     issue: parsed.issue,
     stance: parsed.stance,
     weight,
+    note,
+    source_text: sourceText,
     updated_at: now,
   });
-  return { ...parsed, weight, updatedAt: now };
+  return {
+    issue: parsed.issue,
+    stance: parsed.stance,
+    weight,
+    note: note ?? undefined,
+    sourceText: sourceText ?? undefined,
+    updatedAt: now,
+  };
 }
 
 export function listIssueStances(db: PolitiClawDb): IssueStanceRow[] {
   const rows = db
     .prepare(
-      `SELECT issue, stance, weight, updated_at FROM issue_stances ORDER BY weight DESC, issue ASC`,
+      `SELECT issue, stance, weight, note, source_text, updated_at FROM issue_stances ORDER BY weight DESC, issue ASC`,
     )
-    .all() as Array<{ issue: string; stance: string; weight: number; updated_at: number }>;
+    .all() as Array<{
+    issue: string;
+    stance: string;
+    weight: number;
+    note: string | null;
+    source_text: string | null;
+    updated_at: number;
+  }>;
   return rows.map((row) => ({
     issue: row.issue,
     stance: row.stance as IssueStance["stance"],
     weight: row.weight,
+    note: row.note ?? undefined,
+    sourceText: row.source_text ?? undefined,
     updatedAt: row.updated_at,
   }));
 }

@@ -106,11 +106,19 @@ const IssueStanceStanceSchema = Type.Union([
  * Schema validates the *normalized* shape: callers MUST trim and dashify
  * `issue` (lowercase, whitespace -> '-') before parsing. `weight` defaults
  * to 3 in the caller when undefined.
+ *
+ * `note` carries a short paraphrase of the user's specific concern within
+ * this issue bucket (e.g., "BWCA wilderness federal protections" under the
+ * `public-lands-and-natural-resources` slug). `sourceText` preserves the
+ * verbatim user phrasing for letter drafting and call scripts. Neither
+ * field affects bill matching — keyword expansion runs on the slug alone.
  */
 export const IssueStanceSchema = Type.Object({
   issue: Type.String({ minLength: 1 }),
   stance: IssueStanceStanceSchema,
   weight: Type.Optional(Type.Integer({ minimum: 1, maximum: 5 })),
+  note: Type.Optional(Type.String()),
+  sourceText: Type.Optional(Type.String()),
 });
 
 /** Caller-provided shape: `weight` is optional and defaults to 3 in

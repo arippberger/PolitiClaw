@@ -154,12 +154,13 @@ function formatBillCitation(billId: string): string {
 
 function renderIssueLine(issue: RepIssueAlignment): string {
   const stanceWord = issue.stance === "support" ? "support" : "opposition";
+  const noteSuffix = issue.note ? ` — your note: ${issue.note}` : "";
   if (issue.belowConfidenceFloor) {
-    return `  • ${issue.issue} (${stanceWord}, weight ${issue.stanceWeight}): insufficient data — ${issue.rationale}`;
+    return `  • ${issue.issue} (${stanceWord}, weight ${issue.stanceWeight})${noteSuffix}: insufficient data — ${issue.rationale}`;
   }
   const alignmentPct = Math.round(issue.alignmentScore * 100);
   const confidencePct = Math.round(issue.confidence * 100);
-  return `  • ${issue.issue} (${stanceWord}, weight ${issue.stanceWeight}): ${alignmentPct}% aligned across ${issue.consideredCount} vote${
+  return `  • ${issue.issue} (${stanceWord}, weight ${issue.stanceWeight})${noteSuffix}: ${alignmentPct}% aligned across ${issue.consideredCount} vote${
     issue.consideredCount === 1 ? "" : "s"
   } (confidence ${confidencePct}%).`;
 }

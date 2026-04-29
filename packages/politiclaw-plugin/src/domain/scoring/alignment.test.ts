@@ -94,7 +94,7 @@ describe("computeBillAlignment", () => {
     const stances: IssueStance[] = [
       { issue: "housing", stance: "support", weight: 4 },
       { issue: "climate", stance: "support", weight: 3 },
-      { issue: "tax-policy", stance: "oppose", weight: 2 },
+      { issue: "taxation", stance: "oppose", weight: 2 },
     ];
     const result = computeBillAlignment(housingBill, stances);
     expect(result.confidence).toBeGreaterThanOrEqual(CONFIDENCE_FLOOR);

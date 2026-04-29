@@ -140,7 +140,12 @@ export async function draftCallScript(
   const billLine = bill ? renderBillLine(bill) : null;
   const askLine = renderAskLine(rep, matchedStance, bill);
   const oneSpecific = input.oneSpecificSentence?.trim();
-  const oneSpecificLine = oneSpecific && oneSpecific.length > 0 ? oneSpecific : null;
+  const stanceNote = matchedStance.note?.trim();
+  const oneSpecificLine = oneSpecific && oneSpecific.length > 0
+    ? oneSpecific
+    : stanceNote && stanceNote.length > 0
+      ? `Specifically, ${stanceNote}.`
+      : null;
   const closingLine = renderClosing(rep);
 
   const scriptPieces = [openingLine];

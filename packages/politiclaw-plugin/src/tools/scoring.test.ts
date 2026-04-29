@@ -110,7 +110,7 @@ describe("politiclaw_score_bill tool", () => {
     setPluginConfigForTests({ apiKeys: { apiDataGov: "k" } });
     upsertIssueStance(db, { issue: "housing", stance: "support", weight: 4 });
     upsertIssueStance(db, { issue: "climate", stance: "support", weight: 3 });
-    upsertIssueStance(db, { issue: "tax-policy", stance: "oppose", weight: 2 });
+    upsertIssueStance(db, { issue: "taxation", stance: "oppose", weight: 2 });
 
     const result = await scoreBillTool.execute!(
       "call-1",
@@ -167,7 +167,7 @@ describe("politiclaw_score_bill tool", () => {
     setPluginConfigForTests({ apiKeys: { apiDataGov: "k" } });
     upsertIssueStance(db, { issue: "housing", stance: "support", weight: 4 });
     upsertIssueStance(db, { issue: "climate", stance: "support", weight: 3 });
-    upsertIssueStance(db, { issue: "tax-policy", stance: "oppose", weight: 2 });
+    upsertIssueStance(db, { issue: "taxation", stance: "oppose", weight: 2 });
 
     const fake: LlmClient = {
       async reason() {

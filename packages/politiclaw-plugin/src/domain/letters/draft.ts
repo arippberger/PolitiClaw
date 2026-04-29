@@ -299,6 +299,10 @@ function renderBody(ctx: BodyContext): string {
       : `I am writing in opposition to the current direction of policy on ${issueLabel}, and I am asking you ` +
         "to weigh constituent views from your district when this issue comes before you.";
 
+  const stanceNoteParagraph = stance.note && stance.note.trim().length > 0
+    ? `Specifically, ${stance.note.trim()}.`
+    : null;
+
   const billParagraph = bill ? renderBillParagraph(bill) : null;
 
   const askLine = bill
@@ -320,6 +324,7 @@ function renderBody(ctx: BodyContext): string {
     opening,
     positionLine,
   ];
+  if (stanceNoteParagraph) paragraphs.push(stanceNoteParagraph);
   if (billParagraph) paragraphs.push(billParagraph);
   if (customParagraph) paragraphs.push(customParagraph);
   paragraphs.push(askLine);

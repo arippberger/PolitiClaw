@@ -45,6 +45,52 @@ export function renderChoicePrompt(existing: readonly IssueStanceRow[]): string 
   return lines.join("\n");
 }
 
+const BROAD_CLUSTERS: ReadonlyArray<{ name: string; slugs: readonly string[] }> = [
+  {
+    name: "environment",
+    slugs: [
+      "climate",
+      "environmental-protection",
+      "public-lands-and-natural-resources",
+      "water-resources-development",
+      "energy",
+      "animals",
+    ],
+  },
+  {
+    name: "economy",
+    slugs: [
+      "taxation",
+      "labor-and-employment",
+      "foreign-trade-and-international-finance",
+      "affordable-housing",
+      "housing-and-community-development",
+      "economics-and-public-finance",
+      "finance-and-financial-sector",
+    ],
+  },
+  {
+    name: "foreign policy",
+    slugs: [
+      "international-affairs",
+      "armed-forces-and-national-security",
+      "middle-east-policy",
+      "ukraine-russia-policy",
+      "china-policy",
+    ],
+  },
+  {
+    name: "social issues",
+    slugs: [
+      "reproductive-rights",
+      "lgbtq-rights",
+      "gun-policy",
+      "civil-rights-and-liberties",
+      "voting-rights",
+    ],
+  },
+];
+
 function renderConversationHandoff(handoff: ConversationHandoff): string {
   const lines = [
     "Conversation onboarding ready.",
@@ -52,7 +98,20 @@ function renderConversationHandoff(handoff: ConversationHandoff): string {
     "Suggested opening prompts for the skill to draw from (pick one, don't recite all):",
     ...handoff.suggestedOpeningPrompts.map((prompt) => `  - ${prompt}`),
     "",
-    "When the user expresses a position, paraphrase it back before calling politiclaw_set_issue_stance. Map free text to a canonical slug when possible; novel issues are allowed but flag them.",
+    "How to handle the user's responses:",
+    "",
+    "  1. **Probe before bucketing.** When the user names a broad topic (the clusters below), DO NOT immediately pick a canonical slug. Ask a clarifying question listing the relevant sub-issues so the user can narrow it. Example: user says \"environmental issues\" — ask whether they're thinking climate, public lands and wilderness, water, pollution / EPA enforcement, energy, or something else specific. Save a stance only after the user has narrowed the topic OR explicitly confirmed multiple buckets are wanted.",
+    "",
+    "  2. **Capture the user's specific concern as `note` and their verbatim phrasing as `sourceText`** every time you call politiclaw_set_issue_stance. Letters, call scripts, and rep reports surface `note`, so put the actual concern there (e.g., \"BWCA wilderness federal protections\"), not just a paraphrase of the slug name. The slug is the bucket; the note is the nuance.",
+    "",
+    "  3. **One concern can become multiple stances.** \"Environmental issues, especially BWCA\" should call politiclaw_set_issue_stance twice — once for `public-lands-and-natural-resources` (note: BWCA wilderness federal protections) and once for `environmental-protection` (note: federal environmental regulation more broadly). Always paraphrase each stance back before saving.",
+    "",
+    "  4. Map clear free-text to a canonical slug from the list below. Novel issues are allowed (a kebab-case fallback slug will be generated) but flag them and ask the user to confirm before saving — they often map to a canonical you should suggest.",
+    "",
+    "Broad topic clusters that REQUIRE probing before bucketing:",
+    ...BROAD_CLUSTERS.map(
+      (cluster) => `  - ${cluster.name}: ${cluster.slugs.join(", ")}`,
+    ),
     "",
     `Canonical slug set: ${handoff.canonicalIssueSlugs.join(", ")}.`,
   ];
@@ -60,9 +119,10 @@ function renderConversationHandoff(handoff: ConversationHandoff): string {
     lines.push(
       "",
       `Existing stances (skip or revise as the user requests):`,
-      ...handoff.existingStances.map(
-        (s) => `  - ${s.issue}: ${s.stance} (weight ${s.weight})`,
-      ),
+      ...handoff.existingStances.map((s) => {
+        const noteSuffix = s.note ? ` — ${s.note}` : "";
+        return `  - ${s.issue}: ${s.stance} (weight ${s.weight})${noteSuffix}`;
+      }),
     );
   }
   return lines.join("\n");
@@ -72,7 +132,7 @@ function renderQuizHandoff(handoff: QuizHandoff): string {
   const lines = [
     `Quiz onboarding ready — ${handoff.questions.length} questions.`,
     "",
-    "Ask them sequentially. For each, present the three answer labels; only ask the weight follow-up after support or oppose. \"No strong view\" does not persist a neutral stance unless the user explicitly asks to record one. After all answers, read back the collected stances before committing with politiclaw_set_issue_stance.",
+    "Ask them sequentially. For each, present the three answer labels; only ask the weight follow-up after support or oppose. \"No strong view\" does not persist a neutral stance unless the user explicitly asks to record one. After all answers, read back the collected stances before committing with politiclaw_issue_stances (action='set').",
     "",
     "Questions:",
   ];

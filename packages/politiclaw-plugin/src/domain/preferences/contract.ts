@@ -48,6 +48,7 @@ export type MonitoringContractStance = {
   issue: string;
   stance: IssueStanceRow["stance"];
   weight: number;
+  note?: string;
 };
 
 export type MonitoringContractActiveJob = {
@@ -255,7 +256,12 @@ export async function buildMonitoringContract(
   });
   const topStances: MonitoringContractStance[] = sortedStances
     .slice(0, TOP_STANCE_LIMIT)
-    .map((s) => ({ issue: s.issue, stance: s.stance, weight: s.weight }));
+    .map((s) => ({
+      issue: s.issue,
+      stance: s.stance,
+      weight: s.weight,
+      ...(s.note ? { note: s.note } : {}),
+    }));
 
   return {
     generatedAt,
@@ -320,7 +326,8 @@ export function renderMonitoringContract(contract: MonitoringContract): string {
       `- Top issues (${contract.topStances.length} of ${contract.totalStances}):`,
     );
     for (const s of contract.topStances) {
-      lines.push(`    • ${s.issue}: ${s.stance} (weight ${s.weight})`);
+      const noteSuffix = s.note ? ` — ${s.note}` : "";
+      lines.push(`    • ${s.issue}: ${s.stance} (weight ${s.weight})${noteSuffix}`);
     }
   } else {
     lines.push("- Top issues: none declared yet.");

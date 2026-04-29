@@ -122,7 +122,7 @@ describe("politiclaw_check_upcoming_votes tool — integration", () => {
     setPluginConfigForTests({ apiKeys: { apiDataGov: "k" } });
     upsertIssueStance(db, { issue: "housing", stance: "support", weight: 4 });
     upsertIssueStance(db, { issue: "climate", stance: "support", weight: 3 });
-    upsertIssueStance(db, { issue: "tax-policy", stance: "oppose", weight: 2 });
+    upsertIssueStance(db, { issue: "taxation", stance: "oppose", weight: 2 });
 
     const result = await checkUpcomingVotesTool.execute!(
       "call-1",
@@ -408,7 +408,7 @@ describe("renderCheckUpcomingVotesOutput — per-class shapes", () => {
         confidence: 0.5,
         matches: [
           {
-            issue: "healthcare",
+            issue: "health",
             stance: "support",
             stanceWeight: 2,
             location: "summary",
@@ -425,7 +425,7 @@ describe("renderCheckUpcomingVotesOutput — per-class shapes", () => {
     const text = renderCheckUpcomingVotesOutput(
       baseResult({ changedBills: [lowMatch] }),
     );
-    expect(text).toContain("Also changed: 1 bill — 1 touching `healthcare`");
+    expect(text).toContain("Also changed: 1 bill — 1 touching `health`");
   });
 
   it("renders Class B event with headline, date, location, and future-hearing Next", () => {
@@ -514,7 +514,7 @@ describe("direction LLM wiring", () => {
     // in tier 3 and short-circuit the LLM call.
     upsertIssueStance(db, { issue: "housing", stance: "support", weight: 5 });
     upsertIssueStance(db, { issue: "climate", stance: "support", weight: 3 });
-    upsertIssueStance(db, { issue: "tax-policy", stance: "oppose", weight: 2 });
+    upsertIssueStance(db, { issue: "taxation", stance: "oppose", weight: 2 });
 
     const reasonCalls: unknown[] = [];
     const fakeLlm: LlmClient = {

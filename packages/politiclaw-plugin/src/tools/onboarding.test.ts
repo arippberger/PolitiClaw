@@ -54,7 +54,7 @@ describe("buildStartOnboardingResult", () => {
 
 describe("renderChoicePrompt", () => {
   it("notes existing stance count when present", () => {
-    const text = renderChoicePrompt([stance("climate", 4), stance("healthcare", 2)]);
+    const text = renderChoicePrompt([stance("climate", 4), stance("health", 2)]);
     expect(text).toContain("already have 2 declared stance");
   });
 
