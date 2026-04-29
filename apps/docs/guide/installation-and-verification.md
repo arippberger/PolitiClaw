@@ -8,8 +8,9 @@ flowchart LR
   checks --> linkInstall["openclaw plugins install --link<br/>(local checkout)"]
   npmInstall --> reload["Reload gateway"]
   linkInstall --> reload
-  reload --> doctor["politiclaw_doctor"]
-  doctor --> configure["politiclaw_configure<br/>address=..."]
+  reload --> doctor["/politiclaw-doctor"]
+  doctor --> setup["/politiclaw-setup"]
+  setup --> configure["agent calls politiclaw_configure<br/>address=..."]
   configure --> reps["politiclaw_get_my_reps<br/>(optional verification)"]
 ```
 
@@ -61,10 +62,11 @@ npm run docs:dev
 
 After the plugin is installed inside OpenClaw, use the runtime tools to verify the real environment:
 
-1. Run [`politiclaw_configure`](../reference/generated/tools/politiclaw_configure) with your address.
-2. Run [`politiclaw_doctor`](../reference/generated/tools/politiclaw_doctor).
-3. If you plan to use zero-key rep lookup, `politiclaw_configure` primes the local cache as part of rep resolution.
-4. Fetch current reps with [`politiclaw_get_my_reps`](../reference/generated/tools/politiclaw_get_my_reps) if you want a direct verification pass.
+1. Run `/politiclaw-version` to confirm the plugin registered.
+2. Run `/politiclaw-setup` and ask your agent to call [`politiclaw_configure`](../reference/generated/tools/politiclaw_configure) with your address. `politiclaw_configure` is an agent tool, not a shell command.
+3. Run `/politiclaw-doctor`.
+4. If you plan to use zero-key rep lookup, `politiclaw_configure` primes the local cache as part of rep resolution.
+5. Fetch current reps with [`politiclaw_get_my_reps`](../reference/generated/tools/politiclaw_get_my_reps) if you want a direct verification pass.
 
 ## What Counts As Healthy
 

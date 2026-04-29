@@ -10,7 +10,7 @@ PolitiClaw monitoring is built around a small set of plugin-owned cron templates
 
 Default front door:
 
-- [`politiclaw_configure`](../reference/generated/tools/politiclaw_configure) — saves address, stances, and monitoring mode in one flow. Re-run any time to change cadence.
+- [`politiclaw_configure`](../reference/generated/tools/politiclaw_configure) — agent tool that saves address, stances, and monitoring mode in one flow. Ask the agent to call it any time you want to change cadence.
 
 Follow-ups:
 
@@ -37,9 +37,9 @@ Switching modes re-reconciles jobs: templates outside the new mode are paused (n
 
 ## Recommended workflow
 
-1. Run `politiclaw_configure` until you have a saved address and at least one issue stance.
-2. Run [`politiclaw_doctor`](../reference/generated/tools/politiclaw_doctor) to confirm storage, schema version, and key presence are all healthy.
-3. Re-run `politiclaw_configure` any time you want to pick a different monitoring mode.
+1. Run `/politiclaw-setup` and ask the agent to call `politiclaw_configure` until you have a saved address and at least one issue stance.
+2. Run `/politiclaw-doctor` to confirm storage, schema version, and key presence are all healthy.
+3. Ask the agent to call `politiclaw_configure` any time you want to pick a different monitoring mode.
 4. Use [`politiclaw_check_upcoming_votes`](../reference/generated/tools/politiclaw_check_upcoming_votes) when you want a manual snapshot.
 5. Drop into the [Generated Cron Jobs](../reference/generated/cron-jobs) reference only when you need exact template behavior or operator-level debugging.
 

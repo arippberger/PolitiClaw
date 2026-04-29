@@ -55,21 +55,23 @@ Geocodio is a paid service with a free tier. Create an account on their site and
 
 ## How to set keys
 
+[`politiclaw_configure`](../reference/generated/tools/politiclaw_configure) is an agent tool, not a shell command. Ask your agent to call it; use `/politiclaw-setup` if you need a copyable resume prompt.
+
 `politiclaw_configure` writes keys into the gateway config in two situations:
 
 - Pass any subset of keys directly (`apiDataGov` plus optional `optionalApiKeys`) for "save this one key" calls without re-running the full setup flow. Entries you do not provide are skipped.
 - During onboarding, the api-key stage at the end of the wizard prompts for the same keys after address, stances, and monitoring cadence are saved.
 
-Both paths trigger an OpenClaw gateway restart so the new credentials are picked up by the provider adapters. Onboarding fields (address, stances, monitoring mode) are persisted before the restart, so nothing is lost when the gateway comes back up.
+Both paths trigger an OpenClaw gateway restart so the new credentials are picked up by the provider adapters. Onboarding fields (address, stances, monitoring mode) are persisted before the restart, and a checkpoint records the next setup stage. When the gateway comes back up, run `/politiclaw-setup` and continue from its prompt.
 
-After saving, run [`politiclaw_doctor`](../reference/generated/tools/politiclaw_doctor) to confirm the keys are in place and the dependent tools are healthy.
+After saving, run `/politiclaw-doctor` to confirm the keys are in place and the dependent tools are healthy.
 
 ## Practical setup order
 
 1. Add `apiDataGov` first — most tools (bills, votes, finance) depend on it.
 2. Add `googleCivic` if you want ballot tools (`politiclaw_get_my_ballot`, `politiclaw_election_brief`).
 3. Add `geocodio` only if you prefer the API path for reps-by-address over the zero-key local shapefile path.
-4. Re-run `politiclaw_doctor` after any change.
+4. Run `/politiclaw-doctor` after any change.
 
 ## Troubleshooting pointers
 

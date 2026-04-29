@@ -9,6 +9,7 @@ These complement the [tools](./tools), they do not replace them. Anything that n
 Use a quick command when you want:
 
 - a navigation hint (`/politiclaw-help`)
+- the next onboarding step and copyable agent prompt (`/politiclaw-setup`)
 - a snapshot of saved state without rerunning the doctor tool (`/politiclaw-status`)
 - a structured health check (`/politiclaw-doctor`)
 - a key inventory and what each unlocks (`/politiclaw-keys`)
@@ -16,11 +17,15 @@ Use a quick command when you want:
 
 Use a tool when you want narrative, scoring, drafting, or anything that benefits from the agent's reasoning — `politiclaw_election_brief`, `politiclaw_score_representative`, `politiclaw_draft_outreach`, etc.
 
-## The five commands
+## The six commands
 
 ### `/politiclaw-help`
 
-Lists the core (Tier 1) tools alongside the four other quick commands. Generated from the same tool registry the published reference reads, so the names and one-line summaries stay in sync automatically.
+Lists the core (Tier 1) tools alongside the other quick commands. Generated from the same tool registry the published reference reads, so the names and one-line summaries stay in sync automatically.
+
+### `/politiclaw-setup`
+
+Shows the next setup step and a copyable prompt for the agent. It does not mutate state or call tools. Before setup, it tells you to ask the agent to call `politiclaw_configure` with your street address. Mid-flow, it reads the onboarding checkpoint and prints the next continue prompt. After setup, it points to `/politiclaw-status`, `/politiclaw-doctor`, and common follow-up tools.
 
 ### `/politiclaw-status`
 
@@ -43,6 +48,6 @@ Three lines: the PolitiClaw plugin version (from `package.json`), the plugin API
 Each command's text is generated from existing source-of-truth metadata so it can't drift from the rest of the docs:
 
 - `/politiclaw-help` reads `REGISTERED_POLITICLAW_TOOL_DOCS` and `TOOL_AUDIT_ENTRIES` (the same tier table that drives `apps/docs/maintainers/tool-surface.md`).
-- `/politiclaw-status` and `/politiclaw-doctor` read the live SQLite database via the plugin's storage helpers, plus `getPluginConfig()` for the API key state.
+- `/politiclaw-setup`, `/politiclaw-status`, and `/politiclaw-doctor` read the live SQLite database via the plugin's storage helpers, plus `getPluginConfig()` for the API key state where needed.
 - `/politiclaw-keys` and the doctor's API-key check read a single `API_KEY_FLAGS` constant exported from `src/domain/doctor/checks.ts`.
 - `/politiclaw-version` reads the plugin's own `package.json` at runtime.

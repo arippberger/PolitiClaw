@@ -168,22 +168,23 @@ graph TB
   <div class="num"><span class="n">02</span>verify</div>
   <div>
     <div class="pc-step-title">check the workspace and runtime</div>
-    <p>Run the standard checks, then verify the real environment with the doctor tool:</p>
+    <p>Run the standard checks, then verify the real environment with the slash command:</p>
 <pre><span class="k">npm</span> run build
 <span class="k">npm</span> run typecheck
 <span class="k">npm</span> run test
 <span class="c"># then, from inside openclaw:</span>
-<span class="k">politiclaw_doctor</span></pre>
+<span class="k">/politiclaw-doctor</span></pre>
   </div>
 </div>
 
 <div class="pc-step">
   <div class="num"><span class="n">03</span>seed</div>
   <div>
-    <div class="pc-step-title">run configuration once, then verify reps</div>
-    <p>Use the single setup tool to save your address, prime the zero-key path if needed, and load reps.</p>
-<pre><span class="k">politiclaw_configure</span> <span class="s">"address=..."</span>
-<span class="k">politiclaw_get_my_reps</span>   <span class="c"># optional direct verification</span></pre>
+    <div class="pc-step-title">start setup, then verify reps</div>
+    <p>Use the setup slash command for the next prompt, then ask the agent to call the setup tool with your address.</p>
+<pre><span class="k">/politiclaw-setup</span>
+<span class="c"># ask the agent to call politiclaw_configure with your address</span>
+<span class="k">politiclaw_get_my_reps</span>   <span class="c"># optional agent-tool verification</span></pre>
   </div>
 </div>
 
