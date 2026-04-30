@@ -40,6 +40,7 @@ export type PrimeCacheOptions = {
   fetcher?: Fetcher;
   logger?: { info: (message: string) => void };
   districtsUrl?: string;
+  districtsUrls?: string[];
   legislatorsUrl?: string;
   congress?: number;
   tigerYear?: number;
@@ -53,11 +54,68 @@ export class CacheNotPrimedError extends Error {
 }
 
 const DEFAULT_CONGRESS = 119;
-const DEFAULT_TIGER_YEAR = 2024;
-const DEFAULT_DISTRICTS_URL =
-  "https://www2.census.gov/geo/tiger/TIGER2024/CD/tl_2024_us_cd119.zip";
+const DEFAULT_TIGER_YEAR = 2025;
+const DISTRICT_DOWNLOAD_CONCURRENCY = 4;
 const DEFAULT_LEGISLATORS_URL =
   "https://raw.githubusercontent.com/unitedstates/congress-legislators/main/legislators-current.yaml";
+const TIGER_STATE_FIPS = [
+  "01",
+  "02",
+  "04",
+  "05",
+  "06",
+  "08",
+  "09",
+  "10",
+  "11",
+  "12",
+  "13",
+  "15",
+  "16",
+  "17",
+  "18",
+  "19",
+  "20",
+  "21",
+  "22",
+  "23",
+  "24",
+  "25",
+  "26",
+  "27",
+  "28",
+  "29",
+  "30",
+  "31",
+  "32",
+  "33",
+  "34",
+  "35",
+  "36",
+  "37",
+  "38",
+  "39",
+  "40",
+  "41",
+  "42",
+  "44",
+  "45",
+  "46",
+  "47",
+  "48",
+  "49",
+  "50",
+  "51",
+  "53",
+  "54",
+  "55",
+  "56",
+  "60",
+  "66",
+  "69",
+  "72",
+  "78",
+];
 
 export async function primeShapefileCache(opts: PrimeCacheOptions): Promise<PrimeResult> {
   const fetcher = opts.fetcher ?? fetch;
@@ -67,7 +125,10 @@ export async function primeShapefileCache(opts: PrimeCacheOptions): Promise<Prim
     return { status: "already_fresh", manifest: readManifest(paths.manifest) };
   }
 
-  const districtsUrl = opts.districtsUrl ?? DEFAULT_DISTRICTS_URL;
+  const congress = opts.congress ?? DEFAULT_CONGRESS;
+  const tigerYear = opts.tigerYear ?? DEFAULT_TIGER_YEAR;
+  const districtsUrls =
+    opts.districtsUrls ?? (opts.districtsUrl ? [opts.districtsUrl] : defaultDistrictUrls(tigerYear, congress));
   const legislatorsUrl = opts.legislatorsUrl ?? DEFAULT_LEGISLATORS_URL;
   const logger = opts.logger;
 
@@ -77,9 +138,9 @@ export async function primeShapefileCache(opts: PrimeCacheOptions): Promise<Prim
 
   try {
     logger?.info("Downloading congressional district boundaries...");
-    const districtsGeoJsonString = await fetchDistrictsAsGeoJson(
+    const districtsGeoJsonString = await fetchDistrictsAsGeoJsonString(
       fetcher,
-      districtsUrl,
+      districtsUrls,
     );
 
     logger?.info("Downloading federal legislator roster...");
@@ -92,8 +153,8 @@ export async function primeShapefileCache(opts: PrimeCacheOptions): Promise<Prim
     writeFileSync(tempLegislators, legislatorsPayload, "utf8");
 
     const manifest: CacheManifest = {
-      congress: opts.congress ?? DEFAULT_CONGRESS,
-      tigerYear: opts.tigerYear ?? DEFAULT_TIGER_YEAR,
+      congress,
+      tigerYear,
       downloadedAt: new Date().toISOString(),
       cdSha256: sha256(districtsGeoJsonString),
       legislatorsSha256: sha256(legislatorsPayload),
@@ -173,19 +234,56 @@ async function fetchArrayBufferOrThrow(
  * the sources we care about. Serving is done by consumers that read the
  * persisted GeoJSON, so both paths emit the same on-disk format.
  */
+async function fetchDistrictsAsGeoJsonString(
+  fetcher: Fetcher,
+  urls: string[],
+): Promise<string> {
+  if (urls.length === 0) {
+    throw new Error("no district boundary URLs configured");
+  }
+
+  const collections = await fetchDistrictCollections(fetcher, urls);
+  const features = collections.flatMap((collection) => collection.features);
+  return JSON.stringify({ type: "FeatureCollection", features });
+}
+
+async function fetchDistrictCollections(
+  fetcher: Fetcher,
+  urls: string[],
+): Promise<GeoJSON.FeatureCollection[]> {
+  const collections: GeoJSON.FeatureCollection[] = [];
+  let nextUrlIndex = 0;
+
+  async function worker(): Promise<void> {
+    while (nextUrlIndex < urls.length) {
+      const currentIndex = nextUrlIndex;
+      nextUrlIndex += 1;
+      const url = urls[currentIndex];
+      if (!url) continue;
+      collections[currentIndex] = await fetchDistrictsAsGeoJson(fetcher, url);
+    }
+  }
+
+  const workerCount = Math.min(DISTRICT_DOWNLOAD_CONCURRENCY, urls.length);
+  await Promise.all(Array.from({ length: workerCount }, () => worker()));
+  return collections;
+}
+
 async function fetchDistrictsAsGeoJson(
   fetcher: Fetcher,
   url: string,
-): Promise<string> {
+): Promise<GeoJSON.FeatureCollection> {
   if (isZipUrl(url)) {
     const zipBuffer = await fetchArrayBufferOrThrow(fetcher, url);
-    const collection = await geoJsonFromTigerZip(zipBuffer);
-    return JSON.stringify(collection);
+    return geoJsonFromTigerZip(zipBuffer);
   }
   const text = await fetchTextOrThrow(fetcher, url);
   // Validate early so a malformed payload fails prime instead of load.
-  JSON.parse(text);
-  return text;
+  const collection = JSON.parse(text) as GeoJSON.FeatureCollection;
+  if (!collection || !Array.isArray(collection.features)) {
+    throw new Error("district GeoJSON payload missing features");
+  }
+  return collection;
 }
 
 function isZipUrl(url: string): boolean {
@@ -225,6 +323,13 @@ function findFirstByExtension(
     if (name.toLowerCase().endsWith(lower)) return entry;
   }
   return null;
+}
+
+function defaultDistrictUrls(tigerYear: number, congress: number): string[] {
+  return TIGER_STATE_FIPS.map(
+    (stateFips) =>
+      `https://www2.census.gov/geo/tiger/TIGER${tigerYear}/CD/tl_${tigerYear}_${stateFips}_cd${congress}.zip`,
+  );
 }
 
 function sha256(payload: string): string {

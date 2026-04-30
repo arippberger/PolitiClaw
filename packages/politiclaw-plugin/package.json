@@ -1,6 +1,6 @@
 {
   "name": "@politiclaw/politiclaw",
-  "version": "0.0.10",
+  "version": "0.0.11",
   "description": "Local-first OpenClaw plugin: a civic copilot that holds your representatives accountable to the values you declare — watches federal legislation and elections for you, flags when your reps' actions align or don't, and drafts letters you send yourself.",
   "license": "MIT",
   "type": "module",
@@ -51,6 +51,7 @@
     "build": "npm run clean && npm run compile && npm run copy:assets",
     "smoke:runtime": "tsx ./scripts/smoke-packed-runtime.mts",
     "pack:check": "npm pack --dry-run",
+    "prepack": "npm run build && npm run smoke:runtime",
     "prepublishOnly": "npm run build",
     "dev": "tsx watch src/index.ts",
     "docs:generate": "tsx ./scripts/docs.mts generate",

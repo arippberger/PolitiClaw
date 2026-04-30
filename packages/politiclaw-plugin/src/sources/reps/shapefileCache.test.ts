@@ -196,6 +196,34 @@ describe("shapefile cache", () => {
     expect(first?.geometry.type).toBe("Point");
   });
 
+  it("merges districts from multiple TIGER state zips", async () => {
+    const cacheDir = mkdtempSync(join(tmpdir(), "politiclaw-cache-"));
+    const californiaUrl = "https://example.test/tl_2025_06_cd119.zip";
+    const texasUrl = "https://example.test/tl_2025_48_cd119.zip";
+    const legislatorsUrl = "https://example.test/legislators.yaml";
+    const californiaZip = await buildTigerStyleZip();
+    const texasZip = await buildTigerStyleZip();
+    const fetcher = fakeFetchFactory({
+      [californiaUrl]: { ok: true, status: 200, body: californiaZip },
+      [texasUrl]: { ok: true, status: 200, body: texasZip },
+      [legislatorsUrl]: { ok: true, status: 200, body: fixtureText("legislators_subset.yaml") },
+    });
+
+    const result = await primeShapefileCache({
+      cacheDir,
+      fetcher,
+      districtsUrls: [californiaUrl, texasUrl],
+      legislatorsUrl,
+      congress: 119,
+      tigerYear: 2025,
+    });
+    expect(result.status).toBe("primed");
+
+    const loaded = loadShapefileCache(cacheDir);
+    expect(loaded.polygons.features).toHaveLength(2);
+    expect(loaded.manifest.tigerYear).toBe(2025);
+  });
+
   it("raises a clear error when the zip has no .shp entry", async () => {
     const cacheDir = mkdtempSync(join(tmpdir(), "politiclaw-cache-"));
     const districtsUrl = "https://example.test/empty.zip";

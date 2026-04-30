@@ -2,7 +2,7 @@
   "id": "politiclaw",
   "name": "PolitiClaw",
   "description": "Local-first civic copilot that holds your representatives accountable to the values you declare. Learns the stances you care about, watches federal legislation and elections for you, and flags when your reps' votes and actions align — or don't — with those stances. Drafts letters you send yourself; never speaks on your behalf and never tells you how to vote.",
-  "version": "0.0.10",
+  "version": "0.0.11",
   "skills": ["skills"],
   "commandAliases": [
     { "name": "politiclaw-help", "kind": "runtime-slash" },
