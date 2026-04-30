@@ -2,15 +2,35 @@
   "id": "politiclaw",
   "name": "PolitiClaw",
   "description": "Local-first civic copilot that holds your representatives accountable to the values you declare. Learns the stances you care about, watches federal legislation and elections for you, and flags when your reps' votes and actions align — or don't — with those stances. Drafts letters you send yourself; never speaks on your behalf and never tells you how to vote.",
-  "version": "0.0.11",
-  "skills": ["skills"],
+  "version": "0.0.12",
+  "skills": [
+    "skills"
+  ],
   "commandAliases": [
-    { "name": "politiclaw-help", "kind": "runtime-slash" },
-    { "name": "politiclaw-setup", "kind": "runtime-slash" },
-    { "name": "politiclaw-status", "kind": "runtime-slash" },
-    { "name": "politiclaw-doctor", "kind": "runtime-slash" },
-    { "name": "politiclaw-keys", "kind": "runtime-slash" },
-    { "name": "politiclaw-version", "kind": "runtime-slash" }
+    {
+      "name": "politiclaw-help",
+      "kind": "runtime-slash"
+    },
+    {
+      "name": "politiclaw-setup",
+      "kind": "runtime-slash"
+    },
+    {
+      "name": "politiclaw-status",
+      "kind": "runtime-slash"
+    },
+    {
+      "name": "politiclaw-doctor",
+      "kind": "runtime-slash"
+    },
+    {
+      "name": "politiclaw-keys",
+      "kind": "runtime-slash"
+    },
+    {
+      "name": "politiclaw-version",
+      "kind": "runtime-slash"
+    }
   ],
   "configSchema": {
     "type": "object",

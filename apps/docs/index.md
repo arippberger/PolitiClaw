@@ -13,7 +13,7 @@ import { withBase } from "vitepress";
 <div class="pc-breadcrumbs">overview<span class="sep">/</span>politiclaw</div>
 
 <section class="pc-hero">
-  <div class="pc-eyebrow">overview <span class="red">·</span> v0.0.11 <span class="blue">·</span> openclaw plugin</div>
+  <div class="pc-eyebrow">overview <span class="red">·</span> v0.0.12 <span class="blue">·</span> openclaw plugin</div>
 
   <h1 class="pc-hero-h1">
     <img :src="withBase('/politiclaw-mark.png')" alt="" class="pc-hero-mark" />
@@ -36,7 +36,7 @@ import { withBase } from "vitepress";
   </div>
 
   <div class="pc-chips">
-    <span class="pc-chip"><span class="dot"></span> v0.0.11 · local-first</span>
+    <span class="pc-chip"><span class="dot"></span> v0.0.12 · local-first</span>
     <span class="pc-chip">openclaw plugin</span>
     <span class="pc-chip">us federal · google civic ballots</span>
   </div>
