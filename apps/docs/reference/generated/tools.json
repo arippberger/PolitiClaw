@@ -59,13 +59,13 @@
         "name": "monitoringMode",
         "required": false,
         "type": "\"off\" | \"quiet_watch\" | \"weekly_digest\" | \"action_only\" | \"full_copilot\"",
-        "description": "How PolitiClaw should watch for you. 'off' pauses everything. 'quiet_watch' is silent unless tracked bills/hearings materially change. 'weekly_digest' adds the Sunday summary and monthly rep report. 'action_only' is quiet except when elections are near or tracked items change. 'full_copilot' enables everything. Defaults to 'action_only' when first configuring unless a mode is already saved."
+        "description": "How PolitiClaw should watch for you. Pass one of: 'off' (Paused — nothing runs on its own), 'quiet_watch' (Quiet watch — silent unless tracked bills/hearings materially change), 'weekly_digest' (Weekly digest — Sunday summary plus monthly rep report), 'action_only' (Action only — quiet except when elections are near or tracked items change), 'full_copilot' (Full copilot — everything on). Read the parenthetical labels to the user, never the enum. Defaults to 'action_only' when first configuring unless a mode is already saved."
       },
       {
         "name": "accountability",
         "required": false,
         "type": "\"self_serve\" | \"nudge_me\" | \"draft_for_me\"",
-        "description": "How proactive PolitiClaw should be when bills/votes cross your alignment threshold: self_serve (post deltas only), nudge_me (add a 'Your move' section with suggestions), draft_for_me (also draft a letter to your rep proactively)."
+        "description": "How proactive PolitiClaw should be when bills/votes cross your alignment threshold. Pass one of: 'self_serve' (Self-serve — post deltas only, default), 'nudge_me' (Nudge me — add a 'Your move' section with suggestions), 'draft_for_me' (Draft for me — also draft a letter to your rep proactively). Read the parenthetical labels to the user, never the enum."
       },
       {
         "name": "refreshReps",
@@ -207,7 +207,7 @@
           }
         },
         "monitoringMode": {
-          "description": "How PolitiClaw should watch for you. 'off' pauses everything. 'quiet_watch' is silent unless tracked bills/hearings materially change. 'weekly_digest' adds the Sunday summary and monthly rep report. 'action_only' is quiet except when elections are near or tracked items change. 'full_copilot' enables everything. Defaults to 'action_only' when first configuring unless a mode is already saved.",
+          "description": "How PolitiClaw should watch for you. Pass one of: 'off' (Paused — nothing runs on its own), 'quiet_watch' (Quiet watch — silent unless tracked bills/hearings materially change), 'weekly_digest' (Weekly digest — Sunday summary plus monthly rep report), 'action_only' (Action only — quiet except when elections are near or tracked items change), 'full_copilot' (Full copilot — everything on). Read the parenthetical labels to the user, never the enum. Defaults to 'action_only' when first configuring unless a mode is already saved.",
           "anyOf": [
             {
               "const": "off",
@@ -232,7 +232,7 @@
           ]
         },
         "accountability": {
-          "description": "How proactive PolitiClaw should be when bills/votes cross your alignment threshold: self_serve (post deltas only), nudge_me (add a 'Your move' section with suggestions), draft_for_me (also draft a letter to your rep proactively).",
+          "description": "How proactive PolitiClaw should be when bills/votes cross your alignment threshold. Pass one of: 'self_serve' (Self-serve — post deltas only, default), 'nudge_me' (Nudge me — add a 'Your move' section with suggestions), 'draft_for_me' (Draft for me — also draft a letter to your rep proactively). Read the parenthetical labels to the user, never the enum.",
           "anyOf": [
             {
               "const": "self_serve",
