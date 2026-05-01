@@ -326,7 +326,7 @@ describe("politiclaw_configure", () => {
   });
 
   describe("complete stage", () => {
-    it("does not reconcile cron when only issue stances change during completion", async () => {
+    it("reconciles cron every time complete is reached, including stance-only follow-ups", async () => {
       const reconcileMonitoring = vi.fn(async () => ({ outcomes: [] }));
       const tool = createConfigureTool({
         identifyReps: vi.fn(async () => okReps()),
@@ -346,7 +346,7 @@ describe("politiclaw_configure", () => {
         undefined,
         undefined,
       );
-      expect(reconcileMonitoring).toHaveBeenCalledOnce();
+      expect(reconcileMonitoring).toHaveBeenCalledTimes(1);
 
       const res = await tool.execute!(
         "call-2",
@@ -357,10 +357,14 @@ describe("politiclaw_configure", () => {
       const details = detailsFrom<ConfigureResult>(res as { details: ConfigureResult });
       expect(details.stage).toBe("complete");
       expect(details.savedThisCall.stancesAdded).toBe(1);
-      expect(reconcileMonitoring).toHaveBeenCalledOnce();
+      // Reconcile is idempotent (matches by stable name, patches in place),
+      // so calling it on every complete is safe and avoids the gap where a
+      // stance-only follow-up after an api_keys_saved restart would leave
+      // cron jobs uninstalled.
+      expect(reconcileMonitoring).toHaveBeenCalledTimes(2);
     });
 
-    it("does not reconcile cron when called with no args after setup is done", async () => {
+    it("reconciles cron when called with no args after setup is done", async () => {
       const reconcileMonitoring = vi.fn(async () => ({ outcomes: [] }));
       const tool = createConfigureTool({
         identifyReps: vi.fn(async () => okReps()),
@@ -380,12 +384,75 @@ describe("politiclaw_configure", () => {
         undefined,
         undefined,
       );
-      expect(reconcileMonitoring).toHaveBeenCalledOnce();
+      expect(reconcileMonitoring).toHaveBeenCalledTimes(1);
 
       const res = await tool.execute!("call-2", {}, undefined, undefined);
       const details = detailsFrom<ConfigureResult>(res as { details: ConfigureResult });
       expect(details.stage).toBe("complete");
-      expect(reconcileMonitoring).toHaveBeenCalledOnce();
+      // No-op re-runs of configure should still re-assert cron — cheap
+      // (idempotent setup) and closes the doctor "cron not installed" gap.
+      expect(reconcileMonitoring).toHaveBeenCalledTimes(2);
+    });
+
+    it("reconciles cron after the api_keys_saved restart path resumes to complete", async () => {
+      // Simulate the production flow: missing key forces api_keys_saved
+      // early-return on call 1, gateway restarts, user reconnects and
+      // re-enters configure on call 2. Without the fix, call 2 reaches
+      // complete with an empty `saved` set and skips reconcile.
+      setPluginConfigForTests({ apiKeys: {} });
+      const reconcileMonitoring = vi.fn(async () => ({ outcomes: [] }));
+      const setApiKeys = vi.fn(
+        async (
+          keys: Partial<Record<ApiKeyName, string>>,
+        ): Promise<SetApiKeysResult> => ({
+          status: "ok",
+          savedKeys: Object.keys(keys) as ApiKeyName[],
+          skippedKeys: [],
+          noop: false,
+          restartScheduled: true,
+          restartDelayMs: 1000,
+        }),
+      );
+      const tool = createConfigureTool({
+        identifyReps: vi.fn(async () => okReps()),
+        createResolver: vi.fn(() => ({}) as never),
+        reconcileMonitoring,
+        setApiKeys,
+      });
+
+      // Call 1: full setup plus api key. Tool takes the api_keys_saved
+      // branch and returns early — gateway is restarting, no reconcile.
+      const restartRes = await tool.execute!(
+        "call-1",
+        {
+          address: "123 Main St",
+          state: "CA",
+          issueStances: [{ issue: "climate", stance: "support" }],
+          monitoringMode: "weekly_digest",
+          accountability: "self_serve",
+          apiDataGov: "fresh-key",
+        },
+        undefined,
+        undefined,
+      );
+      const restartDetails = detailsFrom<ConfigureResult>(
+        restartRes as { details: ConfigureResult },
+      );
+      expect(restartDetails.stage).toBe("api_keys_saved");
+      expect(reconcileMonitoring).not.toHaveBeenCalled();
+
+      // After the gateway restart, the saved key shows up in plugin config.
+      setPluginConfigForTests({ apiKeys: { apiDataGov: "fresh-key" } });
+
+      // Call 2: user reconnects and re-enters configure with no args.
+      // Everything is already in DB. This call must still reconcile cron.
+      const completeRes = await tool.execute!("call-2", {}, undefined, undefined);
+      const completeDetails = detailsFrom<ConfigureResult>(
+        completeRes as { details: ConfigureResult },
+      );
+      expect(completeDetails.stage).toBe("complete");
+      expect(reconcileMonitoring).toHaveBeenCalledTimes(1);
+      expect(reconcileMonitoring).toHaveBeenCalledWith({ mode: "weekly_digest" });
     });
 
     it("contract surfaces inactive jobs when api.data.gov key is missing", async () => {

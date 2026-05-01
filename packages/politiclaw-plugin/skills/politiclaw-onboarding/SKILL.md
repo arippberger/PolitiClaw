@@ -27,14 +27,18 @@ becomes `complete`, render the `monitoringContract` block to the user.
 
 ## The six stages
 
-| Stage | What you collect from the user |
-|---|---|
-| `address` | Street address (and optionally zip / state / district). |
-| `issues` | Either inline `issueStances[]`, or pick a mode: conversation / quiz. |
-| `monitoring` | Monitoring mode: `off` / `quiet_watch` / `weekly_digest` / `action_only` / `full_copilot`. |
-| `accountability` | Accountability mode: `self_serve` / `nudge_me` / `draft_for_me`. |
-| `api_key` | One-time notice directing the user to `https://api.data.gov/signup/` and the host-config path for `apiDataGov`. Only appears if the key is missing. No re-prompt. |
-| `complete` | Nothing — just render the contract. |
+| Stage | What you collect from the user | Tool enum values |
+|---|---|---|
+| `address` | Street address (and optionally zip / state / district). | — |
+| `issues` | Either inline `issueStances[]`, or pick a mode: conversation / quiz. | — |
+| `monitoring` | Monitoring mode: Paused / Quiet watch / Weekly digest / Action only / Full copilot. | `off` / `quiet_watch` / `weekly_digest` / `action_only` / `full_copilot` |
+| `accountability` | Accountability mode: Self-serve / Nudge me / Draft for me. | `self_serve` / `nudge_me` / `draft_for_me` |
+| `api_key` | One-time notice directing the user to `https://api.data.gov/signup/` and the host-config path for `apiDataGov`. Only appears if the key is missing. No re-prompt. | — |
+| `complete` | Nothing — just render the contract. | — |
+
+The right column is for tool-call payloads only. Always speak the human
+label to the user — never the enum. If the tool's `nextPrompt` includes
+an enum-cased token, translate it before reading.
 
 The goal is to end the session with a populated `issue_stances` set that
 feels like the user's own words, not a survey they filled out. These
@@ -63,6 +67,35 @@ all of it and advance the cursor to the earliest unfilled gate.
 If the user has zero stances, the tool returns a payload offering two
 modes — conversation or quiz. Present both options briefly; do not bias.
 
+### Stance-input shortcuts
+
+Accept any of these as a stance answer in either mode. Always parse
+client-side and pass canonical fields to `politiclaw_configure`.
+
+| User says | Parse as |
+|---|---|
+| `s` / `support` / `favor` / a support-direction label from the question | `stance: "support"` |
+| `o` / `oppose` / `against` / an oppose-direction label from the question | `stance: "oppose"` |
+| `n` / `neutral` / `no strong view` / silence | no row persisted unless the user explicitly says "yes, record neutral" |
+| `s 4`, `support 4`, `oppose, 5`, `o2`, `n` | stance + integer 1–5 weight in one line |
+
+If the user gave stance only (no weight) on a support/oppose answer,
+ask the weight follow-up as today. If they say "doesn't matter," default
+to weight 3.
+
+### Save eagerly, announce what you saved
+
+Don't gate persistence on permission. When the user's intent is clear,
+call `politiclaw_configure` immediately with the stance, weight, and any
+nuance, then surface what you saved so they can correct it. Example:
+
+> Saved: support on `gun-policy`, weight 4, note: "concerned about
+> red-flag laws". Tell me if any of that's wrong and I'll update it.
+
+If they push back, call `politiclaw_configure` again with the same
+`issue` slug and the corrected fields — the upsert path handles updates.
+This applies in both conversation and quiz mode.
+
 ### Conversation mode
 
 The tool returns suggested opening prompts and the canonical issue-slug
@@ -72,10 +105,8 @@ set.
    fits the moment.
 2. Let the user speak in their own words. Accept "healthcare costs",
    "guns scare me", "I'm furious about rent" as-is.
-3. Paraphrase every stance back before persisting:
-   "Sounds like you support stronger gun-policy restrictions, and it
-   matters a lot — record that as `support` on `gun-policy`, weight 4
-   out of 5?"
+3. When intent is clear, save first and announce — don't paraphrase-
+   and-confirm before writing. Use the format above.
 4. Map free text to a canonical slug when possible. The canonical set is
    mostly Library of Congress Policy Area slugs, plus narrower buckets for
    issues that need more precision. If it doesn't fit,
@@ -96,14 +127,26 @@ set.
 The tool returns the question bank (~12 items) with canonical slugs and
 suggested labels.
 
+Read this preamble once before the first question:
+
+> I'll go one at a time. Quick shortcut: type `s` for support, `o` for
+> oppose, `n` for no strong view. Add a 1–5 weight if you want, e.g.
+> `s 4`.
+
+Don't repeat the hint per question. If the first answer comes back as a
+long phrase, you may append a single reminder ("by the way, `s 4` works
+too"); after that, no reminders.
+
 1. Ask sequentially, one at a time. Never paste the full list.
 2. Present exactly three answer labels per question.
-3. Skip the weight follow-up on "no strong view." Only ask "how
-   important is this?" after `support` or `oppose`.
+3. Parse the answer using the shortcuts table above. Skip the weight
+   follow-up on "no strong view." Only ask "how important is this?"
+   after `support` or `oppose` when the user did not include a weight.
 4. "No strong view" is silence, not `neutral`. Do not persist a row for
    declined questions unless the user explicitly says "yes, record it
    as neutral."
-5. Read back the full list before committing.
+5. Save eagerly after each answer (including any nuance) and surface
+   what you saved. Read back the full list before the final commit.
 6. Commit by calling `politiclaw_configure` with the full
    `issueStances[]` array, including `note` and `sourceText` when the
    user supplied nuance that should later appear in letters, call scripts,
@@ -112,11 +155,9 @@ suggested labels.
 ## The `monitoring` stage
 
 The tool returns human labels and plain-English explainers for each mode.
-Read them to the user using the human label ("Quiet watch", "Weekly digest",
-etc.), ask which fits, then call again with the matching enum value in
-`monitoringMode`.
+Read them to the user using the human label only — never the enum.
 
-Mapping (human label → enum value):
+Mapping (human label → enum value to pass to the tool):
 
 - "Paused" → `off`
 - "Quiet watch" → `quiet_watch`
@@ -125,19 +166,21 @@ Mapping (human label → enum value):
 - "Full copilot" → `full_copilot`
 
 Accept either form from the user (e.g. "weekly digest" or "weekly_digest")
-and normalize before calling the tool.
+and normalize before calling the tool. Never read the underscored form
+back to the user, even if the tool's `nextPrompt` includes it.
 
 ## The `accountability` stage
 
 Three modes, each with concrete consequences:
 
-- `self_serve` — facts only. Status quo. Default.
-- `nudge_me` — appends a "Your move" section with 1–3 suggested actions.
-- `draft_for_me` — same as `nudge_me`, plus auto-drafts letters when a
+- **Self-serve** — facts only. Status quo. Default.
+- **Nudge me** — appends a "Your move" section with 1–3 suggested actions.
+- **Draft for me** — same as Nudge me, plus auto-drafts letters when a
   tracked bill crosses the alignment threshold.
 
-Read the explainer the tool returns, ask, save with
-`accountability: <choice>`.
+Read the explainer the tool returns, ask, then save with the matching
+enum value in `accountability` (`self_serve` / `nudge_me` /
+`draft_for_me`). Always speak the human label to the user.
 
 ## The `api_key` stage
 
@@ -204,7 +247,11 @@ stages again.
   first-time setup. Use `politiclaw_configure`.
 - Don't omit inactive jobs or caveats from the contract block.
 - Don't argue with a stance you disagree with. Record what the user said.
-- Don't persist a stance without confirming the slug and weight back.
+- Don't gate persistence on permission for nuance. Save eagerly when
+  intent is clear and announce what you saved so the user can correct
+  it.
+- Don't read enum-cased tokens (`self_serve`, `nudge_me`, `quiet_watch`,
+  etc.) to the user. Always translate to the human label.
 
 ## Tone
 

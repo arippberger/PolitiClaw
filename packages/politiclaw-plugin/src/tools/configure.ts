@@ -189,7 +189,7 @@ const ConfigureParams = Type.Object({
       MONITORING_MODE_VALUES.map((v) => Type.Literal(v)),
       {
         description:
-          "How PolitiClaw should watch for you. 'off' pauses everything. 'quiet_watch' is silent unless tracked bills/hearings materially change. 'weekly_digest' adds the Sunday summary and monthly rep report. 'action_only' is quiet except when elections are near or tracked items change. 'full_copilot' enables everything. Defaults to 'action_only' when first configuring unless a mode is already saved.",
+          "How PolitiClaw should watch for you. Pass one of: 'off' (Paused — nothing runs on its own), 'quiet_watch' (Quiet watch — silent unless tracked bills/hearings materially change), 'weekly_digest' (Weekly digest — Sunday summary plus monthly rep report), 'action_only' (Action only — quiet except when elections are near or tracked items change), 'full_copilot' (Full copilot — everything on). Read the parenthetical labels to the user, never the enum. Defaults to 'action_only' when first configuring unless a mode is already saved.",
       },
     ),
   ),
@@ -198,7 +198,7 @@ const ConfigureParams = Type.Object({
       ACCOUNTABILITY_VALUES.map((v) => Type.Literal(v)),
       {
         description:
-          "How proactive PolitiClaw should be when bills/votes cross your alignment threshold: self_serve (post deltas only), nudge_me (add a 'Your move' section with suggestions), draft_for_me (also draft a letter to your rep proactively).",
+          "How proactive PolitiClaw should be when bills/votes cross your alignment threshold. Pass one of: 'self_serve' (Self-serve — post deltas only, default), 'nudge_me' (Nudge me — add a 'Your move' section with suggestions), 'draft_for_me' (Draft for me — also draft a letter to your rep proactively). Read the parenthetical labels to the user, never the enum.",
       },
     ),
   ),
@@ -533,11 +533,13 @@ function renderAccountabilityPrompt(
     "Options:",
   ];
   for (const opt of options) {
-    lines.push(`  - **${opt.label}** (${opt.humanLabel}) — ${opt.explainer}`);
+    lines.push(`  - **${opt.humanLabel}** — ${opt.explainer}`);
   }
   lines.push("");
   lines.push(
-    "Reply with one of: " + ACCOUNTABILITY_VALUES.map((v) => `'${v}'`).join(", "),
+    "Reply with one of: " +
+      options.map((opt) => `'${opt.humanLabel}'`).join(", ") +
+      ".",
   );
   return lines.join("\n");
 }
@@ -861,18 +863,19 @@ export function createConfigureTool(deps: ConfigureToolDeps = {}): AnyAgentTool 
         return finish(result);
       }
 
-      // 6. Complete — reconcile cron only if something cron-affecting changed
-      //    this call (or first-time complete).
-      const cronAffectingChange =
-        saved.address || saved.monitoringChanged;
+      // 6. Complete — always reconcile cron. setupMonitoring is idempotent
+      //    (matches existing jobs by stable name and patches in place; never
+      //    deletes — see cron/setup.ts), so paying the call on every complete
+      //    is cheap and closes the gap where the api_keys_saved early-return
+      //    plus a follow-up complete with an empty `saved` set would skip
+      //    reconcile entirely. (Same gap also bit any flow whose final turn
+      //    only carried `accountability`.)
       let monitoring: MonitoringSetupResult | null = null;
       let monitoringError: string | null = null;
-      if (cronAffectingChange) {
-        try {
-          monitoring = await reconcileMonitoring({ mode: preferences.monitoringMode });
-        } catch (error) {
-          monitoringError = error instanceof Error ? error.message : String(error);
-        }
+      try {
+        monitoring = await reconcileMonitoring({ mode: preferences.monitoringMode });
+      } catch (error) {
+        monitoringError = error instanceof Error ? error.message : String(error);
       }
 
       const repsResult = await ensureReps();
