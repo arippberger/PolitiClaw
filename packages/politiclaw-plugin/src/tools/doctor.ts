@@ -58,9 +58,11 @@ export const doctorTool: AnyAgentTool = {
   label: "Diagnose PolitiClaw install health",
   description:
     "Run a local health check: schema version, SQLite integrity, preferences, API keys, " +
-    "reps cache, and monitoring cron status. Returns a structured report with ok/warn/fail " +
-    "per check plus an actionable hint for every non-ok result. Read-only — never modifies " +
-    "state. Call this first when something looks broken.",
+    "reps cache, monitoring cron status, and skill-override status (which bundled skills " +
+    "are shadowed by user files in ~/.agents/skills or ~/.openclaw/skills). Returns a " +
+    "structured report with ok/warn/fail per check plus an actionable hint for every " +
+    "non-ok result. Read-only — never modifies state. Call this first when something " +
+    "looks broken.",
   parameters: EmptyParams,
   async execute() {
     try {

@@ -51,6 +51,15 @@ function makeCronAdapter(jobs: GatewayCronJob[]): GatewayCronAdapter {
   };
 }
 
+function noOverridesDeps() {
+  return {
+    bundledSkillsDir: "/test/skills",
+    listBundledSkills: () => ["politiclaw-onboarding", "politiclaw-outreach"],
+    homeDir: "/test/home",
+    exists: () => false,
+  };
+}
+
 function jobNamed(name: string, enabled: boolean): GatewayCronJob {
   return {
     id: `cron_${name}`,
@@ -102,6 +111,7 @@ describe("runDoctor", () => {
         },
       },
       cronAdapter: adapter,
+      skillOverridesDeps: noOverridesDeps(),
     });
     expect(report.worst).toBe("ok");
     for (const check of report.checks) {
@@ -204,6 +214,76 @@ describe("runDoctor", () => {
     const cron = report.checks.find((c) => c.id === "cron_jobs")!;
     expect(cron.status).toBe("fail");
     expect(cron.summary).toContain("gateway down");
+  });
+
+  it("reports skills as bundled when no override files exist", async () => {
+    const db = openMemoryDb();
+    const report = await runDoctor({
+      db,
+      config: { apiKeys: {} },
+      skillOverridesDeps: noOverridesDeps(),
+    });
+    const overrides = report.checks.find((c) => c.id === "skill_overrides")!;
+    expect(overrides.status).toBe("ok");
+    expect(overrides.summary).toContain("2 skill(s) bundled");
+    expect(overrides.summary).toContain("no user overrides");
+  });
+
+  it("flags skills overridden in ~/.agents/skills as personal-agent", async () => {
+    const db = openMemoryDb();
+    const overridden = "/test/home/.agents/skills/politiclaw-outreach/SKILL.md";
+    const report = await runDoctor({
+      db,
+      config: { apiKeys: {} },
+      skillOverridesDeps: {
+        bundledSkillsDir: "/test/skills",
+        listBundledSkills: () => ["politiclaw-onboarding", "politiclaw-outreach"],
+        homeDir: "/test/home",
+        exists: (p: string) => p === overridden,
+      },
+    });
+    const overrides = report.checks.find((c) => c.id === "skill_overrides")!;
+    expect(overrides.status).toBe("ok");
+    expect(overrides.summary).toContain("1 of 2 skill(s) overridden");
+    expect(overrides.summary).toContain("politiclaw-outreach");
+    expect(overrides.summary).toContain(overridden);
+    expect(overrides.actionable).toContain("Workspace-tier");
+  });
+
+  it("prefers ~/.agents over ~/.openclaw when both override the same skill", async () => {
+    const db = openMemoryDb();
+    const personal = "/test/home/.agents/skills/politiclaw-outreach/SKILL.md";
+    const managed = "/test/home/.openclaw/skills/politiclaw-outreach/SKILL.md";
+    const report = await runDoctor({
+      db,
+      config: { apiKeys: {} },
+      skillOverridesDeps: {
+        bundledSkillsDir: "/test/skills",
+        listBundledSkills: () => ["politiclaw-outreach"],
+        homeDir: "/test/home",
+        exists: (p: string) => p === personal || p === managed,
+      },
+    });
+    const overrides = report.checks.find((c) => c.id === "skill_overrides")!;
+    expect(overrides.summary).toContain(personal);
+    expect(overrides.summary).not.toContain(managed);
+  });
+
+  it("warns when bundled skills directory cannot be enumerated", async () => {
+    const db = openMemoryDb();
+    const report = await runDoctor({
+      db,
+      config: { apiKeys: {} },
+      skillOverridesDeps: {
+        bundledSkillsDir: "/missing",
+        listBundledSkills: () => [],
+        homeDir: "/test/home",
+        exists: () => false,
+      },
+    });
+    const overrides = report.checks.find((c) => c.id === "skill_overrides")!;
+    expect(overrides.status).toBe("warn");
+    expect(overrides.summary).toContain("Could not enumerate");
   });
 
   it("stamps a generatedAtMs from the injected clock", async () => {

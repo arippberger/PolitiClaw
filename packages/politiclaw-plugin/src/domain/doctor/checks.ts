@@ -10,6 +10,10 @@ import {
   buildMonitoringContract,
   type MonitoringContract,
 } from "../preferences/contract.js";
+import {
+  detectSkillOverrides,
+  type DetectSkillOverridesDeps,
+} from "./skillOverrides.js";
 
 export type CheckStatus = "ok" | "warn" | "fail";
 
@@ -33,6 +37,7 @@ export type RunDoctorDeps = {
   config: PluginConfigSnapshot;
   cronAdapter?: GatewayCronAdapter;
   now?: () => number;
+  skillOverridesDeps?: DetectSkillOverridesDeps;
 };
 
 export async function runDoctor(deps: RunDoctorDeps): Promise<DoctorReport> {
@@ -46,6 +51,7 @@ export async function runDoctor(deps: RunDoctorDeps): Promise<DoctorReport> {
   checks.push(checkApiKeys(deps.config));
   checks.push(checkRepsCoverage(deps.db));
   checks.push(await checkCron(deps.cronAdapter));
+  checks.push(checkSkillOverrides(deps.skillOverridesDeps));
 
   let monitoringContract: MonitoringContract | null = null;
   try {
@@ -321,6 +327,44 @@ async function checkCron(adapter?: GatewayCronAdapter): Promise<DoctorCheck> {
     };
   } catch (error) {
     return failedCheck("cron_jobs", "Monitoring cron jobs", error);
+  }
+}
+
+function checkSkillOverrides(deps?: DetectSkillOverridesDeps): DoctorCheck {
+  try {
+    const statuses = detectSkillOverrides(deps);
+    if (statuses.length === 0) {
+      return {
+        id: "skill_overrides",
+        label: "Skill overrides",
+        status: "warn",
+        summary: "Could not enumerate bundled skills.",
+        actionable:
+          "The plugin could not read its own skills/ directory. Verify the package layout — `<package>/skills/<name>/SKILL.md` is expected.",
+      };
+    }
+    const overridden = statuses.filter((s) => s.source !== "bundled");
+    if (overridden.length === 0) {
+      return {
+        id: "skill_overrides",
+        label: "Skill overrides",
+        status: "ok",
+        summary: `${statuses.length} skill(s) bundled; no user overrides found.`,
+      };
+    }
+    const detail = overridden
+      .map((s) => `${s.skill} ← ${s.overridePath}`)
+      .join("; ");
+    return {
+      id: "skill_overrides",
+      label: "Skill overrides",
+      status: "ok",
+      summary: `${overridden.length} of ${statuses.length} skill(s) overridden — ${detail}.`,
+      actionable:
+        "Workspace-tier overrides (<workspace>/skills, <workspace>/.agents/skills) are not visible to doctor; only ~/.agents/skills and ~/.openclaw/skills are checked.",
+    };
+  } catch (error) {
+    return failedCheck("skill_overrides", "Skill overrides", error);
   }
 }
 
