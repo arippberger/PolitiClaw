@@ -814,7 +814,10 @@ function collectMarkdownFiles(root: string): string[] {
 }
 
 function mentionsHiddenDocs(content: string): boolean {
-  return /`\/docs`|\]\(\/docs(?:\/|\))|\]\(docs(?:\/|\))|[^\w]\/docs(?:\/|\b)/.test(content);
+  // The trailing alternative `[^\w/]\/docs(?:\/|\b)` excludes `/` from the
+  // leading character class so `https://docs.<host>` URLs don't trip the
+  // rule — only repo-relative `/docs` references do.
+  return /`\/docs`|\]\(\/docs(?:\/|\))|\]\(docs(?:\/|\))|[^\w/]\/docs(?:\/|\b)/.test(content);
 }
 
 function collectTierMislabelIssues(): PublishedDocPolicyIssue[] {
