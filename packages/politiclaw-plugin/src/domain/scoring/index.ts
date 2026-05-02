@@ -174,6 +174,8 @@ export type ScoreRepresentativeResult =
       skippedNeutralPositionCount: number;
       missingSignalBillCount: number;
       billsWithoutRepVotes: number;
+      signalBillsMissingAlignmentCount: number;
+      repVoteBillCount: number;
       proceduralExcluded: boolean;
     }
   | { status: "no_stances"; reason: string; actionable: string }
@@ -197,8 +199,9 @@ export type ScoreRepresentativeResult =
  *   - `roll_call_votes` + `member_votes` (keyed on `bioguide_id`) — the
  *     actual vote record. House votes come from api.congress.gov; Senate
  *     votes come from voteview.com via the same ingest tool. Both chambers
- *     score the same way; senators only surface as "insufficient data" if
- *     `politiclaw_ingest_votes` has not been run for the Senate yet.
+ *     score the same way, but roll-call ingest alone is not enough: the
+ *     score also needs bill-level stance signals and bill-alignment rows for
+ *     the current stance snapshot.
  *
  * The function does not make live API calls; everything is read from the
  * plugin DB. Persistence writes one `rep_scores` row per active stance; the
@@ -238,11 +241,11 @@ export function scoreRepresentative(
   const excludeProcedural = opts.excludeProcedural ?? true;
 
   const rawEvidence = readEvidenceRows(db, repId, stanceSnapshotHash);
-  const coverage = computeCoverage(db, repId, stanceSnapshotHash);
-
   const evidence = expandEvidence(rawEvidence, stances);
-
   const alignment = computeRepAlignment(stances, evidence, { excludeProcedural });
+  const coverage = computeCoverage(db, repId, stanceSnapshotHash, {
+    includeZeroVoteDiagnostics: alignment.consideredVoteCount === 0,
+  });
 
   persistRepScores(db, rep, stanceSnapshotHash, alignment.perIssue, excludeProcedural);
 
@@ -256,6 +259,8 @@ export function scoreRepresentative(
     skippedNeutralPositionCount: alignment.skippedNeutralPositionCount,
     missingSignalBillCount: coverage.missingSignalBillCount,
     billsWithoutRepVotes: coverage.billsWithoutRepVotes,
+    signalBillsMissingAlignmentCount: coverage.signalBillsMissingAlignmentCount,
+    repVoteBillCount: coverage.repVoteBillCount,
     proceduralExcluded: excludeProcedural,
   };
 }
@@ -355,12 +360,15 @@ function safeParseMatches(matchedJson: string): StanceMatch[] {
 type CoverageStats = {
   missingSignalBillCount: number;
   billsWithoutRepVotes: number;
+  signalBillsMissingAlignmentCount: number;
+  repVoteBillCount: number;
 };
 
 function computeCoverage(
   db: PolitiClawDb,
   repId: string,
   stanceSnapshotHash: string,
+  opts: { includeZeroVoteDiagnostics?: boolean } = {},
 ): CoverageStats {
   const missingSignal = db
     .prepare(
@@ -392,9 +400,44 @@ function computeCoverage(
     )
     .get({ hash: stanceSnapshotHash, bioguide: repId }) as { c: number };
 
+  if (!opts.includeZeroVoteDiagnostics) {
+    return {
+      missingSignalBillCount: missingSignal.c,
+      billsWithoutRepVotes: billsWithoutVotes.c,
+      signalBillsMissingAlignmentCount: 0,
+      repVoteBillCount: 0,
+    };
+  }
+
+  const signalBillsMissingAlignment = db
+    .prepare(
+      `SELECT COUNT(DISTINCT ss.bill_id) AS c
+         FROM stance_signals ss
+         LEFT JOIN bill_alignment ba
+           ON ba.bill_id = ss.bill_id
+          AND ba.stance_snapshot_hash = @hash
+        WHERE ss.bill_id IS NOT NULL
+          AND ss.direction IN ('agree','disagree')
+          AND ba.bill_id IS NULL`,
+    )
+    .get({ hash: stanceSnapshotHash }) as { c: number };
+
+  const repVoteBills = db
+    .prepare(
+      `SELECT COUNT(DISTINCT rcv.bill_id) AS c
+         FROM roll_call_votes rcv
+         JOIN member_votes mv
+           ON mv.vote_id = rcv.id
+        WHERE mv.bioguide_id = @bioguide
+          AND rcv.bill_id IS NOT NULL`,
+    )
+    .get({ bioguide: repId }) as { c: number };
+
   return {
     missingSignalBillCount: missingSignal.c,
     billsWithoutRepVotes: billsWithoutVotes.c,
+    signalBillsMissingAlignmentCount: signalBillsMissingAlignment.c,
+    repVoteBillCount: repVoteBills.c,
   };
 }
 

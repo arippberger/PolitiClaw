@@ -225,7 +225,171 @@ describe("politiclaw_score_representative tool", () => {
 
     expect(text).toContain("insufficient data");
     expect(text).toContain("informational, not independent journalism");
-    expect(text).toContain("politiclaw_ingest_votes");
+    expect(text).toContain("No roll-call votes are stored for this rep yet");
+  });
+
+  it("explains when votes are ingested but no bill-level stance signals exist", async () => {
+    // Seed one declared stance so the tool reaches coverage diagnostics instead
+    // of short-circuiting on the no-stances guard.
+    upsertIssueStance(db, { issue: "defense", stance: "oppose", weight: 2 });
+    db.prepare(
+      `INSERT INTO reps
+         (id, name, office, party, jurisdiction, district, state, contact,
+          last_synced, source_adapter_id, source_tier, raw)
+       VALUES ('B000013', 'Rep Signals Missing', 'US House', 'D', 'US-CA-12', '12', 'CA', NULL,
+               @synced, 'congressLegislators', 1, '{}')`,
+    ).run({ synced: Date.now() });
+    db.prepare(
+      `INSERT INTO bills (id, congress, bill_type, number, title,
+                          last_synced, source_adapter_id, source_tier)
+       VALUES ('119-hr-10', 119, 'HR', '10', 'Signal-less bill', @synced, 'congressGov', 1)`,
+    ).run({ synced: Date.now() });
+    db.prepare(
+      `INSERT INTO roll_call_votes
+         (id, chamber, congress, session, roll_call_number,
+          bill_id, is_procedural, source_adapter_id, source_tier, synced_at)
+       VALUES ('House-119-1-1', 'House', 119, 1, 1,
+               '119-hr-10', 0, 'congressGov', 1, @synced)`,
+    ).run({ synced: Date.now() });
+    db.prepare(
+      `INSERT INTO member_votes
+         (vote_id, bioguide_id, position, first_name, last_name, party, state)
+       VALUES ('House-119-1-1', 'B000013', 'Yea', 'A', 'B', 'D', 'CA')`,
+    ).run();
+
+    const result = await scoreRepresentativeTool.execute!(
+      "call-1",
+      { repId: "B000013" },
+      undefined,
+      undefined,
+    );
+    const text = (result.content[0] as { type: "text"; text: string }).text;
+
+    expect(text).toContain("Roll-call votes are already ingested for this rep");
+    expect(text).toContain("politiclaw_record_stance_signal");
+    expect(text).not.toContain("Call politiclaw_ingest_votes first");
+  });
+
+  it("does not falsely claim the user has no stance signals when signals exist on bills the rep did not vote on", async () => {
+    const stance = { issue: "defense" as const, stance: "oppose" as const, weight: 2 };
+    upsertIssueStance(db, stance);
+    db.prepare(
+      `INSERT INTO reps
+         (id, name, office, party, jurisdiction, district, state, contact,
+          last_synced, source_adapter_id, source_tier, raw)
+       VALUES ('B000015', 'Rep No Overlap', 'US House', 'D', 'US-CA-12', '12', 'CA', NULL,
+               @synced, 'congressLegislators', 1, '{}')`,
+    ).run({ synced: Date.now() });
+
+    // Bill A: aligned + signaled, but the rep never voted on it.
+    db.prepare(
+      `INSERT INTO bills (id, congress, bill_type, number, title,
+                          last_synced, source_adapter_id, source_tier)
+       VALUES ('119-hr-30', 119, 'HR', '30', 'Aligned bill the rep skipped', @synced, 'congressGov', 1)`,
+    ).run({ synced: Date.now() });
+    const hash = stanceHash([stance]);
+    db.prepare(
+      `INSERT INTO bill_alignment
+         (bill_id, stance_snapshot_hash, relevance, confidence,
+          matched_json, rationale, computed_at, source_adapter_id, source_tier)
+       VALUES ('119-hr-30', @hash, 0.8, 0.6, @matches, 'test', @now, 'congressGov', 1)`,
+    ).run({
+      hash,
+      matches: JSON.stringify([
+        {
+          issue: stance.issue,
+          stance: stance.stance,
+          stanceWeight: stance.weight,
+          location: "subject",
+          matchedText: "subject 'defense'",
+        },
+      ]),
+      now: Date.now(),
+    });
+    recordStanceSignal(db, {
+      billId: "119-hr-30",
+      direction: "disagree",
+      weight: 1,
+      source: "onboarding",
+    });
+
+    // Bill B: the rep did vote on it, but it has no alignment and no signal,
+    // so it cannot produce evidence — yet it proves the rep has roll-call data.
+    db.prepare(
+      `INSERT INTO bills (id, congress, bill_type, number, title,
+                          last_synced, source_adapter_id, source_tier)
+       VALUES ('119-hr-31', 119, 'HR', '31', 'Unrelated bill the rep voted on', @synced, 'congressGov', 1)`,
+    ).run({ synced: Date.now() });
+    db.prepare(
+      `INSERT INTO roll_call_votes
+         (id, chamber, congress, session, roll_call_number,
+          bill_id, is_procedural, source_adapter_id, source_tier, synced_at)
+       VALUES ('House-119-1-3', 'House', 119, 1, 3,
+               '119-hr-31', 0, 'congressGov', 1, @synced)`,
+    ).run({ synced: Date.now() });
+    db.prepare(
+      `INSERT INTO member_votes
+         (vote_id, bioguide_id, position, first_name, last_name, party, state)
+       VALUES ('House-119-1-3', 'B000015', 'Yea', 'A', 'B', 'D', 'CA')`,
+    ).run();
+
+    const result = await scoreRepresentativeTool.execute!(
+      "call-1",
+      { repId: "B000015" },
+      undefined,
+      undefined,
+    );
+    const text = (result.content[0] as { type: "text"; text: string }).text;
+
+    expect(text).toContain("had a recorded stance signal but no matching roll-call for this rep");
+    expect(text).not.toContain("you have no recorded bill-level stance signals yet");
+    expect(text).not.toContain("Call politiclaw_ingest_votes");
+  });
+
+  it("explains when signals exist but bills have not been scored against the current stance snapshot", async () => {
+    upsertIssueStance(db, { issue: "defense", stance: "oppose", weight: 2 });
+    db.prepare(
+      `INSERT INTO reps
+         (id, name, office, party, jurisdiction, district, state, contact,
+          last_synced, source_adapter_id, source_tier, raw)
+       VALUES ('B000014', 'Rep Alignment Missing', 'US House', 'D', 'US-CA-12', '12', 'CA', NULL,
+               @synced, 'congressLegislators', 1, '{}')`,
+    ).run({ synced: Date.now() });
+    db.prepare(
+      `INSERT INTO bills (id, congress, bill_type, number, title,
+                          last_synced, source_adapter_id, source_tier)
+       VALUES ('119-hr-11', 119, 'HR', '11', 'Unscored bill', @synced, 'congressGov', 1)`,
+    ).run({ synced: Date.now() });
+    recordStanceSignal(db, {
+      billId: '119-hr-11',
+      direction: 'agree',
+      weight: 1,
+      source: 'onboarding',
+    });
+    db.prepare(
+      `INSERT INTO roll_call_votes
+         (id, chamber, congress, session, roll_call_number,
+          bill_id, is_procedural, source_adapter_id, source_tier, synced_at)
+       VALUES ('House-119-1-2', 'House', 119, 1, 2,
+               '119-hr-11', 0, 'congressGov', 1, @synced)`,
+    ).run({ synced: Date.now() });
+    db.prepare(
+      `INSERT INTO member_votes
+         (vote_id, bioguide_id, position, first_name, last_name, party, state)
+       VALUES ('House-119-1-2', 'B000014', 'Yea', 'A', 'B', 'D', 'CA')`,
+    ).run();
+
+    const result = await scoreRepresentativeTool.execute!(
+      "call-1",
+      { repId: "B000014" },
+      undefined,
+      undefined,
+    );
+    const text = (result.content[0] as { type: "text"; text: string }).text;
+
+    expect(text).toContain("have recorded stance signals but no bill-alignment row");
+    expect(text).toContain("politiclaw_score_bill");
+    expect(text).not.toContain("Call politiclaw_ingest_votes first");
   });
 
   it("mentions procedural exclusion by default and coverage hints", async () => {
