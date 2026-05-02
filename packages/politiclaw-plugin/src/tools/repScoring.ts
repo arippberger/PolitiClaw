@@ -229,7 +229,8 @@ function buildCoverageHints(inputs: {
       );
     } else if (
       inputs.missingSignalBillCount === 0 &&
-      inputs.signalBillsMissingAlignmentCount === 0
+      inputs.signalBillsMissingAlignmentCount === 0 &&
+      inputs.billsWithoutRepVotes === 0
     ) {
       hints.push(
         "  • Roll-call votes are already ingested for this rep, but you have no recorded bill-level stance signals yet — use politiclaw_record_stance_signal on specific bills to unlock rep scoring.",
