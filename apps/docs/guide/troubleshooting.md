@@ -2,13 +2,17 @@
 
 ## Start With Doctor
 
-When the runtime looks wrong, begin with `/politiclaw-doctor`. It checks storage, schema version, preferences, key presence, cached reps, and monitoring status in one place.
+When the runtime looks wrong, begin with `/politiclaw-doctor`. It checks storage, schema version, preferences, accountability mode, key presence, cached reps, cron job status, and skill overrides in one place.
 
-## The plugin does not install from the repo root
+## Plugin install fails from a local checkout
+
+End users should install the published package — `openclaw plugins install @politiclaw/politiclaw`. If you are working in this workspace and want a local-source install, the `--link` flag is required so the gateway reads from your checkout:
 
 ```bash
 openclaw plugins install ./packages/politiclaw-plugin --link
 ```
+
+For both paths, see [Installation and Verification](./installation-and-verification).
 
 ## Bill, Vote, Or Finance Tools Are Unavailable
 

@@ -157,22 +157,18 @@ graph TB
 <div class="pc-step">
   <div class="num"><span class="n">01</span>install</div>
   <div>
-    <div class="pc-step-title">link the plugin locally</div>
-    <p>From the repository root:</p>
-<pre><span class="k">npm</span> install
-<span class="k">openclaw</span> plugins install ./packages/politiclaw-plugin --link</pre>
+    <div class="pc-step-title">install the plugin from npm</div>
+    <p>Install into a running OpenClaw gateway, then reload the gateway (or restart the OpenClaw app) so the new tools register.</p>
+<pre><span class="k">openclaw</span> plugins install @politiclaw/politiclaw</pre>
   </div>
 </div>
 
 <div class="pc-step">
   <div class="num"><span class="n">02</span>verify</div>
   <div>
-    <div class="pc-step-title">check the workspace and runtime</div>
-    <p>Run the standard checks, then verify the real environment with the slash command:</p>
-<pre><span class="k">npm</span> run build
-<span class="k">npm</span> run typecheck
-<span class="k">npm</span> run test
-<span class="c"># then, from inside openclaw:</span>
+    <div class="pc-step-title">check the runtime</div>
+    <p>From inside OpenClaw, confirm the plugin registered and storage looks healthy:</p>
+<pre><span class="k">/politiclaw-version</span>
 <span class="k">/politiclaw-doctor</span></pre>
   </div>
 </div>

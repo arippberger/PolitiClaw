@@ -46,12 +46,12 @@ That's the whole message. No padding, no "here's what's still on the watch list,
 
 Emitted by `politiclaw.weekly_summary` on the 7-day cadence. Target length is 250–400 words, enforced by the summary skill.
 
-> **Headline.** Quiet week on federal climate bills; one committee markup moved on your `oppose` stance on `wetlands-rollback`.
+> **Headline.** Quiet week on federal `climate` bills; one committee markup moved on your `oppose` stance on `public-lands-and-natural-resources`.
 >
 > **Bills touching your declared stances.**
 >
-> - **HR-2211 — Wetlands Regulatory Clarity Act** · status: reported favorably from House Natural Resources, 23–19 · aligns against your `oppose` on `wetlands-rollback` (tier 1, api.congress.gov)
-> - **S. 845 — Clean Energy Manufacturing Tax Credit Extension** · status: introduced · aligns with your `support` on `clean-energy` (tier 1, api.congress.gov)
+> - **HR-2211 — Wetlands Regulatory Clarity Act** · status: reported favorably from House Natural Resources, 23–19 · aligns against your `oppose` on `public-lands-and-natural-resources` (tier 1, api.congress.gov)
+> - **S. 845 — Clean Energy Manufacturing Tax Credit Extension** · status: introduced · aligns with your `support` on `energy` (tier 1, api.congress.gov)
 >
 > **Upcoming (next 7 days).**
 >
@@ -90,8 +90,8 @@ Emitted by `politiclaw.rep_report` on the 30-day cadence. The full digest covers
 >
 > Recorded-vote alignment on your declared stances: 7 of 9 counted votes align; 2 against on tracked issues.
 >
-> - Aligned: voted YES on HR-1234 (affordable-housing waivers; tier 1, api.congress.gov)
-> - Against: voted YES on HR-2211 (wetlands rollback; your `oppose` stance)
+> - Aligned: voted YES on HR-1234 (`affordable-housing` waivers; tier 1, api.congress.gov)
+> - Against: voted YES on HR-2211 (wetlands rollback; your `oppose` on `public-lands-and-natural-resources`)
 >
 > Blind spots: 3 bills matched your stances but had no stance signal because they did not reach a recorded roll call.
 >

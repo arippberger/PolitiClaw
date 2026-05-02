@@ -18,7 +18,7 @@ A draft is strongest when it follows one of these:
 
 ## Phone alternative
 
-For a shorter, voice-ready script instead of a letter, use [`politiclaw_draft_outreach`](../reference/generated/tools/politiclaw_draft_outreach). It takes the same inputs (rep, issue, optional bill), drafts a tighter script (≤150 words), and uses the rep's stored office phone number — never a number the agent invents. Like the letter tool, it drafts only; the user makes the call themselves.
+For a shorter, voice-ready script instead of a letter, call [`politiclaw_draft_outreach`](../reference/generated/tools/politiclaw_draft_outreach) with `format='call'` (the letter path uses `format='letter'`). It takes the same inputs (rep, issue, optional bill), drafts a tighter script (≤150 words), and uses the rep's stored office phone number — never a number the agent invents. The optional `oneSpecificSentence` parameter appends a verbatim user-supplied line after the ask. Like the letter path, it drafts only; the user makes the call themselves.
 
 ## Setup prerequisites
 

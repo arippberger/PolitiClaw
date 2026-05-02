@@ -33,7 +33,7 @@ Snapshot of the plugin's saved state: address (state and zip), monitoring mode, 
 
 ### `/politiclaw-doctor`
 
-Runs the same checks as the [`politiclaw_doctor`](./generated/tools/politiclaw_doctor) tool — schema migrations, SQLite integrity, preferences, accountability mode, API keys, reps cache, and cron jobs — and prints them as a flat list with `[ok]` / `[warn]` / `[fail]` markers and an actionable hint per non-OK check. Use this for a fast, no-cost health check; use the tool for the agent-mediated walkthrough.
+Runs the same checks as the [`politiclaw_doctor`](./generated/tools/politiclaw_doctor) tool — schema migrations, SQLite integrity, preferences, accountability mode, API keys, reps cache, cron jobs, and skill overrides — and prints them as a flat list with `[ok]` / `[warn]` / `[fail]` markers and an actionable hint per non-OK check. Use this for a fast, no-cost health check; use the tool for the agent-mediated walkthrough.
 
 ### `/politiclaw-keys`
 
