@@ -219,7 +219,7 @@ describe("handleStanceSignalCreate", () => {
     expect(row.direction).toBe("agree");
   });
 
-  it("rejects a body with neither issue nor billId", () => {
+  it("rejects a body without a billId", () => {
     const db = openMemoryDb();
     const result = handleStanceSignalCreate(db, { direction: "skip" });
     expect(result.ok).toBe(false);

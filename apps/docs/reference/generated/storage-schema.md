@@ -2,7 +2,7 @@
 
 This page is generated from a real in-memory SQLite database after migrations run.
 
-Migration count: 18.
+Migration count: 19.
 
 ## Schema overview
 
@@ -251,7 +251,6 @@ erDiagram
   }
   stance_signals {
     INTEGER id PK
-    TEXT issue
     TEXT bill_id
     TEXT direction
     REAL weight
@@ -284,6 +283,7 @@ erDiagram
 - `packages/politiclaw-plugin/src/storage/migrations/0016_action_moments.sql`
 - `packages/politiclaw-plugin/src/storage/migrations/0017_preferences_action_prompting.sql`
 - `packages/politiclaw-plugin/src/storage/migrations/0018_issue_stance_notes.sql`
+- `packages/politiclaw-plugin/src/storage/migrations/0019_stance_signals_drop_issue.sql`
 
 ## Tables
 
@@ -918,7 +918,6 @@ CREATE TABLE snapshots (
 | Column | Type | Not Null | Primary Key | Default |
 | --- | --- | --- | --- | --- |
 | `id` | `INTEGER` | no | yes | n/a |
-| `issue` | `TEXT` | no | no | n/a |
 | `bill_id` | `TEXT` | no | no | n/a |
 | `direction` | `TEXT` | yes | no | n/a |
 | `weight` | `REAL` | yes | no | `1.0` |
@@ -928,7 +927,6 @@ CREATE TABLE snapshots (
 ```sql
 CREATE TABLE stance_signals (
   id              INTEGER PRIMARY KEY AUTOINCREMENT,
-  issue           TEXT,
   bill_id         TEXT,
   direction       TEXT NOT NULL CHECK (direction IN ('agree','disagree','skip')),
   weight          REAL NOT NULL DEFAULT 1.0,
@@ -976,4 +974,3 @@ CREATE TABLE stance_signals (
 | `snapshots_kind` | `snapshots` | `CREATE INDEX snapshots_kind ON snapshots(entity_kind)` |
 | `stance_signals_bill` | `stance_signals` | `CREATE INDEX stance_signals_bill  ON stance_signals(bill_id)` |
 | `stance_signals_bill_dir_created` | `stance_signals` | `CREATE INDEX stance_signals_bill_dir_created   ON stance_signals(bill_id, direction, created_at DESC)` |
-| `stance_signals_issue` | `stance_signals` | `CREATE INDEX stance_signals_issue ON stance_signals(issue)` |

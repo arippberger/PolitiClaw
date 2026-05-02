@@ -5,13 +5,30 @@ import {
   deleteIssueStance,
   getPreferences,
   listIssueStances,
-  listStanceSignals,
   recordStanceSignal,
   setMonitoringMode,
   upsertIssueStance,
   upsertPreferences,
   MonitoringModeSchema,
 } from "./index.js";
+
+type StoredSignal = {
+  id: number;
+  bill_id: string | null;
+  direction: "agree" | "disagree" | "skip";
+  weight: number;
+  source: string;
+};
+
+function readSignals(db: ReturnType<typeof openMemoryDb>): StoredSignal[] {
+  return db
+    .prepare(
+      `SELECT id, bill_id, direction, weight, source
+         FROM stance_signals
+        ORDER BY id DESC`,
+    )
+    .all() as StoredSignal[];
+}
 
 describe("upsertPreferences", () => {
   it("requires a non-empty address", () => {
@@ -55,11 +72,14 @@ describe("upsertPreferences", () => {
 });
 
 describe("recordStanceSignal", () => {
-  it("requires either issue or billId", () => {
+  it("requires a billId", () => {
     const db = openMemoryDb();
     expect(() =>
-      recordStanceSignal(db, { direction: "agree", source: "onboarding" }),
-    ).toThrow(/issue or billId/);
+      recordStanceSignal(db, {
+        direction: "agree",
+        source: "onboarding",
+      } as Parameters<typeof recordStanceSignal>[1]),
+    ).toThrow();
   });
 
   it("defaults weight to 1.0 when omitted", () => {
@@ -67,9 +87,9 @@ describe("recordStanceSignal", () => {
     recordStanceSignal(db, {
       direction: "agree",
       source: "onboarding",
-      issue: "climate",
+      billId: "119-hr-1",
     });
-    const rows = listStanceSignals(db);
+    const rows = readSignals(db);
     expect(rows[0]?.weight).toBe(1.0);
   });
 
@@ -79,7 +99,7 @@ describe("recordStanceSignal", () => {
       recordStanceSignal(db, {
         direction: "agree",
         source: "onboarding",
-        issue: "climate",
+        billId: "119-hr-1",
         weight: -1,
       }),
     ).toThrow();
@@ -90,26 +110,26 @@ describe("recordStanceSignal", () => {
     const id = recordStanceSignal(db, {
       direction: "agree",
       source: "onboarding",
-      issue: "climate",
+      billId: "119-hr-1",
       weight: 1,
     });
     expect(id).toBeGreaterThan(0);
 
-    const rows = listStanceSignals(db);
+    const rows = readSignals(db);
     expect(rows).toHaveLength(1);
-    expect(rows[0]?.issue).toBe("climate");
+    expect(rows[0]?.bill_id).toBe("119-hr-1");
     expect(rows[0]?.direction).toBe("agree");
   });
 
-  it("lists signals newest-first", () => {
+  it("stores signals in insertion order", () => {
     const db = openMemoryDb();
-    recordStanceSignal(db, { direction: "agree", source: "onboarding", issue: "a", weight: 1 });
-    recordStanceSignal(db, { direction: "disagree", source: "monitoring", issue: "b", weight: 1 });
-    recordStanceSignal(db, { direction: "skip", source: "dashboard", billId: "hr-1", weight: 1 });
+    recordStanceSignal(db, { direction: "agree", source: "onboarding", billId: "hr-a", weight: 1 });
+    recordStanceSignal(db, { direction: "disagree", source: "monitoring", billId: "hr-b", weight: 1 });
+    recordStanceSignal(db, { direction: "skip", source: "dashboard", billId: "hr-c", weight: 1 });
 
-    const rows = listStanceSignals(db);
+    const rows = readSignals(db);
     expect(rows.map((r) => r.direction)).toEqual(["skip", "disagree", "agree"]);
-    expect(rows[0]?.billId).toBe("hr-1");
+    expect(rows[0]?.bill_id).toBe("hr-c");
   });
 });
 

@@ -24,8 +24,8 @@ function seedAlignmentAndSignals(db: PolitiClawDb): void {
   ).run();
 
   db.prepare(
-    `INSERT INTO stance_signals (issue, bill_id, direction, weight, source, created_at)
-     VALUES ('housing', '119-hr-1', 'agree', 1.0, 'monitoring', 0)`,
+    `INSERT INTO stance_signals (bill_id, direction, weight, source, created_at)
+     VALUES ('119-hr-1', 'agree', 1.0, 'monitoring', 0)`,
   ).run();
 }
 

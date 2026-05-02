@@ -318,8 +318,7 @@ export async function handleMonitoringToggle(
 }
 
 const StanceSignalBodySchema = Type.Object({
-  issue: Type.Optional(Type.String({ minLength: 1 })),
-  billId: Type.Optional(Type.String({ minLength: 1 })),
+  billId: Type.String({ minLength: 1 }),
   direction: Type.Union([
     Type.Literal("agree"),
     Type.Literal("disagree"),
@@ -329,8 +328,7 @@ const StanceSignalBodySchema = Type.Object({
 });
 
 export type StanceSignalBody = {
-  issue?: string;
-  billId?: string;
+  billId: string;
   direction: "agree" | "disagree" | "skip";
   weight?: number;
 };
@@ -356,22 +354,8 @@ export function handleStanceSignalCreate(
       },
     };
   }
-  // Cross-field rule: at least one of issue/billId is required. Used to be a
-  // Zod .refine; lives here now since TypeBox schemas don't express it.
-  if (parsed.data.issue === undefined && parsed.data.billId === undefined) {
-    return {
-      ok: false,
-      status: 400,
-      body: {
-        error: "invalid_body",
-        message: "stance signal body failed validation",
-        details: { messages: ["one of issue or billId is required"] },
-      },
-    };
-  }
   try {
     const id = recordStanceSignal(db, {
-      issue: parsed.data.issue,
       billId: parsed.data.billId,
       direction: parsed.data.direction,
       weight: parsed.data.weight ?? 1,
@@ -382,8 +366,7 @@ export function handleStanceSignalCreate(
       status: 200,
       body: {
         id,
-        billId: parsed.data.billId ?? null,
-        issue: parsed.data.issue ?? null,
+        billId: parsed.data.billId,
         direction: parsed.data.direction,
       },
     };

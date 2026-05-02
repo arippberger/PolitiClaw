@@ -76,15 +76,11 @@ const StanceSourceSchema = Type.Union([
 ]);
 
 /**
- * Schema for stance-signal input *after* the caller has trimmed `issue`
- * and `billId`. The cross-field rule "one of issue or billId required"
- * is enforced in `recordStanceSignal` since TypeBox doesn't express
- * cross-field invariants in the schema. `weight` defaults to 1.0 in the
- * caller when undefined.
+ * Schema for stance-signal input *after* the caller has trimmed `billId`.
+ * `weight` defaults to 1.0 in the caller when undefined.
  */
 export const StanceSignalSchema = Type.Object({
-  issue: Type.Optional(Type.String({ minLength: 1 })),
-  billId: Type.Optional(Type.String({ minLength: 1 })),
+  billId: Type.String({ minLength: 1 }),
   direction: StanceDirectionSchema,
   weight: Type.Optional(Type.Number({ exclusiveMinimum: 0 })),
   source: StanceSourceSchema,

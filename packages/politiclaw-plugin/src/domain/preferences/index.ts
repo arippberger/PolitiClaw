@@ -225,23 +225,18 @@ export function setActionPrompting(
 export function recordStanceSignal(db: PolitiClawDb, input: StanceSignal): number {
   const normalized: StanceSignal = {
     ...input,
-    issue: input.issue?.trim(),
-    billId: input.billId?.trim(),
+    billId: input.billId.trim(),
   };
   const parsed = parse(StanceSignalSchema, normalized);
-  if (parsed.issue === undefined && parsed.billId === undefined) {
-    throw new Error("one of issue or billId is required");
-  }
   const weight = parsed.weight ?? DEFAULT_STANCE_SIGNAL_WEIGHT;
   const now = Date.now();
   const res = db
     .prepare(
-      `INSERT INTO stance_signals (issue, bill_id, direction, weight, source, created_at)
-       VALUES (@issue, @bill_id, @direction, @weight, @source, @created_at)`,
+      `INSERT INTO stance_signals (bill_id, direction, weight, source, created_at)
+       VALUES (@bill_id, @direction, @weight, @source, @created_at)`,
     )
     .run({
-      issue: parsed.issue ?? null,
-      bill_id: parsed.billId ?? null,
+      bill_id: parsed.billId,
       direction: parsed.direction,
       weight,
       source: parsed.source,
@@ -249,16 +244,6 @@ export function recordStanceSignal(db: PolitiClawDb, input: StanceSignal): numbe
     });
   return Number(res.lastInsertRowid);
 }
-
-export type StanceSignalRow = {
-  id: number;
-  issue: string | null;
-  billId: string | null;
-  direction: "agree" | "disagree" | "skip";
-  weight: number;
-  source: string;
-  createdAt: number;
-};
 
 function trimToNullable(value: string | undefined): string | null {
   if (value === undefined) return null;
@@ -333,28 +318,3 @@ export function deleteIssueStance(db: PolitiClawDb, issue: string): boolean {
   return result.changes > 0;
 }
 
-export function listStanceSignals(db: PolitiClawDb, limit = 100): StanceSignalRow[] {
-  const rows = db
-    .prepare(
-      `SELECT id, issue, bill_id, direction, weight, source, created_at
-       FROM stance_signals ORDER BY id DESC LIMIT ?`,
-    )
-    .all(limit) as Array<{
-    id: number;
-    issue: string | null;
-    bill_id: string | null;
-    direction: "agree" | "disagree" | "skip";
-    weight: number;
-    source: string;
-    created_at: number;
-  }>;
-  return rows.map((r) => ({
-    id: r.id,
-    issue: r.issue,
-    billId: r.bill_id,
-    direction: r.direction,
-    weight: r.weight,
-    source: r.source,
-    createdAt: r.created_at,
-  }));
-}

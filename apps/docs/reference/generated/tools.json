@@ -408,7 +408,7 @@
     "groupId": "preferences",
     "groupLabel": "Configuration and preferences",
     "sourcePath": "packages/politiclaw-plugin/src/tools/preferences.ts",
-    "description": "Record a single agree/disagree/skip signal from the user in response to a shown bill or issue. Later scoring can aggregate these signals into learned issue stances; this tool only records the raw signal. For first-time setup or full reconfiguration, prefer politiclaw_configure.",
+    "description": "Record a single agree/disagree/skip signal from the user on a specific bill. Rep scoring reads the latest agree/disagree signal per bill to decide whether a rep's vote was aligned or conflicted. For first-time setup or full reconfiguration, prefer politiclaw_configure.",
     "parameters": [
       {
         "name": "direction",
@@ -423,14 +423,8 @@
         "description": ""
       },
       {
-        "name": "issue",
-        "required": false,
-        "type": "string",
-        "description": "Issue slug, e.g. 'climate'."
-      },
-      {
         "name": "billId",
-        "required": false,
+        "required": true,
         "type": "string",
         "description": "Bill id this signal applies to."
       },
@@ -445,7 +439,8 @@
       "type": "object",
       "required": [
         "direction",
-        "source"
+        "source",
+        "billId"
       ],
       "properties": {
         "direction": {
@@ -479,10 +474,6 @@
               "type": "string"
             }
           ]
-        },
-        "issue": {
-          "description": "Issue slug, e.g. 'climate'.",
-          "type": "string"
         },
         "billId": {
           "description": "Bill id this signal applies to.",

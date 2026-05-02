@@ -6,7 +6,7 @@
 
 ## Description
 
-Record a single agree/disagree/skip signal from the user in response to a shown bill or issue. Later scoring can aggregate these signals into learned issue stances; this tool only records the raw signal. For first-time setup or full reconfiguration, prefer politiclaw_configure.
+Record a single agree/disagree/skip signal from the user on a specific bill. Rep scoring reads the latest agree/disagree signal per bill to decide whether a rep's vote was aligned or conflicted. For first-time setup or full reconfiguration, prefer politiclaw_configure.
 
 ## Parameters
 
@@ -14,8 +14,7 @@ Record a single agree/disagree/skip signal from the user in response to a shown 
 | --- | --- | --- | --- |
 | `direction` | yes | `"agree" \| "disagree" \| "skip"` |  |
 | `source` | yes | `"onboarding" \| "monitoring" \| "dashboard"` |  |
-| `issue` | no | `string` | Issue slug, e.g. 'climate'. |
-| `billId` | no | `string` | Bill id this signal applies to. |
+| `billId` | yes | `string` | Bill id this signal applies to. |
 | `weight` | no | `number` | Signal strength (&gt; 0); defaults to 1.0. |
 
 ## Raw Schema
@@ -25,7 +24,8 @@ Record a single agree/disagree/skip signal from the user in response to a shown 
   "type": "object",
   "required": [
     "direction",
-    "source"
+    "source",
+    "billId"
   ],
   "properties": {
     "direction": {
@@ -59,10 +59,6 @@ Record a single agree/disagree/skip signal from the user in response to a shown 
           "type": "string"
         }
       ]
-    },
-    "issue": {
-      "description": "Issue slug, e.g. 'climate'.",
-      "type": "string"
     },
     "billId": {
       "description": "Bill id this signal applies to.",

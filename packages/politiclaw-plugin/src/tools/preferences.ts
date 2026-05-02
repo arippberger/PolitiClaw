@@ -2,7 +2,6 @@ import { Type } from "@sinclair/typebox";
 import type { AnyAgentTool } from "openclaw/plugin-sdk/plugin-entry";
 
 import {
-  listStanceSignals,
   recordStanceSignal,
   StanceSignalSchema,
 } from "../domain/preferences/index.js";
@@ -16,8 +15,7 @@ const RecordStanceSignalParams = Type.Object({
     Type.Literal("monitoring"),
     Type.Literal("dashboard"),
   ]),
-  issue: Type.Optional(Type.String({ description: "Issue slug, e.g. 'climate'." })),
-  billId: Type.Optional(Type.String({ description: "Bill id this signal applies to." })),
+  billId: Type.String({ description: "Bill id this signal applies to." }),
   weight: Type.Optional(
     Type.Number({ exclusiveMinimum: 0, description: "Signal strength (> 0); defaults to 1.0." }),
   ),
@@ -31,8 +29,8 @@ export const recordStanceSignalTool: AnyAgentTool = {
   name: "politiclaw_record_stance_signal",
   label: "Record PolitiClaw stance signal",
   description:
-    "Record a single agree/disagree/skip signal from the user in response to a shown bill or issue. " +
-    "Later scoring can aggregate these signals into learned issue stances; this tool only records the raw signal. " +
+    "Record a single agree/disagree/skip signal from the user on a specific bill. " +
+    "Rep scoring reads the latest agree/disagree signal per bill to decide whether a rep's vote was aligned or conflicted. " +
     "For first-time setup or full reconfiguration, prefer politiclaw_configure.",
   parameters: RecordStanceSignalParams,
   async execute(_toolCallId, rawParams) {
@@ -44,5 +42,3 @@ export const recordStanceSignalTool: AnyAgentTool = {
 };
 
 export const recordStanceSignalTools: AnyAgentTool[] = [recordStanceSignalTool];
-
-export { listStanceSignals };
